@@ -74,6 +74,12 @@ Say plainly that the first build against the real DLLs happens on Windows.
 - Candle `Time` is **UTC**: add `InstrumentInfo.TimeZoneOffset` for chart time.
 - Panel-only indicators must hide the default series:
   `DataSeries[0].IsHidden = true;` and `((ValueDataSeries)DataSeries[0]).VisualType = VisualMode.Hide;`.
+- One classic build (`net10.0-windows`, `UseWPF`) also runs on ATAS X, **provided the only WPF
+  types used are `System.Windows.Media.Color`/`Colors`** (ATAS X converts those). Any other type
+  from `WindowsBase`/`PresentationCore`/`PresentationFramework`, a custom WPF editor, or a
+  `System.Xaml` reference makes ATAS X skip the whole DLL ("Rejected assembly" in its log).
+  Check a build by listing its TypeRefs with `System.Reflection.Metadata`. Checked 2026-10-26:
+  `IndicadorTendenciaHourly.dll` uses only `System.Windows.Media.Color`.
 - `OnCalculate` is called repeatedly for the live bar. `OnCalculate` and `OnRender` run on
   different threads.
 - Built DLLs go in `%APPDATA%\ATAS\Indicators` (classic) or `%APPDATA%\ATAS X\Indicators`
