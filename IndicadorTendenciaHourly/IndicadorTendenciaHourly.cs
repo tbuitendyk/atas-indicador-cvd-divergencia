@@ -168,7 +168,7 @@ public class IndicadorTendenciaHourly : Indicator
 	private int _ultimaBarra = -1;
 	private DateTime _horaUltimaVela;
 	private long _periodoGraficoTicks;
-	private bool _confirmarAlCierre;
+	private bool _confirmarAlCierre = true;
 
 	private readonly RenderFont _fuenteTitulo = new("Arial", 8.5f, FontStyle.Bold);
 	private readonly RenderFont _fuenteEtiqueta = new("Arial", 9f, FontStyle.Bold);
@@ -186,8 +186,8 @@ public class IndicadorTendenciaHourly : Indicator
 	#region Configuración
 
 	[Display(Name = "Confirmar al cierre", GroupName = "Cálculo", Order = 10,
-		Description = "Desactivado: compara el precio actual con la vela anterior de cada marco temporal y cambia en tiempo real. "
-			+ "Activado: evalúa solo al cerrar cada vela de 1H/15M/5M y mantiene el estado durante todo el período siguiente.")]
+		Description = "Activado (por defecto): evalúa solo al cerrar cada vela de 1H/15M/5M y mantiene el estado durante todo el período siguiente. "
+			+ "Desactivado: compara el precio actual con la vela anterior de cada marco temporal y cambia en tiempo real.")]
 	public bool ConfirmarAlCierre
 	{
 		get => _confirmarAlCierre;

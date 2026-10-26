@@ -7,6 +7,9 @@ Un solo repositorio con una carpeta por indicador; `Indicadores.slnx` los compil
 |---|---|---|
 | Indicador de Tendencia Hourly | `IndicadorTendenciaHourly/` | `IndicadorTendenciaHourly.dll` |
 
+Pasos completos para subir el código a otro repositorio de GitHub, descargarlo en Windows, compilarlo, instalarlo y
+recibir actualizaciones por pull request: **[docs/GUIA.md](docs/GUIA.md)**.
+
 ## Requisitos
 
 - Windows con la plataforma ATAS instalada (versión actual, que usa .NET 10).
@@ -46,11 +49,12 @@ A la derecha, **Desde** muestra la hora del gráfico en que empezó el estado ac
 
 ### Opción "Confirmar al cierre" (grupo Cálculo)
 
-- **Desactivada** (por defecto, como en la especificación original): compara el precio actual con la vela anterior y
-  cambia en tiempo real. Al empezar cada período nuevo el estado normalmente vuelve a (-), porque el precio arranca
-  dentro del rango de la vela que acaba de cerrar, hasta que rompe su máximo o su mínimo.
-- **Activada**: solo evalúa cuando cierra cada vela de 1H/15M/5M y mantiene ese estado durante todo el período
-  siguiente.
+- **Activada** (por defecto): solo evalúa cuando cierra cada vela de 1H/15M/5M, comparando su cierre con la vela
+  anterior, y mantiene ese estado durante todo el período siguiente. *Desde* es la hora en que cerró la vela que
+  confirmó el estado. La fila de 1H necesita al menos dos horas completas en el gráfico; mientras tanto muestra `--:--`.
+- **Desactivada**: compara el precio actual con la vela anterior y cambia en tiempo real. Al empezar cada período
+  nuevo el estado normalmente vuelve a (-), porque el precio arranca dentro del rango de la vela que acaba de cerrar,
+  hasta que rompe su máximo o su mínimo.
 
 ### Aviso de gráfico no compatible
 
