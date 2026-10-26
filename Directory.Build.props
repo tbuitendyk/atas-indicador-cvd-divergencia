@@ -15,6 +15,11 @@
     <ATAS_BASE Condition="'$(ATAS_BASE)' == ''">C:\Program Files (x86)\ATAS Platform</ATAS_BASE>
   </PropertyGroup>
 
+  <!-- Código compartido por todos los indicadores (arrastre de paneles con el ratón). -->
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Compartido\*.cs" Link="Compartido\%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <!-- Ensamblados de la plataforma, tomados de la instalación de ATAS.
        Private=false: no se copian a la salida, ATAS ya los tiene cargados. -->
   <ItemGroup>

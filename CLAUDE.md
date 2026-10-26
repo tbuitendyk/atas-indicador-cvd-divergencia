@@ -43,6 +43,11 @@ authorization.)
   footprint spec's `if (bar >= CurrentBar - 1) return;` never evaluated anything in real time.)
 - On-chart panels stack down the left edge at X 25: Tendencia Y 60, CVD HUD Y 230, Footprint Y 410.
   A new panel goes below (Y 490 or more), with Posición X/Y settings.
+- Every panel can be dragged by its title bar through the shared helper `Compartido/ArrastrePanel.cs`,
+  which `Directory.Build.props` compiles into every project. A new panel uses `_arrastre.Ubicar(...)`
+  when drawing, plus the same four mouse overrides. Floating a panel **outside** the chart is not
+  possible through the indicator API. A custom WPF window would make ATAS X reject the DLL, so the
+  owner declined it (2026-10-26).
 - Owner preferences so far: signals are evaluated on **closed candles** (no repainting). Where a
   spec's prose and its code disagree, ask; the specs are AI-written and their code has never compiled
   as-is.
@@ -66,6 +71,7 @@ cloud session builds against the real API. Verify in three layers:
 1. **API shapes**: check every ATAS call against the official sources,
    `git clone --depth 1 https://github.com/AtasPlatform/Indicators` (`Technical/` holds ~285
    built-in indicators). Copy call shapes from there, never from memory or an AI-written spec.
+   `Technical/PublicAPI.Shipped.txt` lists exact signatures, including the platform types they use.
 2. **Compile**: install the .NET 10 SDK (`dotnet-install.sh --channel 10.0`), build stand-in
    DLLs (`ATAS.Indicators`, `ATAS.DataFeedsCore`, `OFT.Rendering`, `Utils.Common`) that declare
    only members verified in step 1, then
@@ -106,6 +112,11 @@ Say plainly that the first build against the real DLLs happens on Windows.
 - Per-price volume: `candle.GetPriceVolumeInfo(price)` stepping by `InstrumentInfo.TickSize`;
   it returns null for a price with no trades. It exposes `.Volume`, `.Bid` and `.Ask`. The POC is
   `candle.MaxVolumePriceInfo.Price` (null-check it). `ChartInfo.PriceStep` does not exist.
+- Mouse: `public override bool ProcessMouseDown/ProcessMouseMove/ProcessMouseUp(OFT.Rendering.Control.RenderControlMouseEventArgs e)`.
+  Return `true` when handled, otherwise `base.…(e)`. `public override OFT.Rendering.StdCursor GetCursor(e)`
+  (`StdCursor.Hand`). `e.Location`/`e.X`/`e.Y` are in the same coordinates as drawing. The official
+  code never reads a mouse button, so neither do we. Call `RedrawChart()` after moving something.
+  The price-chart area is `ChartInfo.PriceChartContainer.Region`.
 - Dot/marker series: `new ValueDataSeries("Id", "Name") { VisualType = VisualMode.Dots,
   ShowZeroValue = false, Width = n, Color = <WPF color> }`. Without `ShowZeroValue = false`, every
   bar gets a dot at price 0. When recalculating, write 0 to bars that have no signal, so no stale

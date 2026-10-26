@@ -10,6 +10,7 @@ using ATAS.Indicators;
 using ATAS.Indicators.Drawing;
 
 using OFT.Rendering.Context;
+using OFT.Rendering.Control;
 using OFT.Rendering.Tools;
 
 // Alias explícitos, como en el resto del proyecto: dibujo con System.Drawing, colores configurables con WPF.
@@ -18,6 +19,7 @@ using FontStyle = System.Drawing.FontStyle;
 using MediaColor = System.Windows.Media.Color;
 using Point = System.Drawing.Point;
 using Rectangle = System.Drawing.Rectangle;
+using StdCursor = OFT.Rendering.StdCursor;
 using StringAlignment = System.Drawing.StringAlignment;
 
 /// <summary>
@@ -120,6 +122,8 @@ public class InstitutionalCvdTriggerEngine : Indicator
 	private readonly RenderPen _bordeCompra = new(ColorCompra);
 	private readonly RenderPen _bordeVenta = new(ColorVenta);
 	private readonly RenderPen _bordeEspera = new(Color.Gold);
+
+	private readonly ArrastrePanel _arrastre = new();
 
 	#endregion
 
@@ -251,7 +255,8 @@ public class InstitutionalCvdTriggerEngine : Indicator
 		}
 	}
 
-	[Display(Name = "Posición X", GroupName = "4. Panel HUD", Order = 130)]
+	[Display(Name = "Posición X", GroupName = "4. Panel HUD", Order = 130,
+		Description = "También se puede mover arrastrando el panel con el ratón por su barra de título.")]
 	[Range(0, 10000)]
 	public int HudX { get; set; } = 25;
 
@@ -617,8 +622,9 @@ public class InstitutionalCvdTriggerEngine : Indicator
 		const int ancho = 330;
 		const int alto = 166;
 
-		var x = HudX;
-		var y = HudY;
+		var panel = _arrastre.Ubicar(HudX, HudY, ancho, alto, 25, AreaGrafico());
+		var x = panel.X;
+		var y = panel.Y;
 
 		context.FillRectangle(Color.FromArgb(240, 16, 18, 24), new Rectangle(x, y, ancho, alto));
 		context.DrawRectangle(_bordePanel, new Rectangle(x, y, ancho, alto));
@@ -675,6 +681,30 @@ public class InstitutionalCvdTriggerEngine : Indicator
 			context.DrawString("ESPERANDO GATILLO...", _fuenteGatillo, Color.Gold, banner, _alinearCentro);
 		}
 	}
+
+	// Arrastre del panel con el ratón por su barra de título.
+
+	public override bool ProcessMouseDown(RenderControlMouseEventArgs e) =>
+		_arrastre.Presionar(e.Location) || base.ProcessMouseDown(e);
+
+	public override bool ProcessMouseMove(RenderControlMouseEventArgs e)
+	{
+		if (_arrastre.Mover(e.Location, AreaGrafico()) is not { } posicion)
+			return base.ProcessMouseMove(e);
+
+		HudX = posicion.X;
+		HudY = posicion.Y;
+		RedrawChart();
+		return true;
+	}
+
+	public override bool ProcessMouseUp(RenderControlMouseEventArgs e) =>
+		_arrastre.Soltar() || base.ProcessMouseUp(e);
+
+	public override StdCursor GetCursor(RenderControlMouseEventArgs e) =>
+		_arrastre.Arrastrando || _arrastre.SobreTitulo(e.Location) ? StdCursor.Hand : base.GetCursor(e);
+
+	private Rectangle AreaGrafico() => ChartInfo?.PriceChartContainer.Region ?? Rectangle.Empty;
 
 	private void DibujarFila(RenderContext context, int x, int y, string etiqueta, string valor, Color color)
 	{

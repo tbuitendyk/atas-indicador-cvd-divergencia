@@ -136,7 +136,8 @@ Después, en cualquiera de las dos opciones:
    - **Velas CVD (panel)**: las velas del CVD en un panel aparte; se agrega además del motor si se quieren ver.
    - **Footprint Predictor Pro (Sweeps & Context)**: puntos de pronóstico de la siguiente vela y panel de estructura
      de mercado.
-3. Qué hace cada ajuste: ver el [README](../README.md).
+3. Los paneles se mueven arrastrándolos con el ratón por su barra de título.
+4. Qué hace cada ajuste: ver el [README](../README.md).
 
 ### Si el indicador no aparece en la lista
 

@@ -8,6 +8,7 @@ using ATAS.Indicators;
 using ATAS.Indicators.Drawing;
 
 using OFT.Rendering.Context;
+using OFT.Rendering.Control;
 using OFT.Rendering.Tools;
 
 // Alias explícitos: los tipos de dibujo vienen de System.Drawing y los colores configurables
@@ -18,6 +19,7 @@ using FontStyle = System.Drawing.FontStyle;
 using MediaColor = System.Windows.Media.Color;
 using Point = System.Drawing.Point;
 using Rectangle = System.Drawing.Rectangle;
+using StdCursor = OFT.Rendering.StdCursor;
 using StringAlignment = System.Drawing.StringAlignment;
 
 /// <summary>
@@ -181,6 +183,8 @@ public class IndicadorTendenciaHourly : Indicator
 	private readonly RenderPen _bordePanel = new(Color.FromArgb(70, 80, 95));
 	private readonly RenderPen _bordePastilla = new(Color.FromArgb(170, 175, 185));
 
+	private readonly ArrastrePanel _arrastre = new();
+
 	#endregion
 
 	#region Configuración
@@ -198,7 +202,8 @@ public class IndicadorTendenciaHourly : Indicator
 		}
 	}
 
-	[Display(Name = "Posición X", GroupName = "Ubicación del panel", Order = 20)]
+	[Display(Name = "Posición X", GroupName = "Ubicación del panel", Order = 20,
+		Description = "También se puede mover arrastrando el panel con el ratón por su barra de título.")]
 	[Range(0, 10000)]
 	public int PanelX { get; set; } = 25;
 
@@ -344,11 +349,10 @@ public class IndicadorTendenciaHourly : Indicator
 		const int altoTitulo = 26;
 		const int altoFila = 34;
 
-		var x = PanelX;
-		var y = PanelY;
 		var alto = altoTitulo + 8 + filas.Length * altoFila + (advertencia ? 20 : 0);
-
-		var panel = new Rectangle(x, y, ancho, alto);
+		var panel = _arrastre.Ubicar(PanelX, PanelY, ancho, alto, altoTitulo, AreaGrafico());
+		var x = panel.X;
+		var y = panel.Y;
 		context.FillRectangle(Color.FromArgb(230, 22, 25, 30), panel);
 		context.DrawRectangle(_bordePanel, panel);
 
@@ -365,6 +369,30 @@ public class IndicadorTendenciaHourly : Indicator
 				new Rectangle(x + 12, y + alto - 22, ancho - 24, 18), _alinearIzquierda);
 		}
 	}
+
+	// Arrastre del panel con el ratón por su barra de título.
+
+	public override bool ProcessMouseDown(RenderControlMouseEventArgs e) =>
+		_arrastre.Presionar(e.Location) || base.ProcessMouseDown(e);
+
+	public override bool ProcessMouseMove(RenderControlMouseEventArgs e)
+	{
+		if (_arrastre.Mover(e.Location, AreaGrafico()) is not { } posicion)
+			return base.ProcessMouseMove(e);
+
+		PanelX = posicion.X;
+		PanelY = posicion.Y;
+		RedrawChart();
+		return true;
+	}
+
+	public override bool ProcessMouseUp(RenderControlMouseEventArgs e) =>
+		_arrastre.Soltar() || base.ProcessMouseUp(e);
+
+	public override StdCursor GetCursor(RenderControlMouseEventArgs e) =>
+		_arrastre.Arrastrando || _arrastre.SobreTitulo(e.Location) ? StdCursor.Hand : base.GetCursor(e);
+
+	private Rectangle AreaGrafico() => ChartInfo?.PriceChartContainer.Region ?? Rectangle.Empty;
 
 	private void DibujarFila(RenderContext context, Fila fila, int x, int y, DateTime horaUltimaVela)
 	{

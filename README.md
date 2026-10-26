@@ -38,9 +38,11 @@ carpeta, la compilación se detiene con un mensaje que lo indica: cambie `ATAS_B
 
 Detalles y solución de problemas: [docs/GUIA.md](docs/GUIA.md#4-instalar-en-atas).
 
-Con varios indicadores en el mismo gráfico, sus paneles quedan apilados a la izquierda (X 25): Tendencia en Y 60,
-CVD Trigger Engine en Y 230 y Footprint Predictor en Y 410. Se mueven con *Posición X / Posición Y*. Un indicador
-agregado a un gráfico antes de esta versión conserva la posición que tenía guardada.
+**Paneles movibles.** Cada panel se mueve **arrastrándolo con el ratón por su barra de título** (la franja de
+arriba; el cursor cambia a una mano) y no puede salir del área del gráfico. La posición queda guardada en sus ajustes
+*Posición X / Posición Y*. Por defecto los paneles quedan apilados a la izquierda (X 25): Tendencia en Y 60, CVD
+Trigger Engine en Y 230 y Footprint Predictor en Y 410. Un indicador agregado a un gráfico antes de esta versión
+conserva la posición que tenía guardada.
 
 ## Indicador de Tendencia Hourly
 

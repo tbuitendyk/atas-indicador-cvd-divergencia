@@ -9,6 +9,7 @@ using ATAS.Indicators;
 using ATAS.Indicators.Drawing;
 
 using OFT.Rendering.Context;
+using OFT.Rendering.Control;
 using OFT.Rendering.Tools;
 
 // Alias explícitos, como en el resto del proyecto: dibujo con System.Drawing, colores de las series con WPF.
@@ -16,6 +17,7 @@ using Color = System.Drawing.Color;
 using FontStyle = System.Drawing.FontStyle;
 using MediaColor = System.Windows.Media.Color;
 using Rectangle = System.Drawing.Rectangle;
+using StdCursor = OFT.Rendering.StdCursor;
 using StringAlignment = System.Drawing.StringAlignment;
 
 /// <summary>
@@ -113,6 +115,8 @@ public class FootprintPredictorPro : Indicator
 	private readonly RenderStringFormat _alinearIzquierda = new() { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center };
 	private readonly RenderPen _bordePanel = new(Color.FromArgb(120, 255, 255, 255));
 
+	private readonly ArrastrePanel _arrastre = new();
+
 	#endregion
 
 	#region Configuración
@@ -198,7 +202,8 @@ public class FootprintPredictorPro : Indicator
 	[Display(Name = "Mostrar Panel de Contexto", GroupName = "4. Interfaz Visual", Order = 70)]
 	public bool ShowContextPanel { get; set; } = true;
 
-	[Display(Name = "Posición X", GroupName = "4. Interfaz Visual", Order = 80)]
+	[Display(Name = "Posición X", GroupName = "4. Interfaz Visual", Order = 80,
+		Description = "También se puede mover arrastrando el panel con el ratón por su barra de título.")]
 	[Range(0, 10000)]
 	public int PanelX { get; set; } = 25;
 
@@ -456,8 +461,14 @@ public class FootprintPredictorPro : Indicator
 
 	protected override void OnRender(RenderContext context, DrawingLayouts layout)
 	{
-		if (!ShowContextPanel || ChartInfo is null)
+		if (ChartInfo is null)
 			return;
+
+		if (!ShowContextPanel)
+		{
+			_arrastre.Ocultar();
+			return;
+		}
 
 		Contexto contexto;
 		DateTime? inicio;
@@ -470,12 +481,15 @@ public class FootprintPredictorPro : Indicator
 
 		const int ancho = 240;
 		const int alto = 70;
+		const int altoTitulo = 22;
 
-		var x = PanelX;
-		var y = PanelY;
-		var panel = new Rectangle(x, y, ancho, alto);
+		var panel = _arrastre.Ubicar(PanelX, PanelY, ancho, alto, altoTitulo, AreaGrafico());
+		var x = panel.X;
+		var y = panel.Y;
 
+		// Franja del título: es la zona por la que se arrastra el panel.
 		context.FillRectangle(Color.FromArgb(200, 20, 20, 25), panel);
+		context.FillRectangle(Color.FromArgb(220, 32, 34, 42), new Rectangle(x, y, ancho, altoTitulo));
 		context.DrawRectangle(_bordePanel, panel);
 
 		var (texto, color) = contexto switch
@@ -492,6 +506,30 @@ public class FootprintPredictorPro : Indicator
 		context.DrawString(inicio is { } hora ? $"Inicio: {hora:dd/MM/yyyy HH:mm}" : "Inicio: Esperando datos...", _fuenteDetalle, Color.LightGray,
 			new Rectangle(x + 10, y + 45, ancho - 20, 18), _alinearIzquierda);
 	}
+
+	// Arrastre del panel con el ratón por su barra de título.
+
+	public override bool ProcessMouseDown(RenderControlMouseEventArgs e) =>
+		_arrastre.Presionar(e.Location) || base.ProcessMouseDown(e);
+
+	public override bool ProcessMouseMove(RenderControlMouseEventArgs e)
+	{
+		if (_arrastre.Mover(e.Location, AreaGrafico()) is not { } posicion)
+			return base.ProcessMouseMove(e);
+
+		PanelX = posicion.X;
+		PanelY = posicion.Y;
+		RedrawChart();
+		return true;
+	}
+
+	public override bool ProcessMouseUp(RenderControlMouseEventArgs e) =>
+		_arrastre.Soltar() || base.ProcessMouseUp(e);
+
+	public override StdCursor GetCursor(RenderControlMouseEventArgs e) =>
+		_arrastre.Arrastrando || _arrastre.SobreTitulo(e.Location) ? StdCursor.Hand : base.GetCursor(e);
+
+	private Rectangle AreaGrafico() => ChartInfo?.PriceChartContainer.Region ?? Rectangle.Empty;
 
 	#endregion
 }
