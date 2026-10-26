@@ -1,0 +1,39 @@
+<Project>
+
+  <!-- Configuración común a todos los indicadores del repositorio: cada carpeta de indicador
+       solo necesita un .csproj mínimo y hereda todo lo de aquí. -->
+  <PropertyGroup>
+    <!-- Debe coincidir con el runtime de la plataforma ATAS instalada (las versiones actuales usan .NET 10). -->
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <!-- Carpeta de instalación de ATAS. Si ATAS está en otra ruta, cámbiela aquí o pásela al compilar:
+         dotnet build /p:ATAS_BASE="D:\ATAS Platform" -->
+    <ATAS_BASE Condition="'$(ATAS_BASE)' == ''">C:\Program Files (x86)\ATAS Platform</ATAS_BASE>
+  </PropertyGroup>
+
+  <!-- Ensamblados de la plataforma, tomados de la instalación de ATAS.
+       Private=false: no se copian a la salida, ATAS ya los tiene cargados. -->
+  <ItemGroup>
+    <Reference Include="ATAS.Indicators">
+      <HintPath>$(ATAS_BASE)\ATAS.Indicators.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="ATAS.DataFeedsCore">
+      <HintPath>$(ATAS_BASE)\ATAS.DataFeedsCore.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="OFT.Rendering">
+      <HintPath>$(ATAS_BASE)\OFT.Rendering.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Utils.Common">
+      <HintPath>$(ATAS_BASE)\Utils.Common.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>
