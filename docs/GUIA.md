@@ -20,8 +20,19 @@ Resumen:
 
 ## 1. Preparar la PC con Windows (una sola vez)
 
-1. **Git para Windows**: descargarlo de <https://git-scm.com/download/win> e instalarlo con las opciones por defecto.
+1. **Git para Windows**. Lo más rápido es instalarlo desde PowerShell:
+
+   ```powershell
+   winget install --id Git.Git -e --source winget
+   ```
+
+   O descargar el instalador de <https://git-scm.com/download/win> y aceptar las opciones por defecto.
    Incluye *Git Credential Manager*, que abre el navegador para iniciar sesión en GitHub la primera vez.
+
+   **Después de instalarlo, cerrar PowerShell y abrir una ventana nueva**: las ventanas que ya estaban abiertas no
+   encuentran el comando `git`. Si en una ventana nueva sigue apareciendo *"git no se reconoce como nombre de un
+   cmdlet..."*, volver a ejecutar el instalador y, en la pantalla *Adjusting your PATH environment*, elegir la
+   opción recomendada (*Git from the command line and also from 3rd-party software*).
 2. **Visual Studio 2026**: en el *Visual Studio Installer*, marcar la carga de trabajo
    **Desarrollo de escritorio de .NET** (incluye el SDK de .NET 10).
 3. **ATAS**: instalado y actualizado a la versión más reciente.
