@@ -35,15 +35,22 @@ authorization.)
 ## This project
 
 - Custom indicators for the ATAS platform: C#, `net10.0-windows`, Visual Studio 2026.
-  Four indicators planned; done: `IndicadorTendenciaHourly`.
+  Four specs planned; done: `IndicadorTendenciaHourly`, `IndicadorCvdDivergencia` (one DLL holding
+  the Institutional CVD Trigger & Absorption Engine plus the companion "Velas CVD (panel)").
+- Owner preferences so far: signals are evaluated on **closed candles** (no repainting). Where a
+  spec's prose and its code disagree, ask; the specs are AI-written and their code has never compiled
+  as-is.
 - Layout: one branch (`main`), one folder per indicator, all built by `Indicadores.slnx`.
   Shared settings and the ATAS references live in `Directory.Build.props`, so a new
   indicator only needs a minimal `.csproj` plus a line in the `.slnx`.
 - Everything user-facing is in **Spanish**: indicator names, settings, panel text,
   `README.md`, `docs/GUIA.md`.
 - The code is mirrored to `uniontrading777-sketch/atas-indicador-cvd-divergencia`, where it is
-  built on Windows. Updates reach it by pull request (tbuitendyk as collaborator). The
-  transfer/build/install steps are in `docs/GUIA.md`; keep it current when they change.
+  built on Windows. tbuitendyk is a collaborator there (2026-10-26). A Claude Code session cannot
+  attach both repos: they share a name, and each is checked out at `<cwd>/<name>`. So a session on
+  this repo pushes only here; the mirror is updated with `git pull upstream main` +
+  `git push origin main` (`docs/GUIA.md` §5). The transfer/build/install steps are in
+  `docs/GUIA.md`; keep it current when they change.
 
 ## Verifying ATAS code (the platform DLLs are not available here)
 
@@ -81,7 +88,21 @@ Say plainly that the first build against the real DLLs happens on Windows.
   Check a build by listing its TypeRefs with `System.Reflection.Metadata`. Checked 2026-10-26:
   `IndicadorTendenciaHourly.dll` uses only `System.Windows.Media.Color`.
 - `OnCalculate` is called repeatedly for the live bar. `OnCalculate` and `OnRender` run on
-  different threads.
+  different threads. Never accumulate with `+=` per call. Recompute each bar from the previous
+  bar's value, and re-read a bar's final values when the next bar starts.
+- Session CVD, as ATAS's own `CumulativeDelta.cs` does it: previous bar's CVD + `candle.Delta`,
+  reset on `IsNewSession(bar)`. CVD-candle wicks: `+ candle.MaxDelta` / `+ candle.MinDelta`.
+- Visible range: `FirstVisibleBarNumber` / `LastVisibleBarNumber` (`...Index` does not exist).
+  `ChartInfo.GetXByBar(bar)` is the candle's **left** edge; center with
+  `+ (int)((ChartInfo.PriceChartContainer.BarsWidth - w) / 2)`. The candle step is
+  `BarSpacing + BarsWidth`; always cast, since their type is unconfirmed. Price to pixel:
+  `ChartInfo.GetYByPrice(price, false)`.
+- Per-price volume: `candle.GetPriceVolumeInfo(price)` stepping by `InstrumentInfo.TickSize`;
+  it returns null for a price with no trades.
+- Candle panel: `CandleDataSeries` + `DataSeries.Add(series)` + `Panel = IndicatorDataProvider.NewPanel`,
+  `series[bar] = new Candle { ... }`. `UpCandleColor`/`DownCandleColor` take the WPF color type.
+  An indicator draws in one panel only, so price-chart drawing and a separate panel need two
+  indicators (they can share one DLL).
 - Built DLLs go in `%APPDATA%\ATAS\Indicators` (classic) or `%APPDATA%\ATAS X\Indicators`
   (ATAS X), **not** `Documents\ATAS\Indicators`. Older pages and community repos say Documents,
   but a DLL there is silently ignored: this cost a failed first install. Easiest route: the

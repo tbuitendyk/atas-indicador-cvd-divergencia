@@ -6,9 +6,11 @@ Un solo repositorio con una carpeta por indicador; `Indicadores.slnx` los compil
 | Indicador | Carpeta | DLL |
 |---|---|---|
 | Indicador de Tendencia Hourly | `IndicadorTendenciaHourly/` | `IndicadorTendenciaHourly.dll` |
+| Institutional CVD Trigger & Absorption Engine | `IndicadorCvdDivergencia/` | `IndicadorCvdDivergencia.dll` |
+| Velas CVD (panel) | `IndicadorCvdDivergencia/` | `IndicadorCvdDivergencia.dll` (la misma) |
 
 Pasos completos para subir el código a otro repositorio de GitHub, descargarlo en Windows, compilarlo, instalarlo y
-recibir actualizaciones por pull request: **[docs/GUIA.md](docs/GUIA.md)**.
+recibir actualizaciones: **[docs/GUIA.md](docs/GUIA.md)**.
 
 ## Requisitos
 
@@ -20,7 +22,8 @@ recibir actualizaciones por pull request: **[docs/GUIA.md](docs/GUIA.md)**.
 1. Abrir `Indicadores.slnx` en Visual Studio 2026.
 2. Elegir la configuración **Release** en la barra de herramientas.
 3. Menú **Compilar → Compilar solución** (Ctrl+Mayús+B).
-4. La DLL queda en `IndicadorTendenciaHourly\bin\Release\net10.0-windows\IndicadorTendenciaHourly.dll`.
+4. Cada proyecto deja su DLL en `<carpeta>\bin\Release\net10.0-windows\`, por ejemplo
+   `IndicadorCvdDivergencia\bin\Release\net10.0-windows\IndicadorCvdDivergencia.dll`.
 
 El proyecto toma las librerías de ATAS de `C:\Program Files (x86)\ATAS Platform`. Si ATAS está instalado en otra
 carpeta, la compilación se detiene con un mensaje que lo indica: cambie `ATAS_BASE` en `Directory.Build.props`.
@@ -30,8 +33,7 @@ carpeta, la compilación se detiene con un mensaje que lo indica: cambie `ATAS_B
 1. En la ventana de indicadores de un gráfico, pulsar **Add custom indicator** (abajo a la izquierda) y elegir la
    DLL. O copiarla a mano a `%APPDATA%\ATAS\Indicators` (en *AppData*, **no** en *Documentos*) y pulsar el botón de
    recarga que aparece en la barra de estado.
-2. Agregar **Indicador de Tendencia Hourly** (grupo **Custom**) a un gráfico de **1 minuto o menor** (ticks y
-   segundos también sirven).
+2. Agregar el indicador (grupo **Custom**) a un gráfico de **1 minuto o menor**.
 
 Detalles y solución de problemas: [docs/GUIA.md](docs/GUIA.md#4-instalar-en-atas).
 
@@ -62,3 +64,31 @@ A la derecha, **Desde** muestra la hora del gráfico en que empezó el estado ac
 
 Si el gráfico es de tiempo y su período no divide exactamente 5 minutos (por ejemplo 3, 15 o 60 minutos), el panel
 muestra *"Aviso: usar un gráfico de 5 min o menor"*: en esos gráficos las filas de 5M y 15M no serían exactas.
+
+## Institutional CVD Trigger & Absorption Engine
+
+Motor de gatillo sobre el **CVD** (delta acumulado de la sesión) para el gráfico de precio, pensado para NQ en
+1 minuto. Dibuja una **bandera verde** (compra) o **roja** (venta) en la vela donde se cumplen a la vez cuatro
+filtros:
+
+| Filtro | Qué exige en una compra (la venta es el espejo) |
+|---|---|
+| 1. Macro-divergencia | Un mínimo amplio más bajo que el anterior, con el CVD más alto (swings de *Fuerza macro* velas a cada lado, 12 por defecto) |
+| 2. Micro-divergencia | Lo mismo en swings cortos (*Fuerza micro*, 3 por defecto); acepta doble suelo |
+| 3. Absorción en mecha | En la vela del mínimo micro: mecha inferior ≥ 40 % del rango **y** ≥ 30 % del volumen de la vela negociado en esa mecha |
+| 4. Giro de delta | Una vela posterior a ese mínimo con delta ≥ +400 contratos |
+
+- Todo se evalúa con **velas cerradas**, así que las banderas no se repintan. La bandera queda en la vela que
+  completa la confirmación: un swing se confirma cuando cierran *Fuerza* velas a su derecha.
+- Bajo cada bandera: el delta del giro y la absorción (mecha % · volumen %). El panel muestra el estado de cada
+  filtro, el delta de la vela en curso frente al umbral y el último disparo.
+- **Vigencia de las divergencias**: *Por barras* (macro 60 y micro 7, contadas desde que se confirman) o
+  *Hasta divergencia opuesta*.
+- Escribe el CVD de la sesión en cada vela cuando las velas son lo bastante anchas para que no se superpongan
+  (acercar el gráfico).
+- **Velas CVD (panel)**, en la misma DLL: las velas del CVD en un panel aparte, con el mismo cálculo y el mismo
+  reinicio por sesión.
+
+> El umbral de delta (400), la mecha (40 %) y el volumen en la mecha (30 %) son valores de partida: conviene
+> calibrarlos con datos reales de NQ (el 30 % no venía en la especificación). El filtro 3 usa el volumen por nivel de
+> precio de ATAS: si el panel muestra *Vol 0%* en todas las divergencias, esos datos no están cargados en el gráfico.

@@ -11,7 +11,7 @@ Resumen:
 2. Carga inicial: copiar el origen al destino, que hoy está vacío (una vez). Deja también el código en la PC.
 3. Compilar en Visual Studio 2026.
 4. Instalar la DLL en ATAS.
-5. Actualizaciones futuras, por pull request.
+5. Actualizaciones: pasar los indicadores nuevos al GitHub destino y descargarlos desde ahí.
 
 > GitHub no tiene interfaz en español: los nombres de menús y botones de GitHub aparecen aquí en inglés,
 > tal como se ven en pantalla.
@@ -70,9 +70,9 @@ Qué quedó configurado (se puede ver con `git remote -v`):
 - `upstream` = repositorio **origen** (de donde llegan las actualizaciones).
 
 > ¿Por qué no es un pull request? Un pull request necesita que la rama `main` ya exista en el destino. Como el
-> destino está vacío, la primera carga se hace con un `push` directo. Las actualizaciones posteriores sí van por
-> pull request (sección 5). Si el `push` es rechazado, es que el destino ya no está vacío (por ejemplo, se le
-> agregó un README desde la web): hay que vaciarlo o crearlo de nuevo sin archivos.
+> destino está vacío, la primera carga se hace con un `push` directo. Las actualizaciones posteriores están en la
+> sección 5. Si el `push` es rechazado, es que el destino ya no está vacío (por ejemplo, se le agregó un README
+> desde la web): hay que vaciarlo o crearlo de nuevo sin archivos.
 
 ---
 
@@ -83,10 +83,11 @@ Qué quedó configurado (se puede ver con `git remote -v`):
 2. En la barra de herramientas, cambiar **Debug** por **Release**.
 3. Menú **Compilar → Compilar solución** (Ctrl+Mayús+B).
 4. La ventana **Salida** debe terminar indicando que la compilación fue correcta, con 0 errores.
-5. La DLL queda en:
+5. Cada proyecto deja su DLL en su carpeta:
 
    ```
    IndicadorTendenciaHourly\bin\Release\net10.0-windows\IndicadorTendenciaHourly.dll
+   IndicadorCvdDivergencia\bin\Release\net10.0-windows\IndicadorCvdDivergencia.dll
    ```
 
 Alternativa sin abrir Visual Studio (PowerShell, dentro de la carpeta del repositorio):
@@ -107,8 +108,9 @@ dotnet build Indicadores.slnx -c Release
 ## 4. Instalar en ATAS
 
 **Opción A (recomendada): desde ATAS.** En la ventana de indicadores de un gráfico, pulsar el botón
-**Add custom indicator** (abajo a la izquierda) y elegir `IndicadorTendenciaHourly.dll` en
-`IndicadorTendenciaHourly\bin\Release\net10.0-windows\`. ATAS la copia a su carpeta y la carga.
+**Add custom indicator** (abajo a la izquierda) y elegir la DLL en `<carpeta>\bin\Release\net10.0-windows\`
+(una vez por DLL). ATAS la copia a su carpeta y la carga. Para actualizar un indicador ya instalado, hacer lo mismo
+con la DLL nueva.
 
 **Opción B: copiar la DLL a mano** a la carpeta de indicadores de ATAS, que está en *AppData*
 (**no** en *Documentos*): `C:\Users\<usuario>\AppData\Roaming\ATAS\Indicators`. Desde PowerShell, en la carpeta
@@ -116,6 +118,7 @@ del repositorio:
 
 ```powershell
 Copy-Item .\IndicadorTendenciaHourly\bin\Release\net10.0-windows\IndicadorTendenciaHourly.dll "$env:APPDATA\ATAS\Indicators\"
+Copy-Item .\IndicadorCvdDivergencia\bin\Release\net10.0-windows\IndicadorCvdDivergencia.dll "$env:APPDATA\ATAS\Indicators\"
 ```
 
 Si ATAS ya estaba abierto, pulsar el **botón de recarga que aparece en la barra de estado** (abajo) de la ventana
@@ -124,12 +127,12 @@ principal; no hace falta reiniciar.
 Después, en cualquiera de las dos opciones:
 
 1. Abrir un gráfico de **1 minuto** (o menor) y la ventana de indicadores.
-2. **Indicador de Tendencia Hourly** aparece en el grupo **Custom**: seleccionarlo y pulsar **Add**.
-3. Ajustes disponibles en la configuración del indicador:
-   - **Cálculo → Confirmar al cierre**: activado por defecto. Ver el [README](../README.md) para la diferencia entre
-     los dos modos.
-   - **Ubicación del panel → Posición X / Posición Y**.
-   - **Colores**: flecha alcista, flecha bajista, símbolo de rango y fondo de la pastilla.
+2. Los indicadores aparecen en el grupo **Custom**: seleccionar el deseado y pulsar **Add**.
+   - **Indicador de Tendencia Hourly**: panel de tendencia 1H/15M/5M.
+   - **Institutional CVD Trigger & Absorption Engine**: banderas de gatillo y panel de los cuatro filtros, en el
+     gráfico de precio.
+   - **Velas CVD (panel)**: las velas del CVD en un panel aparte; se agrega además del motor si se quieren ver.
+3. Qué hace cada ajuste: ver el [README](../README.md).
 
 ### Si el indicador no aparece en la lista
 
@@ -145,25 +148,64 @@ En **ATAS X** (la versión nueva de ATAS) la carpeta es `%APPDATA%\ATAS X\Indica
 
 ---
 
-## 5. Actualizaciones futuras (pull request)
+## 5. Actualizaciones: traer los indicadores nuevos
 
-Cada mejora o indicador nuevo se desarrolla en el **origen** y llega al **destino** como pull request, que
-uniontrading777-sketch revisa y aprueba antes de que entre en su `main`.
+Cada mejora o indicador nuevo se publica primero en el **origen**. Llega a la PC con ATAS en dos pasos: primero se
+pasa al GitHub **destino** y después se descarga desde ahí.
 
-GitHub solo permite pull requests dentro de un mismo repositorio (o entre un repositorio y su *fork*). El destino no
-es un fork del origen, así que tbuitendyk necesita ser **colaborador** del destino para subir ahí la rama del pull
-request.
+GitHub no tiene un botón para copiar cambios entre dos repositorios independientes (el destino no es un *fork* del
+origen), así que el paso 5.1 se hace con Git, desde cualquier PC que lo tenga instalado.
 
-### 5.1 Una sola vez: agregar a tbuitendyk como colaborador
+### 5.1 Pasar las novedades del origen al GitHub destino
 
-1. **uniontrading777-sketch**: en el repositorio destino, **Settings → Collaborators → Add people**, escribir
-   `tbuitendyk` y enviar la invitación (GitHub puede pedir la contraseña para confirmar).
-2. **tbuitendyk**: aceptar la invitación, que llega por correo y aparece en <https://github.com/notifications>.
+En la PC que ya tiene la carpeta de la sección 2, en PowerShell:
 
-### 5.2 Cada actualización
+```powershell
+cd $HOME\source\repos\atas-indicador-cvd-divergencia
+git pull upstream main
+git push origin main
+```
 
-**tbuitendyk** sube los cambios a una rama nueva del destino, desde su copia local del origen
-(cambiar la fecha del nombre de la rama en cada actualización):
+- `git pull upstream main` trae los indicadores nuevos desde el **origen** (tbuitendyk).
+- `git push origin main` los publica en el **destino** (uniontrading777-sketch). Si pide iniciar sesión, entrar con
+  la cuenta **uniontrading777-sketch**, o con **tbuitendyk**, que es colaborador del destino.
+- Comprobar en <https://github.com/uniontrading777-sketch/atas-indicador-cvd-divergencia> que aparecen las carpetas
+  nuevas (por ejemplo `IndicadorCvdDivergencia/`).
+
+En una PC **sin** esa carpeta, primero hay que clonar el destino y agregar el origen como `upstream`; después, los dos
+comandos de arriba:
+
+```powershell
+cd $HOME\source\repos
+git clone https://github.com/uniontrading777-sketch/atas-indicador-cvd-divergencia.git
+cd atas-indicador-cvd-divergencia
+git remote add upstream https://github.com/tbuitendyk/atas-indicador-cvd-divergencia.git
+```
+
+### 5.2 Descargar desde el GitHub destino en la PC con ATAS
+
+- **Si la PC ya tiene la carpeta** (sección 2), basta con actualizarla. Si el paso 5.1 se hizo en esta misma PC, ya
+  está al día.
+
+  ```powershell
+  cd $HOME\source\repos\atas-indicador-cvd-divergencia
+  git pull origin main
+  ```
+
+- **Para una copia nueva**, clonar el destino. Si ya existe una carpeta con ese nombre, borrarla o renombrarla antes.
+
+  ```powershell
+  cd $HOME\source\repos
+  git clone https://github.com/uniontrading777-sketch/atas-indicador-cvd-divergencia.git
+  ```
+
+Después: compilar (sección 3) e instalar las DLL nuevas o actualizadas con **Add custom indicator** (sección 4).
+
+### 5.3 Alternativa con revisión: pull request
+
+Si uniontrading777-sketch prefiere revisar cada cambio antes de que entre en su `main`, tbuitendyk (ya es
+colaborador del destino) sube los cambios a una rama nueva del destino y abre un pull request. Desde una copia local
+del origen (cambiar la fecha del nombre de la rama en cada actualización):
 
 ```bash
 git checkout main
@@ -182,20 +224,4 @@ Después, en GitHub, en el repositorio **destino**:
 
 1. Abrir el pull request; la pestaña **Files changed** muestra exactamente qué cambió.
 2. Pulsar **Merge pull request → Confirm merge** y luego **Delete branch**.
-3. Traer los cambios a la PC, recompilar (sección 3) y volver a copiar la DLL (sección 4):
-
-   ```powershell
-   cd $HOME\source\repos\atas-indicador-cvd-divergencia
-   git pull origin main
-   ```
-
-### Alternativa sin pull request
-
-Si no hace falta revisar cada cambio en GitHub, uniontrading777-sketch puede traer las actualizaciones directamente
-desde el origen y publicarlas en su repositorio:
-
-```powershell
-cd $HOME\source\repos\atas-indicador-cvd-divergencia
-git pull upstream main
-git push origin main
-```
+3. Descargar en la PC con ATAS (sección 5.2), compilar e instalar.
