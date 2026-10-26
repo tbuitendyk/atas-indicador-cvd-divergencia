@@ -117,7 +117,7 @@ internal sealed class MotorLvn
 	public int ToleranciaTicks { get; set; } = 2;
 
 	/// <summary>Modo Extremo: ticks mínimos entre el cierre y el nivel para contar como rechazo.</summary>
-	public int DistanciaCierreTicks { get; set; } = 4;
+	public int DistanciaCierreTicks { get; set; } = 2;
 
 	public MediaColor ColorAlto { get; set; } = MediaColor.FromArgb(255, 255, 235, 59);
 

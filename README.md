@@ -148,7 +148,7 @@ franja de ±150 puntos alrededor del precio:
   sin esos datos se reparten en su rango. *Repartido* reparte el volumen de cada vela por igual, como el documento
   original: suaviza el perfil y puede borrar LVN reales.
 - **Tipo de rechazo**: *Extremo* (por defecto): el mínimo (o máximo) de una vela toca el nivel (±2 ticks) y la vela
-  cierra al menos 4 ticks lejos de él. *Mecha*: el nivel queda dentro de la mecha, como el documento original; en
+  cierra al menos 2 ticks lejos de él. *Mecha*: el nivel queda dentro de la mecha, como el documento original; en
   velas de 1 minuto casi cualquier precio lo cumple.
 - La etiqueta de cada línea muestra los rechazos totales, de soporte (↑) y de resistencia (↓).
 - El panel muestra el horizonte, los nodos activos y el **objetivo de retest**: el LVN alto o mediano más cercano al
