@@ -35,19 +35,32 @@ authorization.)
 ## This project
 
 - Custom indicators for the ATAS platform: C#, `net10.0-windows`, Visual Studio 2026.
-  Four specs planned; done: `IndicadorTendenciaHourly`, `IndicadorCvdDivergencia` (one DLL holding
-  the Institutional CVD Trigger & Absorption Engine plus the companion "Velas CVD (panel)"),
-  `IndicadorFootprintPredictor` (Footprint Predictor Pro).
-- All three use one calculation pattern: when bar N starts, process bars before N once, as closed
-  bars, re-reading their final values; the live bar only feeds display values. Reuse it. (The
+  All four specs are done, plus a combined fifth:
+  `IndicadorTendenciaHourly`; `IndicadorCvdDivergencia` (one DLL holding the Institutional CVD
+  Trigger & Absorption Engine plus the companion "Velas CVD (panel)"); `IndicadorFootprintPredictor`
+  (Footprint Predictor Pro); `IndicadorLvn` (Institutional 90-Day Deep LVN Profile Engine); and
+  `IndicadorCombinado` (all four modules in one indicator, with one draggable dashboard).
+- **Architecture.** The logic lives in engines in `Compartido/`: `MotorTendencia`, `MotorCvd`
+  (+ `CalculadoraCvd`), `MotorFootprint` and `MotorLvn`. `Directory.Build.props` compiles
+  `Compartido/*.cs` into every project. Each indicator is a thin shell: settings forward to its
+  engine, it does the dragging, and it implements `IGrafico` **explicitly** to give engines candles,
+  tick size, time zone and chart coordinates. The combined indicator is the same shell with four
+  engines. Fix logic in the engine and every DLL gets it. Engines are created lazily (`Motor =>
+  _motor ??= ...`) in case ATAS reads settings during the base constructor. There is no abstract
+  class between `Indicator` and ours: the official repo has none, so ATAS's handling of one is
+  unverified. Public setting enums live in `Compartido/Enumeraciones.cs`.
+- All engines use one calculation pattern: when bar N starts, process bars before N once, as
+  closed bars, re-reading their final values; the live bar only feeds display values. (The
   footprint spec's `if (bar >= CurrentBar - 1) return;` never evaluated anything in real time.)
-- On-chart panels stack down the left edge at X 25: Tendencia Y 60, CVD HUD Y 230, Footprint Y 410.
-  A new panel goes below (Y 490 or more), with Posición X/Y settings.
-- Every panel can be dragged by its title bar through the shared helper `Compartido/ArrastrePanel.cs`,
-  which `Directory.Build.props` compiles into every project. A new panel uses `_arrastre.Ubicar(...)`
-  when drawing, plus the same four mouse overrides. Floating a panel **outside** the chart is not
-  possible through the indicator API. A custom WPF window would make ATAS X reject the DLL, so the
-  owner declined it (2026-10-26).
+  Heavy work waits for the last bar (`bar >= CurrentBar - 1`), so it runs once at the end of the
+  history load and once per new bar. `MotorLvn` keeps per-day profiles and counters, and recomputes
+  in about 1 ms per bar on 60 days of 1-minute data.
+- On-chart panels stack down the left edge at X 25: Tendencia Y 60, CVD HUD Y 230, Footprint Y 410,
+  LVN HUD Y 490. The combined dashboard sits at (25, 60) and stacks its sections with 4 px gaps.
+- Every panel and the dashboard can be dragged by their title bar through `Compartido/ArrastrePanel.cs`
+  (`_arrastre.Ubicar(...)` when drawing, plus the same four mouse overrides in each shell). Floating
+  a panel **outside** the chart is not possible through the indicator API. A custom WPF window
+  would make ATAS X reject the DLL, so the owner declined it (2026-10-26).
 - Owner preferences so far: signals are evaluated on **closed candles** (no repainting). Where a
   spec's prose and its code disagree, ask; the specs are AI-written and their code has never compiled
   as-is.
@@ -72,13 +85,16 @@ cloud session builds against the real API. Verify in three layers:
    `git clone --depth 1 https://github.com/AtasPlatform/Indicators` (`Technical/` holds ~285
    built-in indicators). Copy call shapes from there, never from memory or an AI-written spec.
    `Technical/PublicAPI.Shipped.txt` lists exact signatures, including the platform types they use.
-2. **Compile**: install the .NET 10 SDK (`dotnet-install.sh --channel 10.0`), build stand-in
-   DLLs (`ATAS.Indicators`, `ATAS.DataFeedsCore`, `OFT.Rendering`, `Utils.Common`) that declare
-   only members verified in step 1, then
-   `dotnet build Indicadores.slnx -p:ATAS_BASE=<stub dir> -p:EnableWindowsTargeting=true`.
-3. **Logic**: compile the indicator `.cs` into a `net10.0` console app with stand-ins that feed
-   candles in and record what `OnRender` draws (stub `System.Windows.Media.Color` so it runs on
-   Linux), and assert the panel output.
+2. **Compile + behaviour, one command**: install the .NET 10 SDK (`dotnet-install.sh --channel 10.0`),
+   then run `bash pruebas/verificar.sh`. It builds stand-in ATAS DLLs from
+   `pruebas/compilacion/StubsCompilacion.cs`, which declare only members verified in step 1. It
+   compiles `Indicadores.slnx` against them (must stay at 0 warnings and 0 errors). Then it runs
+   `pruebas/Pruebas.csproj`: the real indicator sources against the behaviour stand-ins in
+   `pruebas/StubsAtas.cs`. These feed candles, sessions and per-price Bid/Ask, and record text,
+   polygons and lines. 125 checks at last count. When a new ATAS member is used, add it to
+   **both** stand-in files, with the shape copied from the official sources, and add tests.
+3. `pruebas/` has its own empty `Directory.Build.props/.targets` to stop the root settings
+   leaking in. It is not part of `Indicadores.slnx`, so it doesn't affect the Windows build.
 
 Say plainly that the first build against the real DLLs happens on Windows.
 
@@ -98,7 +114,9 @@ Say plainly that the first build against the real DLLs happens on Windows.
   from `WindowsBase`/`PresentationCore`/`PresentationFramework`, a custom WPF editor, or a
   `System.Xaml` reference makes ATAS X skip the whole DLL ("Rejected assembly" in its log).
   Check a build by listing its TypeRefs with `System.Reflection.Metadata`. Checked 2026-10-26:
-  `IndicadorTendenciaHourly.dll` uses only `System.Windows.Media.Color`.
+  all five DLLs use only `System.Windows.Media.Color`.
+- Lines: `context.DrawLine(RenderPen, x1, y1, x2, y2)`; a pen with width is `new RenderPen(color, width)`.
+  `CurrentBar` is the number of bars (the live bar is `CurrentBar - 1`).
 - `OnCalculate` is called repeatedly for the live bar. `OnCalculate` and `OnRender` run on
   different threads. Never accumulate with `+=` per call. Recompute each bar from the previous
   bar's value, and re-read a bar's final values when the next bar starts.

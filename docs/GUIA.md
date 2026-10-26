@@ -89,6 +89,8 @@ Qué quedó configurado (se puede ver con `git remote -v`):
    IndicadorTendenciaHourly\bin\Release\net10.0-windows\IndicadorTendenciaHourly.dll
    IndicadorCvdDivergencia\bin\Release\net10.0-windows\IndicadorCvdDivergencia.dll
    IndicadorFootprintPredictor\bin\Release\net10.0-windows\IndicadorFootprintPredictor.dll
+   IndicadorLvn\bin\Release\net10.0-windows\IndicadorLvn.dll
+   IndicadorCombinado\bin\Release\net10.0-windows\IndicadorCombinado.dll
    ```
 
 Alternativa sin abrir Visual Studio (PowerShell, dentro de la carpeta del repositorio):
@@ -121,6 +123,8 @@ del repositorio:
 Copy-Item .\IndicadorTendenciaHourly\bin\Release\net10.0-windows\IndicadorTendenciaHourly.dll "$env:APPDATA\ATAS\Indicators\"
 Copy-Item .\IndicadorCvdDivergencia\bin\Release\net10.0-windows\IndicadorCvdDivergencia.dll "$env:APPDATA\ATAS\Indicators\"
 Copy-Item .\IndicadorFootprintPredictor\bin\Release\net10.0-windows\IndicadorFootprintPredictor.dll "$env:APPDATA\ATAS\Indicators\"
+Copy-Item .\IndicadorLvn\bin\Release\net10.0-windows\IndicadorLvn.dll "$env:APPDATA\ATAS\Indicators\"
+Copy-Item .\IndicadorCombinado\bin\Release\net10.0-windows\IndicadorCombinado.dll "$env:APPDATA\ATAS\Indicators\"
 ```
 
 Si ATAS ya estaba abierto, pulsar el **botón de recarga que aparece en la barra de estado** (abajo) de la ventana
@@ -136,6 +140,10 @@ Después, en cualquiera de las dos opciones:
    - **Velas CVD (panel)**: las velas del CVD en un panel aparte; se agrega además del motor si se quieren ver.
    - **Footprint Predictor Pro (Sweeps & Context)**: puntos de pronóstico de la siguiente vela y panel de estructura
      de mercado.
+   - **Institutional 90-Day Deep LVN Profile Engine**: líneas de los nodos bajos de volumen y panel del objetivo de
+     retest. Necesita los días de historial cargados en el gráfico (hasta 90).
+   - **Indicador Combinado (Tendencia, CVD, Footprint y LVN)**: los cuatro anteriores en uno, con un solo tablero.
+     Usar este **o** los individuales, no ambos (se vería todo dos veces).
 3. Los paneles se mueven arrastrándolos con el ratón por su barra de título.
 4. Qué hace cada ajuste: ver el [README](../README.md).
 

@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Pruebas de comportamiento sin ATAS: compila el código real de los indicadores contra los sustitutos de
+       StubsAtas.cs y comprueba lo que calculan y dibujan. Se ejecuta con pruebas/verificar.sh. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoWarn>CS8602;CS8604</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="*.cs" />
+    <Compile Include="..\Compartido\*.cs" LinkBase="Compartido" />
+    <Compile Include="..\IndicadorTendenciaHourly\*.cs" LinkBase="Indicadores" />
+    <Compile Include="..\IndicadorCvdDivergencia\*.cs" LinkBase="Indicadores" />
+    <Compile Include="..\IndicadorFootprintPredictor\*.cs" LinkBase="Indicadores" />
+    <Compile Include="..\IndicadorLvn\*.cs" LinkBase="Indicadores" />
+    <Compile Include="..\IndicadorCombinado\*.cs" LinkBase="Indicadores" />
+  </ItemGroup>
+
+</Project>

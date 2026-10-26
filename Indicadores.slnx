@@ -1,5 +1,7 @@
 <Solution>
+  <Project Path="IndicadorCombinado/IndicadorCombinado.csproj" />
   <Project Path="IndicadorCvdDivergencia/IndicadorCvdDivergencia.csproj" />
   <Project Path="IndicadorFootprintPredictor/IndicadorFootprintPredictor.csproj" />
+  <Project Path="IndicadorLvn/IndicadorLvn.csproj" />
   <Project Path="IndicadorTendenciaHourly/IndicadorTendenciaHourly.csproj" />
 </Solution>

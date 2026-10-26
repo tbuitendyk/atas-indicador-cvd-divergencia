@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Sustitutos de ATAS.Indicators.dll solo para comprobar que la solución compila sin ATAS (pruebas/verificar.sh). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Nullable>disable</Nullable>
+    <AssemblyName>ATAS.Indicators</AssemblyName>
+  </PropertyGroup>
+
+</Project>

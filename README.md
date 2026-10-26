@@ -9,6 +9,8 @@ Un solo repositorio con una carpeta por indicador; `Indicadores.slnx` los compil
 | Institutional CVD Trigger & Absorption Engine | `IndicadorCvdDivergencia/` | `IndicadorCvdDivergencia.dll` |
 | Velas CVD (panel) | `IndicadorCvdDivergencia/` | `IndicadorCvdDivergencia.dll` (la misma) |
 | Footprint Predictor Pro (Sweeps & Context) | `IndicadorFootprintPredictor/` | `IndicadorFootprintPredictor.dll` |
+| Institutional 90-Day Deep LVN Profile Engine | `IndicadorLvn/` | `IndicadorLvn.dll` |
+| **Indicador Combinado** (los cuatro en uno) | `IndicadorCombinado/` | `IndicadorCombinado.dll` |
 
 Pasos completos para subir el código a otro repositorio de GitHub, descargarlo en Windows, compilarlo, instalarlo y
 recibir actualizaciones: **[docs/GUIA.md](docs/GUIA.md)**.
@@ -41,8 +43,8 @@ Detalles y solución de problemas: [docs/GUIA.md](docs/GUIA.md#4-instalar-en-ata
 **Paneles movibles.** Cada panel se mueve **arrastrándolo con el ratón por su barra de título** (la franja de
 arriba; el cursor cambia a una mano) y no puede salir del área del gráfico. La posición queda guardada en sus ajustes
 *Posición X / Posición Y*. Por defecto los paneles quedan apilados a la izquierda (X 25): Tendencia en Y 60, CVD
-Trigger Engine en Y 230 y Footprint Predictor en Y 410. Un indicador agregado a un gráfico antes de esta versión
-conserva la posición que tenía guardada.
+Trigger Engine en Y 230, Footprint Predictor en Y 410 y LVN en Y 490. Un indicador agregado a un gráfico antes de
+esta versión conserva la posición que tenía guardada.
 
 ## Indicador de Tendencia Hourly
 
@@ -126,3 +128,53 @@ esto (compra; la venta es el espejo):
 - Todo se evalúa con velas cerradas, así que los puntos no se repintan. Usa los datos por nivel de precio (Bid/Ask)
   del gráfico.
 - Colores y tamaños de los puntos: en la configuración de cada serie del indicador.
+
+## Institutional 90-Day Deep LVN Profile Engine
+
+Marca con líneas horizontales los **nodos bajos de volumen (LVN)** del perfil de volumen de hasta 90 días, en una
+franja de ±150 puntos alrededor del precio:
+
+| Línea | Significado |
+|---|---|
+| Amarilla gruesa: **LVN alto impacto** | Valle profundo (≤ 32 % del volumen de los precios vecinos) y rechazado en al menos 2 días distintos |
+| Ámbar: **LVN mediano** | Valle menos profundo, o al borde de un nodo de alto volumen (HVN) |
+| Gris fina: **LVN local** | El resto. Oculta por defecto (*Mostrar LVN de bajo impacto*) |
+
+- Un LVN es un precio con menos volumen que todos los precios a 8 ticks a cada lado (*Sensibilidad de Valle*).
+- **Horizonte**: *Automático* usa 3 días cuando el precio está en el extremo del rango de los últimos 3 días
+  (descubrimiento) y 60 días cuando cotiza dentro de una estructura previa (balance). *Manual* usa los días
+  indicados, hasta 90. El gráfico tiene que tener cargados esos días de historial.
+- **Fuente de volumen**: *Real por nivel de precio* (por defecto) usa el volumen negociado en cada precio; las velas
+  sin esos datos se reparten en su rango. *Repartido* reparte el volumen de cada vela por igual, como el documento
+  original: suaviza el perfil y puede borrar LVN reales.
+- **Tipo de rechazo**: *Extremo* (por defecto): el mínimo (o máximo) de una vela toca el nivel (±2 ticks) y la vela
+  cierra al menos 4 ticks lejos de él. *Mecha*: el nivel queda dentro de la mecha, como el documento original; en
+  velas de 1 minuto casi cualquier precio lo cumple.
+- La etiqueta de cada línea muestra los rechazos totales, de soporte (↑) y de resistencia (↓).
+- El panel muestra el horizonte, los nodos activos y el **objetivo de retest**: el LVN alto o mediano más cercano al
+  precio.
+- Se calcula con velas cerradas, una vez por vela nueva: el historial se procesa una sola vez, así que no frena ATAS.
+
+## Indicador Combinado (Tendencia, CVD, Footprint y LVN)
+
+Los cuatro indicadores en uno, con los mismos cálculos y ajustes:
+
+- En el grupo *0. Módulos* se enciende o apaga cada uno; un módulo apagado no calcula ni dibuja.
+- Las banderas, los puntos, las líneas de LVN y el CVD en las velas se dibujan sobre el gráfico.
+- Los cuatro paneles van **apilados en un solo tablero** (*PANEL DE INDICADORES*) que se arrastra por su barra de
+  título. Al apagar un módulo, su sección desaparece y el tablero se acorta.
+- Las velas del CVD siguen siendo un indicador aparte, **Velas CVD (panel)** (en `IndicadorCvdDivergencia.dll`),
+  porque necesitan su propio panel.
+- Con el combinado no hace falta agregar también los indicadores individuales: se vería todo dos veces.
+
+## Verificación sin ATAS
+
+`pruebas/` contiene una comprobación completa que corre sin Windows ni ATAS, con el SDK de .NET 10:
+
+```bash
+bash pruebas/verificar.sh
+```
+
+Compila la solución contra sustitutos de las DLL de ATAS y ejecuta las pruebas de comportamiento de los cinco
+indicadores. No forma parte de la solución de Visual Studio. La primera compilación contra las DLL reales de ATAS
+sigue siendo la de Windows.
