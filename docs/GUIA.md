@@ -106,32 +106,42 @@ dotnet build Indicadores.slnx -c Release
 
 ## 4. Instalar en ATAS
 
-1. Copiar la DLL a la carpeta de indicadores de ATAS. Desde PowerShell, en la carpeta del repositorio (funciona
-   aunque *Documentos* esté en OneDrive):
+**Opción A (recomendada): desde ATAS.** En la ventana de indicadores de un gráfico, pulsar el botón
+**Add custom indicator** (abajo a la izquierda) y elegir `IndicadorTendenciaHourly.dll` en
+`IndicadorTendenciaHourly\bin\Release\net10.0-windows\`. ATAS la copia a su carpeta y la carga.
 
-   ```powershell
-   Copy-Item .\IndicadorTendenciaHourly\bin\Release\net10.0-windows\IndicadorTendenciaHourly.dll "$([Environment]::GetFolderPath('MyDocuments'))\ATAS\Indicators\"
-   ```
+**Opción B: copiar la DLL a mano** a la carpeta de indicadores de ATAS, que está en *AppData*
+(**no** en *Documentos*): `C:\Users\<usuario>\AppData\Roaming\ATAS\Indicators`. Desde PowerShell, en la carpeta
+del repositorio:
 
-   O a mano, con el Explorador: `Documentos\ATAS\Indicators`. En instalaciones antiguas la carpeta puede llamarse
-   `Documentos\Advanced Time And Sales\Indicators`.
-   Si Windows no deja reemplazar una versión anterior de la DLL, cerrar ATAS, copiarla y volver a abrirlo.
-2. En ATAS aparece un **botón parpadeante en el panel inferior**: pulsarlo para recargar la lista de indicadores.
-3. Abrir un gráfico de **1 minuto** (o menor) y agregar **Indicador de Tendencia Hourly** desde la lista de
-   indicadores.
-4. Ajustes disponibles en la configuración del indicador:
+```powershell
+Copy-Item .\IndicadorTendenciaHourly\bin\Release\net10.0-windows\IndicadorTendenciaHourly.dll "$env:APPDATA\ATAS\Indicators\"
+```
+
+Si ATAS ya estaba abierto, pulsar el **botón de recarga que aparece en la barra de estado** (abajo) de la ventana
+principal; no hace falta reiniciar.
+
+Después, en cualquiera de las dos opciones:
+
+1. Abrir un gráfico de **1 minuto** (o menor) y la ventana de indicadores.
+2. **Indicador de Tendencia Hourly** aparece en el grupo **Custom**: seleccionarlo y pulsar **Add**.
+3. Ajustes disponibles en la configuración del indicador:
    - **Cálculo → Confirmar al cierre**: activado por defecto. Ver el [README](../README.md) para la diferencia entre
      los dos modos.
    - **Ubicación del panel → Posición X / Posición Y**.
    - **Colores**: flecha alcista, flecha bajista, símbolo de rango y fondo de la pastilla.
 
-### Si ATAS no carga el indicador
+### Si el indicador no aparece en la lista
 
-El proyecto está compilado para **.NET 10**, que es el que usan las versiones actuales de ATAS. Para comprobar la
-versión de la instalación: en la carpeta de ATAS (`C:\Program Files (x86)\ATAS Platform`), abrir con el Bloc de notas
-el archivo `*.runtimeconfig.json` del programa principal y mirar el valor `"version"`. Si empieza por `8.` en lugar de
-`10.`, cambiar `net10.0-windows` por `net8.0-windows` en `Directory.Build.props` y compilar de nuevo (o, mejor,
-actualizar ATAS).
+1. Comprobar que la DLL está en `%APPDATA%\ATAS\Indicators` (pegar esa ruta en la barra de direcciones del
+   Explorador). Una copia en *Documentos* no sirve: ATAS no la lee.
+2. Al recargar, ATAS indica cada archivo que no pudo cargar y el motivo. Los errores también quedan en la pestaña
+   **Logs** (botón *Logs* de la barra superior) y en la carpeta `%APPDATA%\ATAS\Logs`.
+3. Comprobar la versión de .NET de ATAS: en `C:\Program Files (x86)\ATAS Platform`, abrir con el Bloc de notas
+   `OFT.Platform.runtimeconfig.json` y mirar el valor `"tfm"`. Debe ser `net10.0`. Si es `net8.0`, actualizar ATAS
+   (o cambiar `net10.0-windows` por `net8.0-windows` en `Directory.Build.props` y compilar de nuevo).
+
+En **ATAS X** (la versión nueva de ATAS) la carpeta es `%APPDATA%\ATAS X\Indicators`.
 
 ---
 

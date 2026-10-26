@@ -27,11 +27,13 @@ carpeta, la compilación se detiene con un mensaje que lo indica: cambie `ATAS_B
 
 ## Instalar en ATAS
 
-1. Copiar la DLL a `Documentos\ATAS\Indicators`.
-2. En ATAS aparece un botón parpadeante en el panel inferior: pulsarlo para actualizar la lista de indicadores.
-3. Agregar **Indicador de Tendencia Hourly** a un gráfico de **1 minuto o menor** (ticks y segundos también sirven).
+1. En la ventana de indicadores de un gráfico, pulsar **Add custom indicator** (abajo a la izquierda) y elegir la
+   DLL. O copiarla a mano a `%APPDATA%\ATAS\Indicators` (en *AppData*, **no** en *Documentos*) y pulsar el botón de
+   recarga que aparece en la barra de estado.
+2. Agregar **Indicador de Tendencia Hourly** (grupo **Custom**) a un gráfico de **1 minuto o menor** (ticks y
+   segundos también sirven).
 
-Si Windows no deja reemplazar una versión anterior de la DLL, cerrar ATAS, copiarla y volver a abrir.
+Detalles y solución de problemas: [docs/GUIA.md](docs/GUIA.md#4-instalar-en-atas).
 
 ## Indicador de Tendencia Hourly
 

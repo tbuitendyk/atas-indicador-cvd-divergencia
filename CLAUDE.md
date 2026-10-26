@@ -76,5 +76,9 @@ Say plainly that the first build against the real DLLs happens on Windows.
   `DataSeries[0].IsHidden = true;` and `((ValueDataSeries)DataSeries[0]).VisualType = VisualMode.Hide;`.
 - `OnCalculate` is called repeatedly for the live bar. `OnCalculate` and `OnRender` run on
   different threads.
-- Built DLLs go in `Documents\ATAS\Indicators`. ATAS then shows a blinking reload button on
-  its bottom panel.
+- Built DLLs go in `%APPDATA%\ATAS\Indicators` (classic) or `%APPDATA%\ATAS X\Indicators`
+  (ATAS X), **not** `Documents\ATAS\Indicators`. Older pages and community repos say Documents,
+  but a DLL there is silently ignored: this cost a failed first install. Easiest route: the
+  **Add custom indicator** button in the indicators window copies and loads the DLL. After a
+  manual copy, press the reload button in the status bar. Custom indicators are listed in the
+  **Custom** group. Source: docs.atas.net "Development of a user indicator".
