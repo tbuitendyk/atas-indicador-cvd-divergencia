@@ -36,7 +36,13 @@ authorization.)
 
 - Custom indicators for the ATAS platform: C#, `net10.0-windows`, Visual Studio 2026.
   Four specs planned; done: `IndicadorTendenciaHourly`, `IndicadorCvdDivergencia` (one DLL holding
-  the Institutional CVD Trigger & Absorption Engine plus the companion "Velas CVD (panel)").
+  the Institutional CVD Trigger & Absorption Engine plus the companion "Velas CVD (panel)"),
+  `IndicadorFootprintPredictor` (Footprint Predictor Pro).
+- All three use one calculation pattern: when bar N starts, process bars before N once, as closed
+  bars, re-reading their final values; the live bar only feeds display values. Reuse it. (The
+  footprint spec's `if (bar >= CurrentBar - 1) return;` never evaluated anything in real time.)
+- On-chart panels stack down the left edge at X 25: Tendencia Y 60, CVD HUD Y 230, Footprint Y 410.
+  A new panel goes below (Y 490 or more), with Posición X/Y settings.
 - Owner preferences so far: signals are evaluated on **closed candles** (no repainting). Where a
   spec's prose and its code disagree, ask; the specs are AI-written and their code has never compiled
   as-is.
@@ -98,7 +104,12 @@ Say plainly that the first build against the real DLLs happens on Windows.
   `BarSpacing + BarsWidth`; always cast, since their type is unconfirmed. Price to pixel:
   `ChartInfo.GetYByPrice(price, false)`.
 - Per-price volume: `candle.GetPriceVolumeInfo(price)` stepping by `InstrumentInfo.TickSize`;
-  it returns null for a price with no trades.
+  it returns null for a price with no trades. It exposes `.Volume`, `.Bid` and `.Ask`. The POC is
+  `candle.MaxVolumePriceInfo.Price` (null-check it). `ChartInfo.PriceStep` does not exist.
+- Dot/marker series: `new ValueDataSeries("Id", "Name") { VisualType = VisualMode.Dots,
+  ShowZeroValue = false, Width = n, Color = <WPF color> }`. Without `ShowZeroValue = false`, every
+  bar gets a dot at price 0. When recalculating, write 0 to bars that have no signal, so no stale
+  dots survive a settings change.
 - Candle panel: `CandleDataSeries` + `DataSeries.Add(series)` + `Panel = IndicatorDataProvider.NewPanel`,
   `series[bar] = new Candle { ... }`. `UpCandleColor`/`DownCandleColor` take the WPF color type.
   An indicator draws in one panel only, so price-chart drawing and a separate panel need two

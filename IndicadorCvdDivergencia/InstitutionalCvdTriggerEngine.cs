@@ -255,9 +255,10 @@ public class InstitutionalCvdTriggerEngine : Indicator
 	[Range(0, 10000)]
 	public int HudX { get; set; } = 25;
 
-	[Display(Name = "Posición Y", GroupName = "4. Panel HUD", Order = 140)]
+	[Display(Name = "Posición Y", GroupName = "4. Panel HUD", Order = 140,
+		Description = "Por defecto queda debajo del panel del Indicador de Tendencia Hourly.")]
 	[Range(0, 10000)]
-	public int HudY { get; set; } = 50;
+	public int HudY { get; set; } = 230;
 
 	#endregion
 

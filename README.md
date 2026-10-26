@@ -8,6 +8,7 @@ Un solo repositorio con una carpeta por indicador; `Indicadores.slnx` los compil
 | Indicador de Tendencia Hourly | `IndicadorTendenciaHourly/` | `IndicadorTendenciaHourly.dll` |
 | Institutional CVD Trigger & Absorption Engine | `IndicadorCvdDivergencia/` | `IndicadorCvdDivergencia.dll` |
 | Velas CVD (panel) | `IndicadorCvdDivergencia/` | `IndicadorCvdDivergencia.dll` (la misma) |
+| Footprint Predictor Pro (Sweeps & Context) | `IndicadorFootprintPredictor/` | `IndicadorFootprintPredictor.dll` |
 
 Pasos completos para subir el código a otro repositorio de GitHub, descargarlo en Windows, compilarlo, instalarlo y
 recibir actualizaciones: **[docs/GUIA.md](docs/GUIA.md)**.
@@ -36,6 +37,10 @@ carpeta, la compilación se detiene con un mensaje que lo indica: cambie `ATAS_B
 2. Agregar el indicador (grupo **Custom**) a un gráfico de **1 minuto o menor**.
 
 Detalles y solución de problemas: [docs/GUIA.md](docs/GUIA.md#4-instalar-en-atas).
+
+Con varios indicadores en el mismo gráfico, sus paneles quedan apilados a la izquierda (X 25): Tendencia en Y 60,
+CVD Trigger Engine en Y 230 y Footprint Predictor en Y 410. Se mueven con *Posición X / Posición Y*. Un indicador
+agregado a un gráfico antes de esta versión conserva la posición que tenía guardada.
 
 ## Indicador de Tendencia Hourly
 
@@ -92,3 +97,30 @@ filtros:
 > El umbral de delta (400), la mecha (40 %) y el volumen en la mecha (30 %) son valores de partida: conviene
 > calibrarlos con datos reales de NQ (el 30 % no venía en la especificación). El filtro 3 usa el volumen por nivel de
 > precio de ATAS: si el panel muestra *Vol 0%* en todas las divergencias, esos datos no están cargados en el gráfico.
+
+## Footprint Predictor Pro (Sweeps & Context)
+
+Pronóstico de la **siguiente vela** a partir del footprint. Pone un **punto** en la vela cerrada que cumple todo
+esto (compra; la venta es el espejo):
+
+1. **Barre liquidez**: penetra un mínimo de swing al menos 2 ticks y cierra de vuelta al menos 1 tick por encima.
+2. **Volumen climático**: al menos 2 veces la media de las 20 velas anteriores.
+3. **Desequilibrios compradores apilados**: 3 o más precios seguidos en los que el Ask es al menos 3 veces el Bid del
+   precio inferior (diagonal). Un precio sin operaciones corta la racha.
+4. Cierra **por encima de su POC**, en la **mitad superior** de la vela y con **delta positivo**.
+
+| Punto | Significado |
+|---|---|
+| Verde grande | Compra tras barrer liquidez **externa** |
+| Azul pequeño | Compra tras barrer liquidez **interna** |
+| Rojo grande | Venta tras barrer liquidez externa |
+| Naranja pequeño | Venta tras barrer liquidez interna |
+
+- **Externa**: el swing (fractal de 3 velas) es el mínimo más bajo, o el máximo más alto, de los 60 minutos
+  anteriores (*Pivot Window*). Si no, es **interna**.
+- Un nivel deja de contar como liquidez cuando una vela lo barre o cuando cierra más allá de él sin recuperarlo.
+- El panel **Estructura de mercado** muestra el contexto: **ALCISTA** tras barrer liquidez externa por abajo y
+  **BAJISTA** tras barrerla por arriba, con la hora en que empezó.
+- Todo se evalúa con velas cerradas, así que los puntos no se repintan. Usa los datos por nivel de precio (Bid/Ask)
+  del gráfico.
+- Colores y tamaños de los puntos: en la configuración de cada serie del indicador.

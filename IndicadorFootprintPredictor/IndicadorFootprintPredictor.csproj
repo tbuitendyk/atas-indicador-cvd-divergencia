@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- La configuración común (framework, referencias a ATAS) está en Directory.Build.props. -->
+  <PropertyGroup>
+    <AssemblyName>IndicadorFootprintPredictor</AssemblyName>
+    <RootNamespace>ATAS.Indicators.Custom</RootNamespace>
+  </PropertyGroup>
+
+</Project>

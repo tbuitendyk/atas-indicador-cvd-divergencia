@@ -88,6 +88,7 @@ Qué quedó configurado (se puede ver con `git remote -v`):
    ```
    IndicadorTendenciaHourly\bin\Release\net10.0-windows\IndicadorTendenciaHourly.dll
    IndicadorCvdDivergencia\bin\Release\net10.0-windows\IndicadorCvdDivergencia.dll
+   IndicadorFootprintPredictor\bin\Release\net10.0-windows\IndicadorFootprintPredictor.dll
    ```
 
 Alternativa sin abrir Visual Studio (PowerShell, dentro de la carpeta del repositorio):
@@ -119,6 +120,7 @@ del repositorio:
 ```powershell
 Copy-Item .\IndicadorTendenciaHourly\bin\Release\net10.0-windows\IndicadorTendenciaHourly.dll "$env:APPDATA\ATAS\Indicators\"
 Copy-Item .\IndicadorCvdDivergencia\bin\Release\net10.0-windows\IndicadorCvdDivergencia.dll "$env:APPDATA\ATAS\Indicators\"
+Copy-Item .\IndicadorFootprintPredictor\bin\Release\net10.0-windows\IndicadorFootprintPredictor.dll "$env:APPDATA\ATAS\Indicators\"
 ```
 
 Si ATAS ya estaba abierto, pulsar el **botón de recarga que aparece en la barra de estado** (abajo) de la ventana
@@ -132,6 +134,8 @@ Después, en cualquiera de las dos opciones:
    - **Institutional CVD Trigger & Absorption Engine**: banderas de gatillo y panel de los cuatro filtros, en el
      gráfico de precio.
    - **Velas CVD (panel)**: las velas del CVD en un panel aparte; se agrega además del motor si se quieren ver.
+   - **Footprint Predictor Pro (Sweeps & Context)**: puntos de pronóstico de la siguiente vela y panel de estructura
+     de mercado.
 3. Qué hace cada ajuste: ver el [README](../README.md).
 
 ### Si el indicador no aparece en la lista
