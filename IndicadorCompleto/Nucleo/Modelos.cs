@@ -111,6 +111,9 @@ internal sealed class Oportunidad
 	public Senal? SenalM1, SenalM2;
 	public ZonaLvn? ZonaM2;
 	public Vela? VelaRuptura;
+
+	/// <summary>Última vela evaluada como gatillo (para mostrar su footprint en el reporte).</summary>
+	public Vela? VelaExaminada;
 	public decimal? ExtremoRetroceso;
 	public bool Retroceso, Respuesta;
 	public Fvg? FvgM2;
@@ -465,6 +468,7 @@ public sealed partial class MotorCompleto
 				return;
 		}
 
+		op.VelaExaminada = vela;
 		var (ok, detalle) = Gatillos.Evaluar(vela, e.Direccion, Cfg);
 		op.GatilloM1 = ok;
 		op.GatilloM1Detalle = $"{vela.Marco.Texto()} {vela.InicioUtc:HH:mm} UTC: {detalle}";
@@ -602,6 +606,7 @@ public sealed partial class MotorCompleto
 		op.FvgM2 = fvg;
 		op.VarianteM2 = fvg is null ? "M2 LVN SIN FVG" : "M2 LVN + FVG";
 
+		op.VelaExaminada = vela;
 		var (ok, detalle) = Gatillos.Evaluar(vela, d, Cfg);
 		op.GatilloM2 = ok;
 		op.GatilloM2Detalle = $"{vela.Marco.Texto()} {vela.InicioUtc:HH:mm} UTC: {detalle}";
