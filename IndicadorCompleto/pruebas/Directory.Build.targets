@@ -1,0 +1,3 @@
+<Project>
+  <!-- Corta la herencia del Directory.Build.targets de IndicadorCompleto (comprobación de la instalación de ATAS). -->
+</Project>

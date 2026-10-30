@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Proyecto autónomo: la configuración (framework, WPF, referencias a ATAS) está en el Directory.Build.props de
+       esta carpeta, que corta la herencia del de la raíz del repositorio. -->
+  <PropertyGroup>
+    <AssemblyName>IndicadorCompleto</AssemblyName>
+    <RootNamespace>ATAS.Indicators.Custom</RootNamespace>
+  </PropertyGroup>
+
+  <!-- Las pruebas tienen su propio proyecto. -->
+  <ItemGroup>
+    <Compile Remove="pruebas/**" />
+    <None Remove="pruebas/**" />
+  </ItemGroup>
+
+</Project>

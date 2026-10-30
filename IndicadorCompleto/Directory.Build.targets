@@ -1,0 +1,10 @@
+<Project>
+
+  <!-- Si ATAS no está donde indica ATAS_BASE, falla con un mensaje claro en lugar de
+       decenas de errores "no se encontró el tipo o el nombre del espacio de nombres". -->
+  <Target Name="VerificarInstalacionAtas" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(ATAS_BASE)\ATAS.Indicators.dll')"
+           Text="No se encontró ATAS.Indicators.dll en '$(ATAS_BASE)'. Instale la plataforma ATAS o ajuste ATAS_BASE en IndicadorCompleto\Directory.Build.props." />
+  </Target>
+
+</Project>
