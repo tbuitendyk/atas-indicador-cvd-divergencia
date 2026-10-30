@@ -9,6 +9,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 
@@ -20,7 +21,11 @@ using Completo.Nucleo;
 /// </summary>
 internal sealed class VentanaReporte : Window
 {
-	private sealed record Posicion(double Left, double Top, double Width, double Height, bool Topmost);
+	/// <summary>Posición, tamaño y letra guardados. Letra 0 (archivos de versiones anteriores) = tamaño inicial.</summary>
+	private sealed record Posicion(double Left, double Top, double Width, double Height, bool Topmost, double Letra = 0);
+
+	// Tamaño de letra de las líneas del reporte; el resto se escala a partir de él (botones A− / A+ y Ctrl + rueda).
+	private const double LetraInicial = 10, LetraMinima = 8, LetraMaxima = 16;
 
 	private static readonly object Sync = new();
 	private static readonly Dictionary<string, VentanaReporte> Abiertas = new();
@@ -28,13 +33,15 @@ internal sealed class VentanaReporte : Window
 	private readonly string _clave;
 	private readonly DispatcherTimer _temporizador;
 	private readonly Dictionary<string, bool> _expandidas = new();
-	private readonly TextBlock _info = Texto("", 12);
-	private readonly TextBlock _aviso = Texto("", 12, Brochas.Fallo, true);
-	private readonly TextBlock _cabecera = Texto("", 19, Brochas.Normal, true);
-	private readonly StackPanel _resumen = new() { Margin = new Thickness(0, 4, 0, 8) };
+	private readonly TextBlock _marca = Texto("INDICADOR COMPLETO · análisis, sin órdenes", 11, Brochas.Titulo, true);
+	private readonly TextBlock _info = Texto("", 10);
+	private readonly TextBlock _aviso = Texto("", 10, Brochas.Fallo, true);
+	private readonly TextBlock _cabecera = Texto("", 16, Brochas.Normal, true);
+	private readonly StackPanel _resumen = new() { Margin = new Thickness(0, 2, 0, 4) };
 	private readonly StackPanel _secciones = new();
-	private readonly TextBlock _estado = Texto("", 11, Brochas.Gris);
-	private readonly ToggleButton _fijar = new() { Content = "Fijar (siempre visible)", Margin = new Thickness(0, 0, 6, 0), Padding = new Thickness(6, 2, 6, 2) };
+	private readonly TextBlock _estado = Texto("", 9, Brochas.Gris);
+	private readonly ToggleButton _fijar = new() { Content = "Fijar (siempre visible)", Margin = new Thickness(0, 0, 6, 0), Padding = new Thickness(6, 1, 6, 1) };
+	private double _letra = LetraInicial;
 
 	private Func<InstantaneaReporte> _instantanea;
 	private Func<string> _json, _csv;
@@ -60,21 +67,25 @@ internal sealed class VentanaReporte : Window
 		_fijar.Checked += (_, _) => Seguro(() => Topmost = true);
 		_fijar.Unchecked += (_, _) => Seguro(() => Topmost = false);
 
-		var arriba = new StackPanel { Margin = new Thickness(10, 8, 10, 0) };
+		var arriba = new StackPanel { Margin = new Thickness(10, 6, 10, 0) };
 		var barra = new DockPanel();
-		var marca = Texto("INDICADOR COMPLETO · análisis, sin órdenes", 13, Brochas.Titulo, true);
+		var letra = new StackPanel { Orientation = Orientation.Horizontal };
+		letra.Children.Add(BotonLetra("A−", -1, "Letra más pequeña (también Ctrl + rueda del ratón)"));
+		letra.Children.Add(BotonLetra("A+", +1, "Letra más grande (también Ctrl + rueda del ratón)"));
 		DockPanel.SetDock(_fijar, Dock.Right);
+		DockPanel.SetDock(letra, Dock.Right);
 		barra.Children.Add(_fijar);
-		barra.Children.Add(marca);
+		barra.Children.Add(letra);
+		barra.Children.Add(_marca);
 		arriba.Children.Add(barra);
 		arriba.Children.Add(_info);
 		arriba.Children.Add(_aviso);
-		arriba.Children.Add(new Border { Height = 1, Background = Brochas.Gris, Margin = new Thickness(0, 6, 0, 6) });
+		arriba.Children.Add(new Border { Height = 1, Background = Brochas.Gris, Margin = new Thickness(0, 4, 0, 4) });
 		_cabecera.HorizontalAlignment = HorizontalAlignment.Center;
 		arriba.Children.Add(_cabecera);
 		arriba.Children.Add(_resumen);
 
-		var abajo = new WrapPanel { Margin = new Thickness(10, 6, 10, 8) };
+		var abajo = new WrapPanel { Margin = new Thickness(10, 4, 10, 6) };
 		abajo.Children.Add(Boton("Resumen", () => Expandir(_ => false)));
 		abajo.Children.Add(Boton("Detalle", () => Expandir(_ => true)));
 		abajo.Children.Add(Boton("Eventos", () => Expandir(t => t.StartsWith("EVENTOS"))));
@@ -91,6 +102,17 @@ internal sealed class VentanaReporte : Window
 		raiz.Children.Add(abajo);
 		raiz.Children.Add(desplazable);
 		Content = raiz;
+		Seguro(AplicarLetra);
+
+		// Ctrl + rueda del ratón cambia la letra (sin Ctrl, la rueda sigue desplazando el reporte).
+		PreviewMouseWheel += (_, e) =>
+		{
+			if ((Keyboard.Modifiers & ModifierKeys.Control) == 0)
+				return;
+
+			e.Handled = true;
+			Seguro(() => CambiarLetra(e.Delta > 0 ? 1 : -1));
+		};
 
 		Closing += (_, _) => Seguro(() =>
 		{
@@ -240,17 +262,17 @@ internal sealed class VentanaReporte : Window
 		foreach (var seccion in r.Secciones)
 		{
 			var titulo = seccion.Titulo;
-			var contenido = new StackPanel { Margin = new Thickness(14, 2, 0, 6) };
+			var contenido = new StackPanel { Margin = new Thickness(12, 1, 0, 3) };
 
 			foreach (var linea in seccion.Lineas)
 				contenido.Children.Add(Linea(linea));
 
 			var desplegable = new Expander
 			{
-				Header = Texto(titulo, 13, Brochas.Titulo, true),
+				Header = Texto(titulo, _letra + 1, Brochas.Titulo, true),
 				Content = contenido,
 				Foreground = Brochas.Normal,
-				Margin = new Thickness(0, 2, 0, 2),
+				Margin = new Thickness(0, 1, 0, 1),
 				IsExpanded = _expandidas.TryGetValue(titulo, out var abierta) ? abierta : titulo.StartsWith("1.") || titulo.StartsWith("2.") || titulo.StartsWith("3.")
 			};
 
@@ -258,6 +280,33 @@ internal sealed class VentanaReporte : Window
 			desplegable.Collapsed += (_, _) => _expandidas[titulo] = false;
 			_secciones.Children.Add(desplegable);
 		}
+	}
+
+	private void CambiarLetra(int paso)
+	{
+		var nueva = Math.Clamp(_letra + paso, LetraMinima, LetraMaxima);
+
+		if (nueva == _letra)
+			return;
+
+		_letra = nueva;
+		AplicarLetra();
+		_estado.Text = $"Tamaño de letra: {_letra:0}";
+		Guardar();
+	}
+
+	/// <summary>Escala los textos fijos y los botones, y repinta las secciones con el tamaño actual.</summary>
+	private void AplicarLetra()
+	{
+		FontSize = _letra + 1;
+		_marca.FontSize = _letra + 1;
+		_info.FontSize = _letra;
+		_aviso.FontSize = _letra;
+		_cabecera.FontSize = _letra + 6;
+		_estado.FontSize = _letra - 1;
+
+		_revisionMostrada = -1;
+		Refrescar();
 	}
 
 	private void Expandir(Func<string, bool> abrir)
@@ -304,6 +353,7 @@ internal sealed class VentanaReporte : Window
 			}
 
 			(Width, Height) = (Math.Max(300, p.Width), Math.Max(200, p.Height));
+			_letra = p.Letra is >= LetraMinima and <= LetraMaxima ? p.Letra : LetraInicial;
 		}
 		catch
 		{
@@ -315,7 +365,7 @@ internal sealed class VentanaReporte : Window
 	{
 		var archivo = ArchivoPosicion();
 		Directory.CreateDirectory(Path.GetDirectoryName(archivo)!);
-		File.WriteAllText(archivo, JsonSerializer.Serialize(new Posicion(Left, Top, Width, Height, Topmost)));
+		File.WriteAllText(archivo, JsonSerializer.Serialize(new Posicion(Left, Top, Width, Height, Topmost, _letra)));
 	}
 
 	private static TextBlock Texto(string texto, double tamano, Brush? color = null, bool negrita = false) => new()
@@ -328,17 +378,24 @@ internal sealed class VentanaReporte : Window
 		FontFamily = new FontFamily("Segoe UI")
 	};
 
-	private static TextBlock Linea(LineaReporte linea)
+	private TextBlock Linea(LineaReporte linea)
 	{
-		var bloque = Texto(linea.Texto, 12, Brochas.De(linea.Tono), linea.Tono is TonoLinea.Titulo or TonoLinea.Blanco);
+		var bloque = Texto(linea.Texto, _letra, Brochas.De(linea.Tono), linea.Tono is TonoLinea.Titulo or TonoLinea.Blanco);
 		bloque.FontFamily = new FontFamily("Consolas");
 		return bloque;
 	}
 
 	private Button Boton(string texto, Action accion)
 	{
-		var boton = new Button { Content = texto, Margin = new Thickness(0, 0, 6, 4), Padding = new Thickness(8, 3, 8, 3) };
+		var boton = new Button { Content = texto, Margin = new Thickness(0, 0, 4, 3), Padding = new Thickness(6, 2, 6, 2) };
 		boton.Click += (_, _) => Seguro(accion);
+		return boton;
+	}
+
+	private Button BotonLetra(string texto, int paso, string ayuda)
+	{
+		var boton = new Button { Content = texto, ToolTip = ayuda, Margin = new Thickness(0, 0, 4, 0), Padding = new Thickness(6, 1, 6, 1), MinWidth = 28 };
+		boton.Click += (_, _) => Seguro(() => CambiarLetra(paso));
 		return boton;
 	}
 

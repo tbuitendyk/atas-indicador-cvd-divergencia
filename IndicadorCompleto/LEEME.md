@@ -132,7 +132,12 @@ Se mueve **arrastrándolo con el ratón**, como los paneles de los otros indicad
 
 ## 4. La ventana del reporte
 
-El maestro abre una **ventana flotante** (se puede mover fuera del gráfico y a otro monitor). Recuerda su posición.
+El maestro abre una **ventana flotante** (se puede mover fuera del gráfico y a otro monitor). Recuerda su posición,
+su tamaño y el tamaño de letra.
+
+**Tamaño de letra:** botones **A−** y **A+** arriba a la derecha (o **Ctrl + rueda del ratón** sobre la ventana),
+de 8 a 16; empieza en 10. Si aparece la barra de desplazamiento vertical, baje la letra, agrande la ventana o
+pliegue secciones (botón **Resumen**).
 Se actualiza dos veces por segundo; si pasan más de 3 minutos sin datos nuevos, lo avisa (feed detenido o mercado
 cerrado).
 
