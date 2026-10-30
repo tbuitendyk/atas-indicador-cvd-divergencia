@@ -3,5 +3,6 @@ var c = new Comprobador();
 
 PruebasComponentes.Ejecutar(c);
 PruebasModelos.Ejecutar(c);
+PruebasMotor.Ejecutar(c);
 
 return c.Resumen();
