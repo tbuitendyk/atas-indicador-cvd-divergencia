@@ -339,11 +339,15 @@ internal sealed class MotorLvn
 					minimo = j;
 			}
 
+			// Centro: el medio del fondo del valle (los precios con la proporción mínima, con tolerancia), no su primer precio.
+			var desdeFondo = Enumerable.Range(i, fin - i + 1).First(j => proporcion[j] <= proporcion[minimo] + 0.01m);
+			var hastaFondo = Enumerable.Range(i, fin - i + 1).Last(j => proporcion[j] <= proporcion[minimo] + 0.01m);
+
 			var candidata = new Candidata
 			{
 				Inferior = primero + i,
 				Superior = primero + fin,
-				Centro = primero + minimo,
+				Centro = primero + (desdeFondo + hastaFondo) / 2,
 				Profundidad = 1 - proporcion[minimo],
 				Volumen = bruto[minimo],
 				HombroInferior = primero + hombroIzq[minimo],

@@ -67,13 +67,11 @@ internal sealed class Huella
 		if (total <= 0)
 			return null;
 
-		var poc = 0;
-
-		for (var i = 1; i < volumenes.Length; i++)
-		{
-			if (volumenes[i] > volumenes[poc])
-				poc = i;
-		}
+		// POC: el precio de mayor volumen; si varios empatan (frecuente en velas finas), el del medio de los
+		// empatados, para no sesgar la posición relativa hacia arriba ni hacia abajo.
+		var maximoVolumen = volumenes.Max();
+		var empatados = Enumerable.Range(0, volumenes.Length).Where(i => volumenes[i] == maximoVolumen).ToList();
+		var poc = empatados[(empatados.Count - 1) / 2];
 
 		// Área de valor: desde el POC se suma el nivel vecino de mayor volumen hasta llegar al 70 %.
 		int abajo = poc, arriba = poc;
