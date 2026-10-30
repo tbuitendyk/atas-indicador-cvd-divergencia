@@ -67,7 +67,7 @@ authorization.)
   the owner's "Indicador Combinado1" docx. Pure engine in `Nucleo/` (no ATAS types; one `MotorCompleto`
   fed closed 1M candles by a master chart, shared via a static registry with 1M/5M viewer charts),
   ATAS shells in `Atas/`, WPF report window in `Ventana/`. Verify with
-  `bash IndicadorCompleto/pruebas/verificar.sh` (compile vs stand-ins + 118 checks incl. a 90-day
+  `bash IndicadorCompleto/pruebas/verificar.sh` (compile vs stand-ins + 126 checks incl. a 90-day
   no-repaint/performance run). User manual: `IndicadorCompleto/LEEME.md`; status: `PROGRESO.md`.
   Owner decisions: LVN yellow (top 3) / orange (next 5) by score ranking, min 10-pt separation,
   source volume profile drawn; statistics are simulated; EMA-close exit on (owner's note).

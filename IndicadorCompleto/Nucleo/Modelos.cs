@@ -290,6 +290,13 @@ public sealed partial class MotorCompleto
 		if (Barridos.Count > 600)
 			Barridos.RemoveAt(0);
 
+		// Aviso previo solo para los barridos que pueden acabar en señal (no los bloqueados desde el inicio).
+		if (e.Estado == EstadoBarrido.EnEvaluacion)
+		{
+			Avisar(TipoAviso.Barrido, e.ConocidoUtc,
+				$"BARRIDO B{e.Id} DE {(d == Direccion.Larga ? "MÍNIMOS" : "MÁXIMOS")} {e.Tipo.Texto()} en {Precio(e.Nivel)} ({e.Principal.Etiqueta}): posible {d.Texto()}, esperar recuperación y gatillo");
+		}
+
 		var op = new Oportunidad { E = e };
 
 		if (!Cfg.ActivarM1)
@@ -678,6 +685,10 @@ public sealed partial class MotorCompleto
 
 				if (SetupsBloqueados.Count > 300)
 					SetupsBloqueados.RemoveAt(0);
+
+				// La supresión por una señal reciente no es un rechazo del riesgo: no suena.
+				if (plan.Bloqueo is not null)
+					Avisar(TipoAviso.Bloqueado, vela.FinUtc, $"{modelo} {d.Texto()} {op.E.Tipo.Texto()} BLOQUEADA: {motivo}");
 			}
 
 			return;
@@ -699,6 +710,8 @@ public sealed partial class MotorCompleto
 		};
 
 		Senales.Add(senal);
+		Avisar(TipoAviso.Senal, senal.ConfirmadaUtc,
+			$"SEÑAL {senal.Titulo} · entrada {Precio(plan.Entrada)} · SL {Precio(plan.Sl)} · TP {Precio(plan.Tp)} · {plan.Cantidad} micros · RR {plan.RrNeto:0.0}");
 
 		if (esM1)
 			(op.M1, op.MotivoM1, op.SenalM1) = (EstadoModelo.Confirmado, $"SEÑAL {senal.Id} CONFIRMADA", senal);

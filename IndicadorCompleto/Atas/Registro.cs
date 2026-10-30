@@ -71,6 +71,13 @@ internal static class RegistroMotores
 			return Entradas.TryGetValue(clave, out var e) ? e.Motor : null;
 	}
 
+	/// <summary>Indicador maestro de la clave (sus ajustes de alertas son los que valen), o null.</summary>
+	public static object? Maestro(string clave)
+	{
+		lock (Sync)
+			return Entradas.TryGetValue(clave, out var e) ? e.Maestro : null;
+	}
+
 	public static void Visor(string clave, object visor, string descripcion)
 	{
 		lock (Sync)

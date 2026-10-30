@@ -449,11 +449,11 @@ public partial class IndicadorCompleto
 		context.FillPolygon(color, puntos);
 	}
 
-	/// <summary>Recuadro de estado (arrastrable): rol, grupo y si hay maestro.</summary>
+	/// <summary>Recuadro de estado (arrastrable): rol, grupo, si hay maestro e interruptores de las alertas.</summary>
 	private void DibujarEstado(RenderContext context, MotorCompleto? motor)
 	{
 		const int ancho = 360;
-		const int alto = 40;
+		const int alto = 60;
 
 		var panel = _arrastre.Ubicar(PanelX, PanelY, ancho, alto, 18, Area);
 		var estado = motor is null
@@ -464,10 +464,11 @@ public partial class IndicadorCompleto
 		context.FillRectangle(Color.FromArgb(235, 30, 34, 44), new Rectangle(panel.X, panel.Y, ancho, 18));
 		context.DrawString($"INDICADOR COMPLETO · {_estadoRol}", _fuenteNegrita, Color.Gainsboro, new Rectangle(panel.X + 6, panel.Y, ancho - 12, 18), _izquierda);
 		context.DrawString(estado, _fuente, motor is null ? Color.Orange : Color.Silver, new Rectangle(panel.X + 6, panel.Y + 19, ancho - 12, 18), _izquierda);
+		DibujarIconosAlerta(context, panel.X, panel.Y + 39, ancho, motor is not null);
 	}
 
 	public override bool ProcessMouseDown(RenderControlMouseEventArgs e) =>
-		_arrastre.Presionar(e.Location) || base.ProcessMouseDown(e);
+		ClicEnAlerta(e.Location) || _arrastre.Presionar(e.Location) || base.ProcessMouseDown(e);
 
 	public override bool ProcessMouseMove(RenderControlMouseEventArgs e)
 	{
@@ -484,5 +485,5 @@ public partial class IndicadorCompleto
 		_arrastre.Soltar() || base.ProcessMouseUp(e);
 
 	public override StdCursor GetCursor(RenderControlMouseEventArgs e) =>
-		_arrastre.Arrastrando || _arrastre.SobreTitulo(e.Location) ? StdCursor.Hand : base.GetCursor(e);
+		_arrastre.Arrastrando || _arrastre.SobreTitulo(e.Location) || IconoAlerta(e.Location) >= 0 ? StdCursor.Hand : base.GetCursor(e);
 }

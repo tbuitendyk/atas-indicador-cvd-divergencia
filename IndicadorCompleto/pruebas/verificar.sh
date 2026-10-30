@@ -14,7 +14,7 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
 echo "== 1. Sustitutos de las DLL de ATAS =="
 dotnet build "$raiz/pruebas/compilacion/ATAS.Indicators.csproj" -c Release -o "$tmp/atas" -v q
 
-for nombre in ATAS.DataFeedsCore OFT.Rendering Utils.Common; do
+for nombre in ATAS.DataFeedsCore OFT.Rendering Utils.Common OFT.Attributes; do
   mkdir -p "$tmp/$nombre"
   printf '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0-windows</TargetFramework><EnableWindowsTargeting>true</EnableWindowsTargeting><AssemblyName>%s</AssemblyName></PropertyGroup></Project>\n' "$nombre" > "$tmp/$nombre/$nombre.csproj"
   echo 'namespace Vacio { internal class Vacio { } }' > "$tmp/$nombre/Vacio.cs"

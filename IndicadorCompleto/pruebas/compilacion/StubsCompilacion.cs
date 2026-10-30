@@ -72,8 +72,12 @@ namespace ATAS.Indicators
         public int Redraws { get; private set; }
         public void RedrawChart() => Redraws++;
         protected virtual void OnRender(OFT.Rendering.Context.RenderContext context, DrawingLayouts layout) { }
+        // Forma copiada de los indicadores oficiales (UnfinishedAuction.cs: AddAlert(AlertFile, alertText)).
+        public void AddAlert(string alertFile, string message) { }
     }
 }
+// Atributo del selector de sonidos (oficial: [OFT.Attributes.Editors.SoundComboBoxEditor] en BarTimer.cs).
+namespace OFT.Attributes.Editors { [System.AttributeUsage(System.AttributeTargets.Property)] public sealed class SoundComboBoxEditorAttribute : System.Attribute { } }
 namespace ATAS.Indicators.Drawing { public class TrendLine { } }
 namespace OFT.Rendering.Context
 {

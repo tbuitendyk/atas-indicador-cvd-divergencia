@@ -128,7 +128,28 @@ cambia con *Ancho del perfil (píxeles)*.
 | Línea verde / roja con `div 1M` o `div 5M` | Divergencia CVD alcista / bajista entre dos pivotes |
 
 El **recuadro de estado** (arriba a la izquierda) muestra el papel del indicador, el sesgo 1H y el número de señales.
-Se mueve **arrastrándolo con el ratón**, como los paneles de los otros indicadores.
+Se mueve **arrastrándolo con el ratón** por su barra de título, como los paneles de los otros indicadores.
+
+### Alertas sonoras
+
+Tres alertas, cada una con su sonido. Usan el sistema de alertas de ATAS: suena el sonido y el mensaje aparece en la
+ventana de alertas de ATAS.
+
+| Alerta | Cuándo suena | Mensaje (ejemplo) |
+|---|---|---|
+| **Señal** | Señal M1 o M2 confirmada | `SEÑAL M1 LONG EXTERNA · entrada 20005.50 · SL 19995.00 · TP 20069.50 · 10 micros · RR 5.3` |
+| **Barrido** | Aviso previo: barrido en evaluación que puede acabar en señal | `BARRIDO B12 DE MÍNIMOS EXTERNA en 20000.00 (…): posible LONG, esperar recuperación y gatillo` |
+| **Bloqueado** | Patrón completo que el control de riesgo no admitió | `M1 LONG EXTERNA BLOQUEADA: RR NETO 0.23 MENOR QUE EL MÍNIMO 1.00` |
+
+- **Iconos para silenciar o activar cada una:** en la parte de abajo del recuadro de estado hay tres altavoces
+  (*Señal*, *Barrido*, *Bloqueado*). **Un clic** alterna: altavoz verde con ondas = activa; gris con una **X roja** =
+  silenciada. Los iconos funcionan en cualquier gráfico del grupo (1M o 5M) y cambian las alertas del maestro.
+- También en los ajustes, grupo **10. Alertas sonoras**: activar/desactivar y elegir el **sonido** de cada una de la
+  lista de sonidos de ATAS (por defecto *alert1* para señales y *alert2* para las otras dos).
+- Suenan solo con velas **en vivo**: nunca durante la carga del historial ni al recalcular.
+- Suenan al **cierre** de la vela de 1 minuto que confirma el evento (con un feed retrasado, con el mismo retraso).
+- No suenan los barridos bloqueados desde el principio (contexto contrario, fuera de ventana, doble…) ni una señal
+  suprimida por haber otra reciente en la misma dirección.
 
 ## 4. La ventana del reporte
 
@@ -180,6 +201,7 @@ iniciales son razonables, pero deben confirmarse con la experiencia sobre el gr�
 | 7. EMA y gestión simulada | EMA 15 en 1M; **cerrar al cierre de la vela cruzada por la EMA** (activado, nota del propietario); agotamiento y arranque contrario; protección POC |
 | 8. CVD | Hora de reinicio del CVD (09:30 NY) |
 | 9. Dibujo | Colores (amarillo canario y naranja), LVN menores, mapas anteriores, perfil de origen, EMA, FVG, barridos, bloqueados, divergencias, directrices |
+| 10. Alertas sonoras | Señal, barrido y setup bloqueado: activar/silenciar y sonido de cada una (también con los iconos del recuadro de estado) |
 
 **Valor del tick.** El riesgo se calcula en **micro contratos**: con 0,50 USD por tick (MNQ). Si se opera NQ
 completo, ponga 5,00 USD. Compruebe también comisión y deslizamiento con su bróker y luego active *Valores monetarios
@@ -220,9 +242,9 @@ Dígalas antes de operar con el indicador:
 
 - **Solo ATAS clásico** (la ventana WPF no carga en ATAS X).
 - **Verificado sin ATAS.** El código se compiló (0 avisos, 0 errores) contra sustitutos de las DLL de ATAS, y la
-  lógica pasó 118 comprobaciones con datos sintéticos. **No se ha ejecutado dentro de ATAS**: la primera compilación
-  contra las DLL reales, el comportamiento de la ventana WPF y el emparejamiento maestro/visores entre gráficos se
-  comprueban en su PC. Si algo falla, el registro de ATAS (*Logs*) muestra `IndicadorCompleto: error …`.
+  lógica pasó 126 comprobaciones con datos sintéticos. **No se ha ejecutado dentro de ATAS**: la primera compilación
+  contra las DLL reales, el comportamiento de la ventana WPF, el emparejamiento maestro/visores entre gráficos y que
+  las alertas suenen se comprueban en su PC. Si algo falla, el registro de ATAS (*Logs*) muestra `IndicadorCompleto: error …`.
 - **Estadística simulada**: no incluye cola en la cola, rechazos ni deslizamiento distinto del configurado.
 - **Umbrales (propuesto)**: pendientes de calibrar con la experiencia.
 - **Feed con retraso**: con un feed retrasado (por ejemplo dxFeed con 15 minutos de retraso), las señales llegan con

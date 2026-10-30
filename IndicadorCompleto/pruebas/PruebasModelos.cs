@@ -67,6 +67,36 @@ internal static class PruebasModelos
 		M2(c);
 		Gestion(c);
 		Reporte(c);
+		Avisos(c);
+	}
+
+	private static void Avisos(Comprobador c)
+	{
+		c.Seccion("Alertas sonoras: avisos numerados de barrido, señal y bloqueo");
+
+		string Tipos(MotorCompleto m) => string.Join(" ", m.AvisosDespuesDe(0).Select(a => $"{a.Numero}:{a.Tipo}"));
+
+		var m = Preparar();
+		m.Procesar(Barrido());
+		var previo = m.AvisosDespuesDe(0).FirstOrDefault()?.Texto ?? "";
+		c.Check("barrido en evaluación: aviso previo", Tipos(m), "1:Barrido");
+		c.Check("el aviso previo dice qué falta", (previo.Contains("DE MÍNIMOS EXTERNA") && previo.EndsWith("posible LONG, esperar recuperación y gatillo")).ToString(), "True");
+
+		m.Procesar(RecuperacionGatillo());
+		c.Check("señal confirmada: segundo aviso", Tipos(m), "1:Barrido 2:Senal");
+		c.Check("el aviso de la señal lleva el plan", m.AvisosDespuesDe(1).FirstOrDefault()?.Texto ?? "ninguno",
+			"SEÑAL M1 LONG EXTERNA · entrada 20005.50 · SL 19995.00 · TP 20069.50 · 10 micros · RR 5.3");
+		c.Check("nada pendiente después del último número", m.AvisosDespuesDe(m.UltimoAviso).Count.ToString(), "0");
+
+		var bloqueada = Preparar(cfg => cfg.ValoresMonetariosVerificados = false);
+		bloqueada.Procesar(Barrido());
+		bloqueada.Procesar(RecuperacionGatillo());
+		c.Check("setup bloqueado por el riesgo: aviso con el motivo", $"{Tipos(bloqueada)} · {bloqueada.AvisosDespuesDe(1).FirstOrDefault()?.Texto}",
+			"1:Barrido 2:Bloqueado · M1 LONG EXTERNA BLOQUEADA: VALORES MONETARIOS NO VERIFICADOS (ajuste de riesgo)");
+
+		var doble = Preparar(conMaximo: true);
+		doble.Procesar(Barrido(maximo: 20014.25m));
+		c.Check("barrido bloqueado desde el inicio (doble): no suena", doble.UltimoAviso.ToString(), "0");
 	}
 
 	private static void M1Completo(Comprobador c)

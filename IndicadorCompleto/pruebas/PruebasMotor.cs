@@ -143,6 +143,10 @@ internal static class PruebasMotor
 		c.Check("no repinta: los barridos del 60 % siguen idénticos",
 			barridosParcial.Where(f => int.Parse(f.Split('|')[0]) >= primerBarridoCompleto).All(barridosCompleto.Contains).ToString(), "True");
 
+		var avisos = completo.AvisosDespuesDe(0);
+		c.Check("avisos: los 200 últimos, numerados sin saltos hasta el último",
+			(avisos.Count == 200 && avisos[^1].Numero == completo.UltimoAviso && avisos.Zip(avisos.Skip(1)).All(p => p.Second.Numero == p.First.Numero + 1)).ToString(), "True");
+
 		var repetido = new MotorCompleto(cfg);
 
 		foreach (var v in historico.Take(2000))

@@ -37,3 +37,6 @@ visores 1M/5M, panel CVD; dibujo), `Ventana/` (ventana WPF del reporte), `prueba
   sintético de 90 días: sin excepciones, sin repintado, carga ~5 s, cada vela nueva ~0,05 ms. Manual en LEEME.md.
   Pendiente solo de comprobar en Windows con ATAS real: compilación contra las DLL reales, ventana WPF y
   emparejamiento maestro/visores.
+- 2026-10-30 (pedido del propietario): letra del reporte 12→10 con botones A−/A+ (y Ctrl + rueda), tamaño guardado;
+  alertas sonoras de ATAS (`AddAlert`) para señal, barrido (aviso previo) y setup bloqueado, solo en vivo, con
+  iconos de altavoz en el recuadro de estado para silenciar/activar cada una. 126 comprobaciones ALL PASS.

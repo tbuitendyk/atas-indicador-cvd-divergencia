@@ -509,6 +509,7 @@ public partial class IndicadorCompleto : Indicator
 
 		_ultimaBarra = bar;
 		_motor!.UltimoDatoUtc = DateTime.UtcNow;
+		RevisarAlertas(bar);
 
 		// Abre la ventana o, si ya estaba abierta (recálculo), le conecta el motor nuevo.
 		if (!_ventanaAbierta && MostrarVentana)
@@ -530,6 +531,8 @@ public partial class IndicadorCompleto : Indicator
 		_tiempos.Clear();
 		_ultimaBarra = -1;
 		_ventanaAbierta = false;
+		_enVivo = false;
+		_avisoSonado = 0;
 		_marcoGrafico = DetectarMarco();
 
 		var instrumento = InstrumentInfo?.Instrument ?? "";

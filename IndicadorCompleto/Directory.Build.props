@@ -35,6 +35,11 @@
       <HintPath>$(ATAS_BASE)\Utils.Common.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- Selector de sonidos de las alertas ([SoundComboBoxEditor]); la plantilla oficial de ATAS lo toma de aquí. -->
+    <Reference Include="OFT.Attributes">
+      <HintPath>$(ATAS_BASE)\OFT.Attributes.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
 </Project>
