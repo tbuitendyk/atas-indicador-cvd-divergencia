@@ -60,7 +60,17 @@ authorization.)
 - Every panel and the dashboard can be dragged by their title bar through `Compartido/ArrastrePanel.cs`
   (`_arrastre.Ubicar(...)` when drawing, plus the same four mouse overrides in each shell). Floating
   a panel **outside** the chart is not possible through the indicator API. A custom WPF window
-  would make ATAS X reject the DLL, so the owner declined it (2026-10-26).
+  would make ATAS X reject the DLL, so the owner declined it for these five (2026-10-26) — but
+  accepted it, classic-ATAS-only, for `IndicadorCompleto` (2026-10-30).
+- **`IndicadorCompleto/` is a separate, self-contained solution** (`IndicadorCompleto.slnx`, its own
+  `Directory.Build.props/.targets` that cut the root inheritance; not in `Indicadores.slnx`). Spec:
+  the owner's "Indicador Combinado1" docx. Pure engine in `Nucleo/` (no ATAS types; one `MotorCompleto`
+  fed closed 1M candles by a master chart, shared via a static registry with 1M/5M viewer charts),
+  ATAS shells in `Atas/`, WPF report window in `Ventana/`. Verify with
+  `bash IndicadorCompleto/pruebas/verificar.sh` (compile vs stand-ins + 118 checks incl. a 90-day
+  no-repaint/performance run). User manual: `IndicadorCompleto/LEEME.md`; status: `PROGRESO.md`.
+  Owner decisions: LVN yellow (top 3) / orange (next 5) by score ranking, min 10-pt separation,
+  source volume profile drawn; statistics are simulated; EMA-close exit on (owner's note).
 - Owner preferences so far: signals are evaluated on **closed candles** (no repainting). Where a
   spec's prose and its code disagree, ask; the specs are AI-written and their code has never compiled
   as-is.

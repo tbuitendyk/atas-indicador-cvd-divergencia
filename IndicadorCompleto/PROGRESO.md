@@ -25,10 +25,15 @@ visores 1M/5M, panel CVD; dibujo), `Ventana/` (ventana WPF del reporte), `prueba
 - [x] ATAS: maestro/visores, registro compartido, dibujo en 1M y 5M
 - [x] ATAS: indicador del panel CVD
 - [x] Ventana flotante WPF
-- [ ] Pruebas, verificación de compilación y rendimiento
-- [ ] Manual (LEEME.md) y fusión a main
+- [x] Pruebas, verificación de compilación y rendimiento
+- [x] Manual (LEEME.md) y fusión a main
 
 ## Notas
 
 - 2026-10-30: todo el código escrito y compilando (0 avisos) contra sustitutos de ATAS y WPF real.
   Siguiente: pruebas de escenarios del núcleo, rendimiento, manual LEEME.md, revisión final y fusión a main.
+- 2026-10-30: `pruebas/verificar.sh`: compilación 0 avisos / 0 errores, 118 comprobaciones ALL PASS. Las pruebas
+  encontraron y corrigieron dos fallos reales (centro de un LVN de fondo plano; desempate del POC). Histórico
+  sintético de 90 días: sin excepciones, sin repintado, carga ~5 s, cada vela nueva ~0,05 ms. Manual en LEEME.md.
+  Pendiente solo de comprobar en Windows con ATAS real: compilación contra las DLL reales, ventana WPF y
+  emparejamiento maestro/visores.

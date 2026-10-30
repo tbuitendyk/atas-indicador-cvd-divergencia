@@ -99,6 +99,19 @@ Alternativa sin abrir Visual Studio (PowerShell, dentro de la carpeta del reposi
 dotnet build Indicadores.slnx -c Release
 ```
 
+### Indicador Completo (solución aparte)
+
+**Indicador Completo** no está en `Indicadores.slnx`: tiene su propia solución. Se compila igual, abriendo
+**`IndicadorCompleto\IndicadorCompleto.slnx`**, en **Release**, **Compilar → Compilar solución**. La DLL queda en:
+
+```
+IndicadorCompleto\bin\Release\net10.0-windows\IndicadorCompleto.dll
+```
+
+O desde PowerShell: `dotnet build IndicadorCompleto\IndicadorCompleto.slnx -c Release`. Se instala con
+**Add custom indicator** como los demás (sección 4), **solo en ATAS clásico**. Cómo preparar los gráficos y usarlo:
+[IndicadorCompleto/LEEME.md](../IndicadorCompleto/LEEME.md).
+
 ### Si la compilación falla
 
 - **`No se encontró ATAS.Indicators.dll en '...'`**: ATAS no está en `C:\Program Files (x86)\ATAS Platform`.

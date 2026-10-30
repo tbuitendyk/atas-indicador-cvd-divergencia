@@ -11,6 +11,12 @@ Un solo repositorio con una carpeta por indicador; `Indicadores.slnx` los compil
 | Footprint Predictor Pro (Sweeps & Context) | `IndicadorFootprintPredictor/` | `IndicadorFootprintPredictor.dll` |
 | Institutional 90-Day Deep LVN Profile Engine | `IndicadorLvn/` | `IndicadorLvn.dll` |
 | **Indicador Combinado** (los cuatro en uno) | `IndicadorCombinado/` | `IndicadorCombinado.dll` |
+| **Indicador Completo** (+ panel *Indicador Completo CVD*) — solución aparte | `IndicadorCompleto/` | `IndicadorCompleto.dll` |
+
+**Indicador Completo** tiene su **propia solución**, `IndicadorCompleto\IndicadorCompleto.slnx`, y su propio
+manual: **[IndicadorCompleto/LEEME.md](IndicadorCompleto/LEEME.md)**. Estructura 1H, barridos de liquidez, mapas
+LVN con prioridad amarilla/naranja y su perfil de volumen de origen, modelos M1/M2, riesgo en micros, gestión
+simulada, CVD y ventana flotante con el reporte. Solo ATAS clásico.
 
 Pasos completos para subir el código a otro repositorio de GitHub, descargarlo en Windows, compilarlo, instalarlo y
 recibir actualizaciones: **[docs/GUIA.md](docs/GUIA.md)**.
@@ -178,3 +184,5 @@ bash pruebas/verificar.sh
 Compila la solución contra sustitutos de las DLL de ATAS y ejecuta las pruebas de comportamiento de los cinco
 indicadores. No forma parte de la solución de Visual Studio. La primera compilación contra las DLL reales de ATAS
 sigue siendo la de Windows.
+
+Indicador Completo tiene su propia verificación: `bash IndicadorCompleto/pruebas/verificar.sh`.
