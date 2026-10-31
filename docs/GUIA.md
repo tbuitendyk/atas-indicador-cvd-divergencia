@@ -112,6 +112,18 @@ O desde PowerShell: `dotnet build IndicadorCompleto\IndicadorCompleto.slnx -c Re
 **Add custom indicator** como los demás (sección 4), **solo en ATAS clásico**. Cómo preparar los gráficos y usarlo:
 [IndicadorCompleto/LEEME.md](../IndicadorCompleto/LEEME.md).
 
+### Thermal Volume Profile (solución aparte)
+
+Igual que el anterior, con su propia solución: **`ThermalVolumeProfile\ThermalVolumeProfile.slnx`** → **Release** →
+**Compilar → Compilar solución**. La DLL queda en:
+
+```
+ThermalVolumeProfile\bin\Release\net10.0-windows\ThermalVolumeProfile.dll
+```
+
+O desde PowerShell: `dotnet build ThermalVolumeProfile\ThermalVolumeProfile.slnx -c Release`. Se instala con
+**Add custom indicator** (sección 4). Uso: [ThermalVolumeProfile/LEEME.md](../ThermalVolumeProfile/LEEME.md).
+
 ### Si la compilación falla
 
 - **`No se encontró ATAS.Indicators.dll en '...'`**: ATAS no está en `C:\Program Files (x86)\ATAS Platform`.

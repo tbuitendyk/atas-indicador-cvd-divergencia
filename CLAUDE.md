@@ -71,6 +71,16 @@ authorization.)
   no-repaint/performance run). User manual: `IndicadorCompleto/LEEME.md`; status: `PROGRESO.md`.
   Owner decisions: LVN yellow (top 3) / orange (next 5) by score ranking, min 10-pt separation,
   source volume profile drawn; statistics are simulated; EMA-close exit on (owner's note).
+- **`ThermalVolumeProfile/` is another separate, self-contained solution** (`ThermalVolumeProfile.slnx`),
+  from the owner's "Prompt Volumen Profile térmico" PDF (2026-10-31). The owner said to answer the open
+  questions ourselves and deliver the decisions: `ThermalVolumeProfile/DECISIONES.md` (read it before
+  changing behaviour). Pure engine `MotorTermico.cs` (namespace `Termico`, no ATAS types, to be copied
+  into IndicadorCompleto later) + ATAS shell `ThermalVolumeProfile.cs` (computes once at the last
+  history bar, then only the open candle; toolbar PERFIL/RANGO/ZONA/LVN; manual yellow LVN lines count
+  as LVN because ATAS has no official API to read user drawings). Its tests run the real indicator
+  against behaviour stand-ins (`pruebas/StubsAtas.cs`): `bash ThermalVolumeProfile/pruebas/verificar.sh`
+  (0 warnings, 123 checks incl. a synthetic analogue of the spec's NQ 60-min validation and 90 days of
+  1-min bars). Manual: `ThermalVolumeProfile/LEEME.md`.
 - Owner preferences so far: signals are evaluated on **closed candles** (no repainting). Where a
   spec's prose and its code disagree, ask; the specs are AI-written and their code has never compiled
   as-is.

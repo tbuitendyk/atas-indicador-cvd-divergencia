@@ -42,7 +42,7 @@ internal static class PruebasIndicador
 			TestCandles = velas,
 			FirstVisibleBarNumber = 0,
 			LastVisibleBarNumber = velas.Count - 1,
-			RangeMode = RangeModes.LastNBars,
+			RangeMode = ModosRango.LastNBars,
 			LastNBars = 1000
 		};
 
@@ -121,13 +121,13 @@ internal static class PruebasIndicador
 		var izquierda = Crear(Velas());
 		c.Check("anclaje izquierda del rango: las barras salen de x = 0 hacia la derecha", Bordes(izquierda.TestRender()).ToString(), "(0, 68)");
 
-		izquierda.ProfileDirection = ProfileDirections.RightToLeft;
+		izquierda.ProfileDirection = DireccionesPerfil.RightToLeft;
 		c.Check("de derecha a izquierda desde el mismo anclaje", Bordes(izquierda.TestRender()).ToString(), "(-68, 0)");
 
-		var derecha = Crear(Velas(), ajustes: i => i.ProfileAnchor = ProfileAnchors.RightOfRange);
+		var derecha = Crear(Velas(), ajustes: i => i.ProfileAnchor = AnclajesPerfil.RightOfRange);
 		c.Check("anclaje derecha del rango (x = 196): hacia la izquierda", Bordes(derecha.TestRender()).ToString(), "(128, 196)");
 
-		var pantalla = Crear(Velas(), ajustes: i => i.ProfileAnchor = ProfileAnchors.RightOfScreen);
+		var pantalla = Crear(Velas(), ajustes: i => i.ProfileAnchor = AnclajesPerfil.RightOfScreen);
 		c.Check("anclaje derecha de la pantalla: 35 % de 1200 px", Bordes(pantalla.TestRender()).ToString(), "(780, 1200)");
 	}
 
@@ -137,7 +137,7 @@ internal static class PruebasIndicador
 
 		var vacio = Crear(Velas(), ajustes: i =>
 		{
-			i.RangeMode = RangeModes.CustomDateTime;
+			i.RangeMode = ModosRango.CustomDateTime;
 			i.StartDateTime = new DateTime(2030, 1, 1);
 			i.UseCurrentBarAsEnd = false;
 			i.EndDateTime = new DateTime(2030, 2, 1);
@@ -163,7 +163,7 @@ internal static class PruebasIndicador
 		// Gráfico de ticks: 30 velas con horas repetidas (varias por segundo) y modo fecha/hora.
 		var ticks = Crear(Velas(30, i => T0.AddSeconds(i / 3)), ajustes: i =>
 		{
-			i.RangeMode = RangeModes.CustomDateTime;
+			i.RangeMode = ModosRango.CustomDateTime;
 			i.StartDateTime = T0.AddSeconds(2) - TimeSpan.FromHours(6);
 			i.EndDateTime = T0.AddSeconds(5) - TimeSpan.FromHours(6);
 			i.UseCurrentBarAsEnd = false;
@@ -309,7 +309,7 @@ internal static class PruebasIndicador
 
 		var visible = Crear(Velas(), ajustes: i =>
 		{
-			i.RangeMode = RangeModes.VisibleRange;
+			i.RangeMode = ModosRango.VisibleRange;
 			i.FirstVisibleBarNumber = 5;
 			i.LastVisibleBarNumber = 9;
 		});

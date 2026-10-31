@@ -168,7 +168,7 @@ internal static class PruebasValidacion
 			InstrumentInfo = new InstrumentInfo { TickSize = Tick },
 			ChartInfo = new ChartInfo(),
 			TestCandles = diario,
-			RangeMode = RangeModes.LastNBars,
+			RangeMode = ModosRango.LastNBars,
 			LastNBars = 300
 		};
 

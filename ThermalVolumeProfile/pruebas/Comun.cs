@@ -46,7 +46,7 @@ internal static class Datos
 		PrimeraFila = (long)(bajo / Tick),
 		Valor = valores,
 		DeltaFila = new double[valores.Length],
-		Tipo = ProfileTypes.Volume
+		Tipo = TiposPerfil.Volume
 	};
 
 	/// <summary>Valores por fila a partir de tramos (desde, hasta, valor), el resto 'fondo'.</summary>

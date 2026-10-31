@@ -16,7 +16,7 @@ using System.Linq;
 
 #region Enumeraciones (ajustes visibles en ATAS)
 
-public enum RangeModes
+public enum ModosRango
 {
 	[Display(Name = "Fecha y hora (desde / hasta)")]
 	CustomDateTime,
@@ -40,7 +40,7 @@ public enum RangeModes
 	Month
 }
 
-public enum ProfileTypes
+public enum TiposPerfil
 {
 	[Display(Name = "Volumen")]
 	Volume,
@@ -58,7 +58,7 @@ public enum ProfileTypes
 	Ask
 }
 
-public enum ThermalPalettes
+public enum PaletasTermicas
 {
 	[Display(Name = "Amarillo a rojo")]
 	YellowRed,
@@ -73,7 +73,7 @@ public enum ThermalPalettes
 	Custom
 }
 
-public enum ThermalScales
+public enum EscalasTermicas
 {
 	[Display(Name = "Lineal")]
 	Linear,
@@ -85,7 +85,7 @@ public enum ThermalScales
 	Logarithmic
 }
 
-public enum ProfileAnchors
+public enum AnclajesPerfil
 {
 	[Display(Name = "Izquierda del rango")]
 	LeftOfRange,
@@ -100,7 +100,7 @@ public enum ProfileAnchors
 	RightOfScreen
 }
 
-public enum ProfileDirections
+public enum DireccionesPerfil
 {
 	[Display(Name = "Automática (según el anclaje)")]
 	Auto,
@@ -112,7 +112,7 @@ public enum ProfileDirections
 	RightToLeft
 }
 
-public enum LvnDisplayModes
+public enum DibujosLvn
 {
 	[Display(Name = "Línea")]
 	Line,
@@ -121,7 +121,7 @@ public enum LvnDisplayModes
 	Band
 }
 
-public enum SessionTimeZones
+public enum ZonasHorariasSesion
 {
 	[Display(Name = "Nueva York")]
 	NewYork,
@@ -430,7 +430,7 @@ public sealed class Perfil
 	/// <summary>Delta con signo de cada fila (Ask − Bid), para marcar el signo en el perfil Delta.</summary>
 	public double[] DeltaFila { get; init; } = Array.Empty<double>();
 
-	public ProfileTypes Tipo { get; init; }
+	public TiposPerfil Tipo { get; init; }
 
 	public int Velas { get; init; }
 
@@ -447,7 +447,7 @@ public sealed class Perfil
 
 	/// <summary>Construye el perfil de las velas cerradas más, si la hay, la aportación de la vela abierta.</summary>
 	public static Perfil? Construir(AcumuladorTicks acumulado, IReadOnlyDictionary<long, AcumuladorTicks.Celda>? abierta,
-		ProfileTypes tipo, int rowSizeTicks, bool autoRowSize, int maxRows)
+		TiposPerfil tipo, int rowSizeTicks, bool autoRowSize, int maxRows)
 	{
 		long min = long.MaxValue, max = long.MinValue;
 
@@ -504,10 +504,10 @@ public sealed class Perfil
 			delta[i] = ask[i] - bid[i];
 			valor[i] = tipo switch
 			{
-				ProfileTypes.TPO => tpo[i],
-				ProfileTypes.Delta => Math.Abs(delta[i]),
-				ProfileTypes.Bid => bid[i],
-				ProfileTypes.Ask => ask[i],
+				TiposPerfil.TPO => tpo[i],
+				TiposPerfil.Delta => Math.Abs(delta[i]),
+				TiposPerfil.Bid => bid[i],
+				TiposPerfil.Ask => ask[i],
 				_ => vol[i]
 			};
 		}
@@ -1076,28 +1076,28 @@ public static partial class MotorTermico
 public static class PaletaTermica
 {
 	/// <summary>Los 4 colores de cada paleta (en n = 0, 0,33, 0,66 y 1).</summary>
-	public static ColorArgb[] Colores(ThermalPalettes paleta, ColorArgb[]? personalizada) => paleta switch
+	public static ColorArgb[] Colores(PaletasTermicas paleta, ColorArgb[]? personalizada) => paleta switch
 	{
-		ThermalPalettes.BlueRed => new ColorArgb[] { new(255, 30, 60, 200), new(255, 0, 200, 230), new(255, 255, 200, 0), new(255, 190, 0, 0) },
-		ThermalPalettes.Grayscale => new ColorArgb[] { new(255, 70, 70, 70), new(255, 130, 130, 130), new(255, 190, 190, 190), new(255, 255, 255, 255) },
-		ThermalPalettes.Custom when personalizada is { Length: 4 } => personalizada,
+		PaletasTermicas.BlueRed => new ColorArgb[] { new(255, 30, 60, 200), new(255, 0, 200, 230), new(255, 255, 200, 0), new(255, 190, 0, 0) },
+		PaletasTermicas.Grayscale => new ColorArgb[] { new(255, 70, 70, 70), new(255, 130, 130, 130), new(255, 190, 190, 190), new(255, 255, 255, 255) },
+		PaletasTermicas.Custom when personalizada is { Length: 4 } => personalizada,
 		_ => new ColorArgb[] { new(255, 255, 250, 160), new(255, 255, 205, 0), new(255, 255, 120, 0), new(255, 150, 0, 0) }
 	};
 
-	public static double Escalar(double n, ThermalScales escala)
+	public static double Escalar(double n, EscalasTermicas escala)
 	{
 		n = Math.Clamp(n, 0, 1);
 
 		return escala switch
 		{
-			ThermalScales.SquareRoot => Math.Sqrt(n),
-			ThermalScales.Logarithmic => Math.Log10(1 + 9 * n),
+			EscalasTermicas.SquareRoot => Math.Sqrt(n),
+			EscalasTermicas.Logarithmic => Math.Log10(1 + 9 * n),
 			_ => n
 		};
 	}
 
 	/// <summary>256 colores precalculados: el índice es n × 255 (antes de la escala), con la opacidad del perfil.</summary>
-	public static ColorArgb[] Cache(ColorArgb[] cuatro, ThermalScales escala, byte opacidad)
+	public static ColorArgb[] Cache(ColorArgb[] cuatro, EscalasTermicas escala, byte opacidad)
 	{
 		var paradas = new[] { 0.0, 0.33, 0.66, 1.0 };
 		var cache = new ColorArgb[256];
@@ -1128,7 +1128,7 @@ public static class PaletaTermica
 /// <summary>Datos para elegir las velas del perfil según RangeMode. Las fechas del usuario están en hora del gráfico.</summary>
 public sealed class ParametrosRango
 {
-	public RangeModes Modo { get; set; } = RangeModes.CustomDateTime;
+	public ModosRango Modo { get; set; } = ModosRango.CustomDateTime;
 
 	/// <summary>Desde / hasta en hora del gráfico (como los muestra ATAS).</summary>
 	public DateTime Desde { get; set; }
@@ -1141,7 +1141,7 @@ public sealed class ParametrosRango
 
 	public TimeSpan SessionEnd { get; set; } = new(16, 0, 0);
 
-	public SessionTimeZones ZonaSesion { get; set; } = SessionTimeZones.NewYork;
+	public ZonasHorariasSesion ZonaSesion { get; set; } = ZonasHorariasSesion.NewYork;
 
 	/// <summary>Diferencia de la hora del gráfico con UTC (InstrumentInfo.TimeZoneOffset de ATAS).</summary>
 	public TimeSpan OffsetGrafico { get; set; }
@@ -1216,22 +1216,22 @@ public static class Rangos
 
 		switch (r.Modo)
 		{
-			case RangeModes.LastNBars:
+			case ModosRango.LastNBars:
 				hasta = fin;
 				desde = hasta - Math.Max(1, r.LastNBars) + 1;
 				break;
 
-			case RangeModes.VisibleRange:
+			case ModosRango.VisibleRange:
 				desde = r.PrimeraVisible;
 				hasta = Math.Min(r.UltimaVisible, fin);
 				break;
 
-			case RangeModes.Session:
+			case ModosRango.Session:
 				return Sesion(r, tiempo, fin);
 
-			case RangeModes.Day:
-			case RangeModes.Week:
-			case RangeModes.Month:
+			case ModosRango.Day:
+			case ModosRango.Week:
+			case ModosRango.Month:
 				if (fin < 0)
 					return null;
 
@@ -1256,14 +1256,14 @@ public static class Rangos
 		return desde <= hasta ? (desde, hasta) : null;
 	}
 
-	private static DateTime Periodo(RangeModes modo, DateTime utc)
+	private static DateTime Periodo(ModosRango modo, DateTime utc)
 	{
 		var fecha = FechaOperativa(utc);
 
 		return modo switch
 		{
-			RangeModes.Week => fecha.AddDays(-(((int)fecha.DayOfWeek + 6) % 7)),
-			RangeModes.Month => new DateTime(fecha.Year, fecha.Month, 1),
+			ModosRango.Week => fecha.AddDays(-(((int)fecha.DayOfWeek + 6) % 7)),
+			ModosRango.Month => new DateTime(fecha.Year, fecha.Month, 1),
 			_ => fecha
 		};
 	}
@@ -1274,7 +1274,7 @@ public static class Rangos
 		(bool Dentro, DateTime Fecha) Leer(int bar)
 		{
 			var utc = DateTime.SpecifyKind(tiempo(bar), DateTimeKind.Utc);
-			var local = r.ZonaSesion == SessionTimeZones.NewYork ? ANuevaYork(utc) : utc + r.OffsetGrafico;
+			var local = r.ZonaSesion == ZonasHorariasSesion.NewYork ? ANuevaYork(utc) : utc + r.OffsetGrafico;
 			var hora = local.TimeOfDay;
 			var cruza = r.SessionStart > r.SessionEnd;
 			var dentro = cruza ? hora >= r.SessionStart || hora < r.SessionEnd : hora >= r.SessionStart && hora < r.SessionEnd;

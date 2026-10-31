@@ -29,43 +29,43 @@ internal static class PruebasNucleo
 
 		var ac = new AcumuladorTicks(Tick, 30);
 		ac.Agregar(VP(T0, (15000m, 10, 10), (15000.75m, 5, 5)));
-		var p = Perfil.Construir(ac, null, ProfileTypes.Volume, 1, false, 300)!;
+		var p = Perfil.Construir(ac, null, TiposPerfil.Volume, 1, false, 300)!;
 		c.Check("fila = Floor(precio / tick); filas intermedias a 0", string.Join(",", p.Valor), "20,0,0,10");
 		c.Check("índice 0 = precio más bajo", Precio(p.PrecioFila(0)) + " " + Precio(p.PrecioFila(3)), "15000.00 15000.75");
 
-		var dos = Perfil.Construir(ac, null, ProfileTypes.Volume, 2, false, 300)!;
+		var dos = Perfil.Construir(ac, null, TiposPerfil.Volume, 2, false, 300)!;
 		c.Check("RowSizeTicks 2: 15000+15000.25 | 15000.50+15000.75", string.Join(",", dos.Valor) + " desde " + Precio(dos.PrecioFila(0)), "20,10 desde 15000.00");
 
 		var ancho = new AcumuladorTicks(Tick, 30);
 		ancho.Agregar(VP(T0, (15169m, 1, 1), (15451m, 1, 1)));
-		var auto = Perfil.Construir(ancho, null, ProfileTypes.Volume, 1, true, 300)!;
+		var auto = Perfil.Construir(ancho, null, TiposPerfil.Volume, 1, true, 300)!;
 		c.Check("AutoRowSize: 1129 ticks y 300 filas máx → 4 ticks por fila", $"{auto.TicksPorFila} {auto.Filas}", "4 283");
 
 		var sinNiveles = new AcumuladorTicks(Tick, 30);
 		var conNiveles = sinNiveles.Agregar(new VelaPerfil { Time = T0, Low = 15000m, High = 15001m, Volume = 100, Delta = 20 });
-		var reparto = Perfil.Construir(sinNiveles, null, ProfileTypes.Volume, 1, false, 300)!;
+		var reparto = Perfil.Construir(sinNiveles, null, TiposPerfil.Volume, 1, false, 300)!;
 		c.Check("vela sin niveles: 100 repartidos en 5 precios (y se informa)", $"{conNiveles} {string.Join(",", reparto.Valor)}", "False 20,20,20,20,20");
-		c.Check("sin niveles: Ask = (V + delta) / 2 repartido", string.Join(",", Perfil.Construir(sinNiveles, null, ProfileTypes.Ask, 1, false, 300)!.Valor), "12,12,12,12,12");
+		c.Check("sin niveles: Ask = (V + delta) / 2 repartido", string.Join(",", Perfil.Construir(sinNiveles, null, TiposPerfil.Ask, 1, false, 300)!.Valor), "12,12,12,12,12");
 
 		var tpo = new AcumuladorTicks(Tick, 30);
 		tpo.Agregar(VP(T0, (15000m, 1, 1), (15000.25m, 1, 1)));
 		tpo.Agregar(VP(T0.AddMinutes(10), (15000m, 1, 1)));
 		tpo.Agregar(VP(T0.AddMinutes(30), (15000m, 1, 1)));
-		c.Check("TPO: cada periodo de 30 min cuenta una vez por precio", string.Join(",", Perfil.Construir(tpo, null, ProfileTypes.TPO, 1, false, 300)!.Valor), "2,1");
+		c.Check("TPO: cada periodo de 30 min cuenta una vez por precio", string.Join(",", Perfil.Construir(tpo, null, TiposPerfil.TPO, 1, false, 300)!.Valor), "2,1");
 
 		var delta = new AcumuladorTicks(Tick, 30);
 		delta.Agregar(VP(T0, (15000m, 30, 10), (15000.25m, 5, 25)));
-		var pd = Perfil.Construir(delta, null, ProfileTypes.Delta, 1, false, 300)!;
+		var pd = Perfil.Construir(delta, null, TiposPerfil.Delta, 1, false, 300)!;
 		c.Check("Delta: valor absoluto para el largo, signo aparte", $"{string.Join(",", pd.Valor)} / {string.Join(",", pd.DeltaFila)}", "20,20 / -20,20");
 		c.Check("Bid y Ask por separado",
-			string.Join(",", Perfil.Construir(delta, null, ProfileTypes.Bid, 1, false, 300)!.Valor) + " | " + string.Join(",", Perfil.Construir(delta, null, ProfileTypes.Ask, 1, false, 300)!.Valor),
+			string.Join(",", Perfil.Construir(delta, null, TiposPerfil.Bid, 1, false, 300)!.Valor) + " | " + string.Join(",", Perfil.Construir(delta, null, TiposPerfil.Ask, 1, false, 300)!.Valor),
 			"30,5 | 10,25");
 
 		var abierta = ac.Aportacion(VP(T0.AddMinutes(1), (15000.25m, 2, 2)), out _);
-		var vivo = Perfil.Construir(ac, abierta, ProfileTypes.Volume, 1, false, 300)!;
+		var vivo = Perfil.Construir(ac, abierta, TiposPerfil.Volume, 1, false, 300)!;
 		c.Check("vela abierta: se suma sin tocar el acumulado de las cerradas",
-			$"{string.Join(",", vivo.Valor)} | {string.Join(",", Perfil.Construir(ac, null, ProfileTypes.Volume, 1, false, 300)!.Valor)}", "20,4,0,10 | 20,0,0,10");
-		c.Check("acumulado vacío: sin perfil", (Perfil.Construir(new AcumuladorTicks(Tick, 30), null, ProfileTypes.Volume, 1, true, 300) is null).ToString(), "True");
+			$"{string.Join(",", vivo.Valor)} | {string.Join(",", Perfil.Construir(ac, null, TiposPerfil.Volume, 1, false, 300)!.Valor)}", "20,4,0,10 | 20,0,0,10");
+		c.Check("acumulado vacío: sin perfil", (Perfil.Construir(new AcumuladorTicks(Tick, 30), null, TiposPerfil.Volume, 1, true, 300) is null).ToString(), "True");
 	}
 
 	private static void PocYVa(Comprobador c)
@@ -85,15 +85,15 @@ internal static class PruebasNucleo
 	{
 		c.Seccion("C) Color térmico: 4 colores, escala y caché de 256");
 
-		var cuatro = PaletaTermica.Colores(ThermalPalettes.YellowRed, null);
-		var lineal = PaletaTermica.Cache(cuatro, ThermalScales.Linear, 180);
+		var cuatro = PaletaTermica.Colores(PaletasTermicas.YellowRed, null);
+		var lineal = PaletaTermica.Cache(cuatro, EscalasTermicas.Linear, 180);
 		c.Check("256 colores precalculados con la opacidad", $"{lineal.Length} {lineal[0].A}", "256 180");
 		c.Check("n = 0: amarillo claro; n = 1: rojo oscuro", $"{lineal[0]} | {lineal[255]}",
 			"ColorArgb { A = 180, R = 255, G = 250, B = 160 } | ColorArgb { A = 180, R = 150, G = 0, B = 0 }");
 		c.Check("lineal: n = 0,66 cae en el naranja (color medio 2)", lineal[PaletaTermica.Indice(0.66)].ToString(), "ColorArgb { A = 180, R = 255, G = 120, B = 0 }");
-		c.Check("raíz cuadrada: n = 0,25 → 0,5 (más color con poco volumen)", PaletaTermica.Escalar(0.25, ThermalScales.SquareRoot).ToString("0.00"), "0.50");
-		c.Check("logarítmica: n = 0,1 → log10(1,9)", PaletaTermica.Escalar(0.1, ThermalScales.Logarithmic).ToString("0.000"), "0.279");
-		c.Check("paleta personalizada", PaletaTermica.Colores(ThermalPalettes.Custom, new ColorArgb[] { new(1, 1, 1, 1), new(2, 2, 2, 2), new(3, 3, 3, 3), new(4, 4, 4, 4) })[3].ToString(), "ColorArgb { A = 4, R = 4, G = 4, B = 4 }");
+		c.Check("raíz cuadrada: n = 0,25 → 0,5 (más color con poco volumen)", PaletaTermica.Escalar(0.25, EscalasTermicas.SquareRoot).ToString("0.00"), "0.50");
+		c.Check("logarítmica: n = 0,1 → log10(1,9)", PaletaTermica.Escalar(0.1, EscalasTermicas.Logarithmic).ToString("0.000"), "0.279");
+		c.Check("paleta personalizada", PaletaTermica.Colores(PaletasTermicas.Custom, new ColorArgb[] { new(1, 1, 1, 1), new(2, 2, 2, 2), new(3, 3, 3, 3), new(4, 4, 4, 4) })[3].ToString(), "ColorArgb { A = 4, R = 4, G = 4, B = 4 }");
 	}
 
 	private static void Edges(Comprobador c)
@@ -260,25 +260,25 @@ internal static class PruebasNucleo
 		var futuro = new ParametrosRango { Desde = new DateTime(2027, 1, 1), Hasta = new DateTime(2027, 2, 1), UseCurrentBarAsEnd = false };
 		c.Check("rango vacío (fechas sin velas): null", (Rangos.Resolver(futuro, T, n) is null).ToString(), "True");
 
-		c.Check("últimas 200 velas", Rangos.Resolver(new ParametrosRango { Modo = RangeModes.LastNBars }, T, n).ToString(), "(292, 491)");
-		c.Check("sin la vela actual: el perfil no cambia en vivo", Rangos.Resolver(new ParametrosRango { Modo = RangeModes.LastNBars, UseCurrentBarAsEnd = false }, T, n).ToString(), "(291, 490)");
-		c.Check("rango visible", Rangos.Resolver(new ParametrosRango { Modo = RangeModes.VisibleRange, PrimeraVisible = 40, UltimaVisible = 80 }, T, n).ToString(), "(40, 80)");
+		c.Check("últimas 200 velas", Rangos.Resolver(new ParametrosRango { Modo = ModosRango.LastNBars }, T, n).ToString(), "(292, 491)");
+		c.Check("sin la vela actual: el perfil no cambia en vivo", Rangos.Resolver(new ParametrosRango { Modo = ModosRango.LastNBars, UseCurrentBarAsEnd = false }, T, n).ToString(), "(291, 490)");
+		c.Check("rango visible", Rangos.Resolver(new ParametrosRango { Modo = ModosRango.VisibleRange, PrimeraVisible = 40, UltimaVisible = 80 }, T, n).ToString(), "(40, 80)");
 
 		// Última vela = 01-11-2026 05:30 UTC = domingo 01:30 en Nueva York (aún EDT; el cambio es a las 06:00 UTC).
-		var dia = Rangos.Resolver(new ParametrosRango { Modo = RangeModes.Day }, T, n)!.Value;
+		var dia = Rangos.Resolver(new ParametrosRango { Modo = ModosRango.Day }, T, n)!.Value;
 		c.Check("día operativo (Nueva York + 7 h)", $"{dia} {T(dia.Desde):MM-dd HH:mm}", "(474, 491) 10-31 21:00");
 
-		var semana = Rangos.Resolver(new ParametrosRango { Modo = RangeModes.Week }, T, n)!.Value;
+		var semana = Rangos.Resolver(new ParametrosRango { Modo = ModosRango.Week }, T, n)!.Value;
 		c.Check("semana operativa (empieza el lunes 26, es decir, el domingo 25 a las 17:00 NY)", $"{T(semana.Desde):MM-dd HH:mm}", "10-25 21:00");
 
-		var mes = Rangos.Resolver(new ParametrosRango { Modo = RangeModes.Month }, T, n)!.Value;
+		var mes = Rangos.Resolver(new ParametrosRango { Modo = ModosRango.Month }, T, n)!.Value;
 		c.Check("mes operativo (noviembre empieza el 31-10 a las 17:00 de Nueva York)", $"{T(mes.Desde):MM-dd HH:mm}", "10-31 21:00");
 
 		// Sesión 09:30-16:00 de Nueva York (las velas sintéticas también tienen fin de semana): el sábado 31-10 (EDT).
-		var sesion = Rangos.Resolver(new ParametrosRango { Modo = RangeModes.Session }, T, n)!.Value;
+		var sesion = Rangos.Resolver(new ParametrosRango { Modo = ModosRango.Session }, T, n)!.Value;
 		c.Check("sesión NY más reciente con velas (09:30-16:00 EDT = 13:30-20:00 UTC)", $"{T(sesion.Desde):MM-dd HH:mm}-{T(sesion.Hasta):HH:mm}", "10-31 13:30-19:30");
 
-		var nocturna = Rangos.Resolver(new ParametrosRango { Modo = RangeModes.Session, SessionStart = new TimeSpan(18, 0, 0), SessionEnd = new TimeSpan(2, 0, 0) }, T, n)!.Value;
+		var nocturna = Rangos.Resolver(new ParametrosRango { Modo = ModosRango.Session, SessionStart = new TimeSpan(18, 0, 0), SessionEnd = new TimeSpan(2, 0, 0) }, T, n)!.Value;
 		c.Check("sesión que cruza la medianoche (18:00-02:00 NY)", $"{T(nocturna.Desde):MM-dd HH:mm}-{T(nocturna.Hasta):MM-dd HH:mm}", "10-31 22:00-11-01 05:30");
 
 		// Gráfico de ticks: muchas velas con la misma hora; la búsqueda sigue funcionando.

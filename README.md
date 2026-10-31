@@ -12,11 +12,18 @@ Un solo repositorio con una carpeta por indicador; `Indicadores.slnx` los compil
 | Institutional 90-Day Deep LVN Profile Engine | `IndicadorLvn/` | `IndicadorLvn.dll` |
 | **Indicador Combinado** (los cuatro en uno) | `IndicadorCombinado/` | `IndicadorCombinado.dll` |
 | **Indicador Completo** (+ panel *Indicador Completo CVD*) — solución aparte | `IndicadorCompleto/` | `IndicadorCompleto.dll` |
+| **Thermal Volume Profile** (perfil térmico) — solución aparte | `ThermalVolumeProfile/` | `ThermalVolumeProfile.dll` |
 
 **Indicador Completo** tiene su **propia solución**, `IndicadorCompleto\IndicadorCompleto.slnx`, y su propio
 manual: **[IndicadorCompleto/LEEME.md](IndicadorCompleto/LEEME.md)**. Estructura 1H, barridos de liquidez, mapas
 LVN con prioridad amarilla/naranja y su perfil de volumen de origen, modelos M1/M2, riesgo en micros, gestión
 simulada, CVD y ventana flotante con el reporte. Solo ATAS clásico.
+
+**Thermal Volume Profile** también tiene su **propia solución**, `ThermalVolumeProfile\ThermalVolumeProfile.slnx`, y
+su manual: **[ThermalVolumeProfile/LEEME.md](ThermalVolumeProfile/LEEME.md)**. Perfil de volumen con color térmico,
+POC/VAH/VAL, clústeres de espigas (zonas de rebote), EDGE, SPIKE y LVN (también marcados a mano) dentro de una zona de
+búsqueda. Las decisiones que tomó la IA: [ThermalVolumeProfile/DECISIONES.md](ThermalVolumeProfile/DECISIONES.md).
+Se agregará a Indicador Completo cuando esté comprobado.
 
 Pasos completos para subir el código a otro repositorio de GitHub, descargarlo en Windows, compilarlo, instalarlo y
 recibir actualizaciones: **[docs/GUIA.md](docs/GUIA.md)**.
@@ -185,4 +192,5 @@ Compila la solución contra sustitutos de las DLL de ATAS y ejecuta las pruebas 
 indicadores. No forma parte de la solución de Visual Studio. La primera compilación contra las DLL reales de ATAS
 sigue siendo la de Windows.
 
-Indicador Completo tiene su propia verificación: `bash IndicadorCompleto/pruebas/verificar.sh`.
+Indicador Completo y Thermal Volume Profile tienen su propia verificación: `bash IndicadorCompleto/pruebas/verificar.sh`
+y `bash ThermalVolumeProfile/pruebas/verificar.sh`.

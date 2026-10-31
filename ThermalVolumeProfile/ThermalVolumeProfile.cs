@@ -53,18 +53,18 @@ public class ThermalVolumeProfile : Indicator
 
 	// --- 1. Rango del perfil ---------------------------------------------------------------------------------------
 
-	private RangeModes _rangeMode = RangeModes.CustomDateTime;
+	private ModosRango _rangeMode = ModosRango.CustomDateTime;
 	private DateTime _startDateTime = DateTime.Today.AddDays(-20);
 	private DateTime _endDateTime = DateTime.Today.AddDays(1);
 	private int _lastNBars = 200;
 	private TimeSpan _sessionStart = new(9, 30, 0);
 	private TimeSpan _sessionEnd = new(16, 0, 0);
-	private SessionTimeZones _sessionTimeZone = SessionTimeZones.NewYork;
+	private ZonasHorariasSesion _sessionTimeZone = ZonasHorariasSesion.NewYork;
 	private bool _useCurrentBarAsEnd = true;
 
 	[Display(Name = "Modo del rango", GroupName = G1, Order = 10,
 		Description = "Fecha y hora, últimas N velas, rango visible, sesión, día, semana o mes. Con la herramienta RANGO de la barra se elige arrastrando sobre el gráfico.")]
-	public RangeModes RangeMode { get => _rangeMode; set => Cambiar(ref _rangeMode, value); }
+	public ModosRango RangeMode { get => _rangeMode; set => Cambiar(ref _rangeMode, value); }
 
 	[Display(Name = "Desde (hora del gráfico)", GroupName = G1, Order = 20)]
 	[Mask(MaskTypes.DateTime, "dd.MM.yyyy HH:mm")]
@@ -87,21 +87,21 @@ public class ThermalVolumeProfile : Indicator
 	public TimeSpan SessionEnd { get => _sessionEnd; set => Cambiar(ref _sessionEnd, value); }
 
 	[Display(Name = "Horario de sesión en", GroupName = G1, Order = 70, Description = "09:30–16:00 es el horario de Nueva York (con su cambio de horario).")]
-	public SessionTimeZones SessionTimeZone { get => _sessionTimeZone; set => Cambiar(ref _sessionTimeZone, value); }
+	public ZonasHorariasSesion SessionTimeZone { get => _sessionTimeZone; set => Cambiar(ref _sessionTimeZone, value); }
 
 	[Display(Name = "Hasta la vela actual (en vivo)", GroupName = G1, Order = 80)]
 	public bool UseCurrentBarAsEnd { get => _useCurrentBarAsEnd; set => Cambiar(ref _useCurrentBarAsEnd, value); }
 
 	// --- 2. Tipo de perfil -----------------------------------------------------------------------------------------
 
-	private ProfileTypes _profileType = ProfileTypes.Volume;
+	private TiposPerfil _profileType = TiposPerfil.Volume;
 	private int _tpoPeriodMinutes = 30;
 	private int _rowSizeTicks = 1;
 	private bool _autoRowSize = true;
 	private int _maxRows = 300;
 
 	[Display(Name = "Tipo de perfil", GroupName = G2, Order = 10)]
-	public ProfileTypes ProfileType { get => _profileType; set => Cambiar(ref _profileType, value); }
+	public TiposPerfil ProfileType { get => _profileType; set => Cambiar(ref _profileType, value); }
 
 	[Display(Name = "Periodo TPO (minutos)", GroupName = G2, Order = 20)]
 	[Range(1, 1440)]
@@ -167,7 +167,7 @@ public class ThermalVolumeProfile : Indicator
 	}
 
 	[Display(Name = "Paleta", GroupName = G4, Order = 10)]
-	public ThermalPalettes ThermalPalette { get; set; } = ThermalPalettes.YellowRed;
+	public PaletasTermicas ThermalPalette { get; set; } = PaletasTermicas.YellowRed;
 
 	[Display(Name = "Personalizada: color bajo", GroupName = G4, Order = 20)]
 	public MediaColor ColorLow { get; set; } = MediaColor.FromArgb(255, 255, 250, 160);
@@ -182,7 +182,7 @@ public class ThermalVolumeProfile : Indicator
 	public MediaColor ColorHigh { get; set; } = MediaColor.FromArgb(255, 150, 0, 0);
 
 	[Display(Name = "Escala térmica", GroupName = G4, Order = 30)]
-	public ThermalScales ThermalScale { get; set; } = ThermalScales.SquareRoot;
+	public EscalasTermicas ThermalScale { get; set; } = EscalasTermicas.SquareRoot;
 
 	[Display(Name = "Opacidad del perfil (0-255)", GroupName = G4, Order = 40)]
 	[Range(0, 255)]
@@ -193,10 +193,10 @@ public class ThermalVolumeProfile : Indicator
 	public int ProfileWidthPercent { get; set; } = 35;
 
 	[Display(Name = "Anclaje del perfil", GroupName = G4, Order = 60)]
-	public ProfileAnchors ProfileAnchor { get; set; } = ProfileAnchors.LeftOfRange;
+	public AnclajesPerfil ProfileAnchor { get; set; } = AnclajesPerfil.LeftOfRange;
 
 	[Display(Name = "Dirección de las barras", GroupName = G4, Order = 70, Description = "Automática: desde el anclaje hacia dentro. También de izquierda a derecha o de derecha a izquierda.")]
-	public ProfileDirections ProfileDirection { get; set; } = ProfileDirections.Auto;
+	public DireccionesPerfil ProfileDirection { get; set; } = DireccionesPerfil.Auto;
 
 	// --- 5. Zona de búsqueda ---------------------------------------------------------------------------------------
 
@@ -405,7 +405,7 @@ public class ThermalVolumeProfile : Indicator
 	public int LVNMinDistanceTicks { get => _p.LVNMinDistanceTicks; set { _p.LVNMinDistanceTicks = value; Recalcular(); } }
 
 	[Display(Name = "Dibujo", GroupName = G9, Order = 60)]
-	public LvnDisplayModes LVNDisplay { get; set; } = LvnDisplayModes.Line;
+	public DibujosLvn LVNDisplay { get; set; } = DibujosLvn.Line;
 
 	[Display(Name = "Máximo de LVN automáticos", GroupName = G9, Order = 70)]
 	[Range(0, 100)]
@@ -811,7 +811,7 @@ public class ThermalVolumeProfile : Indicator
 	/// <summary>En el modo «rango visible» el perfil sigue a la pantalla: se recalcula al desplazar el gráfico.</summary>
 	private void RevisarRangoVisible()
 	{
-		if (_rangeMode != RangeModes.VisibleRange)
+		if (_rangeMode != ModosRango.VisibleRange)
 			return;
 
 		var visibles = (FirstVisibleBarNumber, LastVisibleBarNumber);
@@ -939,7 +939,7 @@ public class ThermalVolumeProfile : Indicator
 			context.FillRectangle(estilo.Termico[PaletaTermica.Indice(n)], rect);
 
 			// Perfil Delta: franja con el signo (verde = más compras, rojo = más ventas) junto al anclaje.
-			if (p.Tipo == ProfileTypes.Delta && p.DeltaFila[i] != 0)
+			if (p.Tipo == TiposPerfil.Delta && p.DeltaFila[i] != 0)
 			{
 				var signo = p.DeltaFila[i] > 0 ? Color.FromArgb(220, 0, 200, 83) : Color.FromArgb(220, 255, 60, 60);
 				context.FillRectangle(signo, new Rectangle(dir > 0 ? x0 : x0 - 3, rect.Y, 3, rect.Height));
@@ -950,23 +950,23 @@ public class ThermalVolumeProfile : Indicator
 	/// <summary>Origen de las barras, sentido (+1 hacia la derecha) y largo máximo en píxeles.</summary>
 	private (int X0, int Dir, int AnchoMaximo) Geometria(Rectangle area, int xDesde, int xHasta)
 	{
-		var enPantalla = ProfileAnchor is ProfileAnchors.LeftOfScreen or ProfileAnchors.RightOfScreen;
+		var enPantalla = ProfileAnchor is AnclajesPerfil.LeftOfScreen or AnclajesPerfil.RightOfScreen;
 		var base100 = enPantalla ? area.Width : Math.Max(30, xHasta - xDesde);
 		var anchoMaximo = Math.Max(10, base100 * Math.Clamp(ProfileWidthPercent, 1, 100) / 100);
 
 		var x0 = ProfileAnchor switch
 		{
-			ProfileAnchors.RightOfRange => xHasta,
-			ProfileAnchors.LeftOfScreen => area.Left,
-			ProfileAnchors.RightOfScreen => area.Right,
+			AnclajesPerfil.RightOfRange => xHasta,
+			AnclajesPerfil.LeftOfScreen => area.Left,
+			AnclajesPerfil.RightOfScreen => area.Right,
 			_ => xDesde
 		};
 
 		var dir = ProfileDirection switch
 		{
-			ProfileDirections.LeftToRight => 1,
-			ProfileDirections.RightToLeft => -1,
-			_ => ProfileAnchor is ProfileAnchors.RightOfRange or ProfileAnchors.RightOfScreen ? -1 : 1
+			DireccionesPerfil.LeftToRight => 1,
+			DireccionesPerfil.RightToLeft => -1,
+			_ => ProfileAnchor is AnclajesPerfil.RightOfRange or AnclajesPerfil.RightOfScreen ? -1 : 1
 		};
 
 		return (x0, dir, anchoMaximo);
@@ -1027,7 +1027,7 @@ public class ThermalVolumeProfile : Indicator
 				continue;
 			}
 
-			if (LVNDisplay == LvnDisplayModes.Band)
+			if (LVNDisplay == DibujosLvn.Band)
 			{
 				var p = r.Detectores;
 				var yArriba = Y(p.PrecioFila(l.Superior) + (p.TicksPorFila - 1) * p.Tick);
@@ -1343,7 +1343,7 @@ public class ThermalVolumeProfile : Indicator
 
 		if (_herramienta == Herramienta.Rango)
 		{
-			_rangeMode = RangeModes.CustomDateTime;
+			_rangeMode = ModosRango.CustomDateTime;
 			_startDateTime = horaA;
 			_endDateTime = horaB;
 			_useCurrentBarAsEnd = barB >= CurrentBar - 1;
