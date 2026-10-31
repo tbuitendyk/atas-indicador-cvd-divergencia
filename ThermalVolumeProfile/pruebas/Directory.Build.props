@@ -1,0 +1,3 @@
+<Project>
+  <!-- Corta la herencia: las pruebas no usan la configuración de ATAS de la carpeta superior. -->
+</Project>
