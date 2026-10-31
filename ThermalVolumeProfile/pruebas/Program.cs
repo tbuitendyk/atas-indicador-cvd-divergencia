@@ -2,5 +2,7 @@
 var c = new Comprobador();
 
 PruebasNucleo.Ejecutar(c);
+PruebasIndicador.Ejecutar(c);
+PruebasValidacion.Ejecutar(c);
 
 return c.Resumen();

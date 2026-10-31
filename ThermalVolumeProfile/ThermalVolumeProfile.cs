@@ -160,9 +160,9 @@ public class ThermalVolumeProfile : Indicator
 		get => _profileInFront;
 		set
 		{
+			// Sin RedrawChart: ATAS asigna los ajustes al cargar, antes de que haya gráfico, y redibuja él solo.
 			_profileInFront = value;
 			DrawAbovePrice = value;
-			RedrawChart();
 		}
 	}
 
