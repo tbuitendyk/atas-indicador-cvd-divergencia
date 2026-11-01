@@ -27,7 +27,7 @@ public sealed partial class MotorSweeps
 			return;
 
 		// La vela de barrido de esta vela: se evalúan sus 5 condiciones.
-		foreach (var z in Zonas.Where(z => z.BarraBarrido == v.Indice))
+		foreach (var z in ZonasBarrido.Where(z => z.BarraBarrido == v.Indice))
 		{
 			var huella = Huella.Calcular(v, Cfg.TamanoTick);
 			var arriba = z.Lado == Lado.Buyside;

@@ -55,7 +55,7 @@ public sealed partial class MotorSweeps
 
 	public GestorNiveles Niveles { get; }
 
-	public List<ZonaBarrido> Zonas { get; } = new();
+	public List<ZonaBarrido> ZonasBarrido { get; } = new();
 
 	public DetectorFvg Fvg { get; } = new();
 
@@ -350,10 +350,10 @@ public sealed partial class MotorSweeps
 				n.Marcado = false;
 		}
 
-		while (Zonas.Count > Cfg.MaxSweepBoxes)
+		while (ZonasBarrido.Count > Cfg.MaxSweepBoxes)
 		{
-			var vieja = Zonas.FindIndex(z => !z.Activa);
-			Zonas.RemoveAt(vieja < 0 ? 0 : vieja);
+			var vieja = ZonasBarrido.FindIndex(z => !z.Activa);
+			ZonasBarrido.RemoveAt(vieja < 0 ? 0 : vieja);
 		}
 	}
 
@@ -385,7 +385,7 @@ public sealed partial class MotorSweeps
 
 		n.Marcado = true;
 		n.Zona = z;
-		Zonas.Add(z);
+		ZonasBarrido.Add(z);
 		SeguirCierres(z, v);
 
 		if (n.Sesion is { } s)
@@ -437,7 +437,7 @@ public sealed partial class MotorSweeps
 		if (!Cfg.OrderFlowValidation)
 			return;
 
-		foreach (var z in Zonas.Where(z => z.W5 is null && v.Indice - z.BarraBarrido <= 10).ToList())
+		foreach (var z in ZonasBarrido.Where(z => z.W5 is null && v.Indice - z.BarraBarrido <= 10).ToList())
 		{
 			foreach (var minutos in new[] { 1, 3, 5 })
 			{
@@ -543,7 +543,7 @@ public sealed partial class MotorSweeps
 		// FVG de desplazamiento en contra del barrido (bajista tras uno buyside) en las PostSweepFVGWindow velas.
 		foreach (var f in nuevos)
 		{
-			f.PostSweep = Zonas.Any(z => v.Indice - z.BarraBarrido <= Cfg.PostSweepFVGWindow && v.Indice > z.BarraBarrido
+			f.PostSweep = ZonasBarrido.Any(z => v.Indice - z.BarraBarrido <= Cfg.PostSweepFVGWindow && v.Indice > z.BarraBarrido
 				&& f.Alcista == (z.Lado == Lado.Sellside));
 		}
 
