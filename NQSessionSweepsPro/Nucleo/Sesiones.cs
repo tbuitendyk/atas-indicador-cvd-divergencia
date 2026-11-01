@@ -59,10 +59,11 @@ public sealed class MotorSesiones
 		return (dentro, fecha);
 	}
 
-	/// <summary>Procesa una vela cerrada. Devuelve las sesiones que terminaron con esta vela (la vela ya está fuera).</summary>
-	public List<InstanciaSesion> Procesar(Vela v)
+	/// <summary>Procesa una vela cerrada: sesiones que terminaron con esta vela (que ya está fuera) y las que empezaron.</summary>
+	public (List<InstanciaSesion> Terminadas, List<InstanciaSesion> Iniciadas) Procesar(Vela v)
 	{
 		var terminadas = new List<InstanciaSesion>();
+		var iniciadas = new List<InstanciaSesion>();
 
 		foreach (var s in _cfg.Sesiones)
 		{
@@ -100,6 +101,7 @@ public sealed class MotorSesiones
 
 				_abiertas[s.Id] = abierta;
 				Instancias.Add(abierta);
+				iniciadas.Add(abierta);
 
 				if (Instancias.Count > 600)
 					Instancias.RemoveAt(0);
@@ -111,7 +113,7 @@ public sealed class MotorSesiones
 			abierta.HastaUtc = v.FinUtc;
 		}
 
-		return terminadas;
+		return (terminadas, iniciadas);
 	}
 
 	/// <summary>
