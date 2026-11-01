@@ -9,7 +9,6 @@ using System.Linq;
 using System.Security;
 using System.Text.RegularExpressions;
 
-using ATAS.DataFeedsCore;
 using ATAS.Indicators;
 
 using NqSweeps.Nucleo;
@@ -692,7 +691,7 @@ public partial class NQSessionSweepsPro : Indicator
 		if (!EmailEnabled || string.IsNullOrWhiteSpace(EmailTo))
 			return;
 
-		_correo ??= new Correo(this.LogError);
+		_correo ??= new Correo((mensaje, error) => this.LogError(mensaje, error));
 		_correo.Encolar(clave, new ConfiguracionCorreo(SmtpServer, SmtpPort, UseSSL, SmtpUser, SmtpPassword, EmailTo), asunto, cuerpo);
 	}
 

@@ -104,8 +104,9 @@ namespace Utils.Common.Logging
 {
     public static class Registro
     {
-        public static void LogError(this object origen, string mensaje, Exception error) { }
+        public static void LogError(this object origen, string mensaje, Exception error = null, string llamador = "") { }
         public static void LogWarn(this object origen, string mensaje) { }
     }
 }
-namespace ATAS.DataFeedsCore { internal static class Vacio { } }
+// La compilación real (2026-11-01) mostró que ATAS tiene TradeDirection en los dos espacios de nombres.
+namespace ATAS.DataFeedsCore { public enum TradeDirection { Between, Buy, Sell } }
