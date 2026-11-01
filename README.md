@@ -28,6 +28,10 @@ Se agregará a Indicador Completo cuando esté comprobado.
 Pasos completos para subir el código a otro repositorio de GitHub, descargarlo en Windows, compilarlo, instalarlo y
 recibir actualizaciones: **[docs/GUIA.md](docs/GUIA.md)**.
 
+**Instalación con un clic** en la PC con ATAS: `homs/bic.cmd` y `homs/build-indicador.ps1` van en `C:\homs\` con un
+acceso directo en el escritorio. Cada clic sincroniza GitHub y compila e instala el indicador que nombra
+**`instalar.txt`** (en la raíz del repositorio). Detalles: **[homs/LEEME.md](homs/LEEME.md)**.
+
 ## Requisitos
 
 - Windows con la plataforma ATAS instalada (versión actual, que usa .NET 10).

@@ -188,6 +188,10 @@ En **ATAS X** (la versión nueva de ATAS) la carpeta es `%APPDATA%\ATAS X\Indica
 
 ## 5. Actualizaciones: traer los indicadores nuevos
 
+**Forma rápida (recomendada):** el acceso directo del escritorio a `C:\homs\bic.cmd` hace todo lo de esta sección
+(sincronizar, compilar e instalar) para el indicador que nombra `instalar.txt` en el repositorio. Cómo prepararlo una
+vez: [homs/LEEME.md](../homs/LEEME.md). Lo que sigue es el detalle paso a paso.
+
 Cada mejora o indicador nuevo se publica primero en el **origen**. Llega a la PC con ATAS en dos pasos: primero se
 pasa al GitHub **destino** y después se descarga desde ahí.
 

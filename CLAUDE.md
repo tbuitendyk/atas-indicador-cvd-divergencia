@@ -95,6 +95,13 @@ authorization.)
   this repo pushes only here; the mirror is updated with `git pull upstream main` +
   `git push origin main` (`docs/GUIA.md` §5). The transfer/build/install steps are in
   `docs/GUIA.md`; keep it current when they change.
+- **One-click install on the ATAS PC (2026-11-01):** `homs/bic.cmd` + `homs/build-indicador.ps1` live in
+  `C:\homs\` behind a desktop shortcut. Each click pulls upstream, pushes origin, reads **`instalar.txt`**
+  (repo root, one folder name per line) and builds `<name>\<name>.csproj` and copies the DLL to
+  `%APPDATA%\ATAS\Indicators`. **When a new indicator is merged to main, put its folder name in
+  `instalar.txt` in the same merge** — that is how it reaches the owner. Every indicator must keep the
+  `<name>/<name>.csproj` + AssemblyName `<name>` layout. The script self-updates from `homs/`; keep it
+  ASCII-only (Windows PowerShell 5.1) and test changes with `pwsh` against a sandbox clone.
 
 ## Verifying ATAS code (the platform DLLs are not available here)
 
