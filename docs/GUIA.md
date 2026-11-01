@@ -124,6 +124,12 @@ ThermalVolumeProfile\bin\Release\net10.0-windows\ThermalVolumeProfile.dll
 O desde PowerShell: `dotnet build ThermalVolumeProfile\ThermalVolumeProfile.slnx -c Release`. Se instala con
 **Add custom indicator** (sección 4). Uso: [ThermalVolumeProfile/LEEME.md](../ThermalVolumeProfile/LEEME.md).
 
+### NQ Session Sweeps Pro (solución aparte)
+
+Igual: **`NQSessionSweepsPro\NQSessionSweepsPro.slnx`** → **Release** → **Compilar solución**; la DLL queda en
+`NQSessionSweepsPro\bin\Release\net10.0-windows\NQSessionSweepsPro.dll`. Uso y configuración del correo:
+[NQSessionSweepsPro/LEEME.md](../NQSessionSweepsPro/LEEME.md).
+
 ### Si la compilación falla
 
 - **`No se encontró ATAS.Indicators.dll en '...'`**: ATAS no está en `C:\Program Files (x86)\ATAS Platform`.

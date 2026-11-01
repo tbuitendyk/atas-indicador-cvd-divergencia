@@ -15,9 +15,9 @@ Arquitectura: `Nucleo/` (lógica pura sin tipos de ATAS, probada en Linux), `Ata
 - [x] F3 Order Flow (ventanas 1/3/5, absorción 0-10, velocidad, clasificación), panel
 - [x] F4 Ruptura en el tick, cuentas atrás 1m/5m, contexto H1, proyección T1-T3
 - [x] F5 Perfil/LVN, Modelo A, IFVG, Modelo B
-- [ ] F6 Correo (cola, reintentos, anti-duplicados, prueba, solo en vivo)
-- [ ] Dibujo completo, alertas, verificación (compilación + pruebas)
-- [ ] LEEME.md, DECISIONES.md, fusión a main con instalar.txt
+- [x] F6 Correo (cola, reintentos, anti-duplicados, prueba, solo en vivo)
+- [x] Dibujo completo, alertas, verificación (compilación + pruebas)
+- [x] LEEME.md, DECISIONES.md, fusión a main con instalar.txt
 
 ## Notas
 
@@ -27,3 +27,6 @@ Arquitectura: `Nucleo/` (lógica pura sin tipos de ATAS, probada en Linux), `Ata
 - 2026-11-01: pruebas F4/F5 (vivo, cuentas atrás, velocidad, H1, proyección, Modelo A, Modelo B, perfil/LVN): 86 ALL PASS.
   Corregido: el Modelo B medía impulso y cancelación contra un máximo que seguía subiendo; empate de POC al centro.
   Siguiente: indicador de ATAS (Atas/: ajustes, OnCalculate/OnNewTrade, dibujo, correo), sustitutos, verificar.sh.
+- 2026-11-01: indicador de ATAS (ajustes, velas, OnNewTrade, alertas, correo, dibujo) compilando sin avisos contra
+  sustitutos; pruebas del indicador real: 101 ALL PASS. LEEME.md y DECISIONES.md. Fusionado a main con instalar.txt.
+  Pendiente en Windows: DLL reales, dibujo, trades en vivo, Gmail, comparación con el Pine.

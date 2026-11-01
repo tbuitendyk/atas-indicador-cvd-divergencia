@@ -95,6 +95,13 @@ authorization.)
   this repo pushes only here; the mirror is updated with `git pull upstream main` +
   `git push origin main` (`docs/GUIA.md` §5). The transfer/build/install steps are in
   `docs/GUIA.md`; keep it current when they change.
+- **`NQSessionSweepsPro/` (2026-11-01)**, separate solution, from the owner's "Indicador de barrido de liquidez"
+  docx (prompt + manual + LuxAlgo "Session Sweeps" Pine). Owner chose: all 6 phases at once, AI decides open
+  points → `NQSessionSweepsPro/DECISIONES.md` (read before changing behaviour). Pure engine in `Nucleo/`
+  (`MotorSweeps`: sessions → levels → Pine sweep state machine → order-flow windows/absorption/classification →
+  FVG/IFVG, MSS → H1 → profile/LVN → Models A/B; live `Trade()` for tick-exact t0, countdowns, speed), ATAS shell in
+  `Atas/` (settings, `OnNewTrade`, alerts, SMTP queue, drawing). `bash NQSessionSweepsPro/pruebas/verificar.sh`:
+  0 warnings, 101 checks (engine + real indicator against behaviour stand-ins).
 - **One-click install on the ATAS PC (2026-11-01):** `homs/bic.cmd` + `homs/build-indicador.ps1` live in
   `C:\homs\` behind a desktop shortcut. Each click pulls upstream, pushes origin, reads **`instalar.txt`**
   (repo root, one folder name per line) and builds `<name>\<name>.csproj` and copies the DLL to
