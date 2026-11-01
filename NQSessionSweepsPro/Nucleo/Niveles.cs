@@ -64,6 +64,10 @@ public sealed class GestorNiveles
 		if (!n.Activo)
 			return false;
 
+		// PineCompatibilityMode: solo los pares del Pine (última sesión cerrada y Londres durante NY AM).
+		if (_cfg.PineCompatibilityMode)
+			return n.Grupo.StartsWith("pine");
+
 		return n.Grupo switch
 		{
 			"dia" => n.Dias == 1 ? _cfg.NivelesPdhPdl : _cfg.NivelesDiasAnteriores && n.Dias <= _cfg.DiasAnteriores,
