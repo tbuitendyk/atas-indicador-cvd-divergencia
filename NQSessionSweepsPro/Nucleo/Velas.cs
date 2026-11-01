@@ -57,10 +57,20 @@ public readonly record struct Huella(decimal Poc, decimal VaBajo, decimal VaAlto
 			var arriba = alto < vol.Length - 1 ? vol[alto + 1] : -1;
 			var abajo = bajo > 0 ? vol[bajo - 1] : -1;
 
-			if (arriba >= abajo)
+			// Empate: se añaden los dos lados, para no inclinar el VA hacia arriba ni hacia abajo.
+			if (arriba > abajo)
+			{
 				acumulado += vol[++alto];
-			else
+			}
+			else if (abajo > arriba)
+			{
 				acumulado += vol[--bajo];
+			}
+			else
+			{
+				acumulado += vol[++alto];
+				acumulado += vol[--bajo];
+			}
 		}
 
 		return new Huella(ticks[poc] * tick, ticks[bajo] * tick, ticks[alto] * tick);

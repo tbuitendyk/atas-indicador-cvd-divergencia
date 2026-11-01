@@ -2,5 +2,6 @@
 var c = new Comprobador();
 
 PruebasSesiones.Ejecutar(c);
+PruebasBarridos.Ejecutar(c);
 
 return c.Resumen();
