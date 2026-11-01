@@ -3,5 +3,6 @@ var c = new Comprobador();
 
 PruebasSesiones.Ejecutar(c);
 PruebasBarridos.Ejecutar(c);
+PruebasModelos.Ejecutar(c);
 
 return c.Resumen();

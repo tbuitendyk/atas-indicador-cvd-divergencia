@@ -144,7 +144,9 @@ public sealed class MotorPerfil
 
 		decimal Precio(int fila) => (primera + fila) * tpf * _cfg.TamanoTick;
 
-		var poc = Array.IndexOf(filas, filas.Max());
+		// POC: la fila de más volumen; si hay empate, la más cercana al centro del perfil.
+		var maximoFila = filas.Max();
+		var poc = Enumerable.Range(0, filas.Length).Where(i => filas[i] == maximoFila).OrderBy(i => Math.Abs(i - (filas.Length - 1) / 2.0)).First();
 		var (val, vah) = AreaDeValor(filas, poc, 70);
 		var r = new ResultadoPerfil { Poc = Precio(poc), Val = Precio(val), Vah = Precio(vah) };
 

@@ -129,7 +129,7 @@ public sealed partial class MotorSweeps
 		if (!Cfg.ModeloB || SecuenciasB.Any(b => b.Zona == z))
 			return;
 
-		SecuenciasB.Add(new SecuenciaB { Zona = z, Inicio = v.Indice, ExtremoImpulso = z.Lado == Lado.Buyside ? v.Low : v.High, BarraImpulso = v.Indice });
+		SecuenciasB.Add(new SecuenciaB { Zona = z, Inicio = v.Indice, ExtremoBarrido = z.ExtremoPrecio, ExtremoImpulso = z.Lado == Lado.Buyside ? v.Low : v.High, BarraImpulso = v.Indice });
 
 		if (SecuenciasB.Count > 300)
 			SecuenciasB.RemoveAt(0);
@@ -144,9 +144,9 @@ public sealed partial class MotorSweeps
 			var s = corto ? 1 : -1;
 
 			// Cancelación: cierre más allá del extremo del barrido o demasiadas velas.
-			if (s * (v.Close - z.ExtremoPrecio) > 0 || v.Indice - b.Inicio > Cfg.MaxBarsModelB)
+			if (s * (v.Close - b.ExtremoBarrido) > 0 || v.Indice - b.Inicio > Cfg.MaxBarsModelB)
 			{
-				(b.Etapa, b.Motivo) = (EtapaModeloB.Cancelado, s * (v.Close - z.ExtremoPrecio) > 0 ? "cierre mas alla del barrido" : $"{Cfg.MaxBarsModelB} velas sin entrada");
+				(b.Etapa, b.Motivo) = (EtapaModeloB.Cancelado, s * (v.Close - b.ExtremoBarrido) > 0 ? "cierre mas alla del barrido" : $"{Cfg.MaxBarsModelB} velas sin entrada");
 				continue;
 			}
 
@@ -155,7 +155,7 @@ public sealed partial class MotorSweeps
 				case EtapaModeloB.EsperandoImpulso:
 				{
 					b.ExtremoImpulso = corto ? Math.Min(b.ExtremoImpulso, v.Low) : Math.Max(b.ExtremoImpulso, v.High);
-					var desplazamiento = s * (z.ExtremoPrecio - b.ExtremoImpulso);
+					var desplazamiento = s * (b.ExtremoBarrido - b.ExtremoImpulso);
 					var fvg = Fvg.Fvgs.Any(f => f.PostSweep && f.Alcista == !corto && f.Izquierda >= z.BarraBarrido);
 
 					if ((_atr21.Valor is { } atr && desplazamiento >= (decimal)Cfg.ImpulseATRMult * atr) || fvg)
@@ -179,8 +179,8 @@ public sealed partial class MotorSweeps
 					}
 
 					// Retroceso: el precio vuelve y toca un LVN (o un IFVG / FVG en contra) dentro del rango del impulso.
-					var bajo = Math.Min(b.ExtremoImpulso, z.ExtremoPrecio);
-					var alto = Math.Max(b.ExtremoImpulso, z.ExtremoPrecio);
+					var bajo = Math.Min(b.ExtremoImpulso, b.ExtremoBarrido);
+					var alto = Math.Max(b.ExtremoImpulso, b.ExtremoBarrido);
 					var extremo = corto ? v.High : v.Low;
 					var lvn = Lvns.Where(p => p > bajo && p < alto && s * (extremo - p) >= 0)
 						.OrderBy(p => Math.Abs(p - extremo)).Cast<decimal?>().FirstOrDefault();
@@ -207,7 +207,7 @@ public sealed partial class MotorSweeps
 						(b.TechoRetroceso, b.BarraTecho) = (extremo, v.Indice);
 
 					b.TocoFvg |= Fvg.Fvgs.Any(f => f.AlcistaAhora == !corto && (corto ? v.High >= f.Abajo && v.Low <= f.Arriba : v.Low <= f.Arriba && v.High >= f.Abajo)
-						&& f.Abajo < Math.Max(b.ExtremoImpulso, z.ExtremoPrecio) && f.Arriba > Math.Min(b.ExtremoImpulso, z.ExtremoPrecio));
+						&& f.Abajo < Math.Max(b.ExtremoImpulso, b.ExtremoBarrido) && f.Arriba > Math.Min(b.ExtremoImpulso, b.ExtremoBarrido));
 
 					// Entrada (obligatoria): una vela cierra rompiendo el nivel (1 tick más allá).
 					if (b.Nivel is { } nivel && s * (nivel - v.Close) >= Cfg.TamanoTick)

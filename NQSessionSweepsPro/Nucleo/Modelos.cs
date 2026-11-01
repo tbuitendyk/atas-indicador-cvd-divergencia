@@ -48,6 +48,9 @@ public sealed class SecuenciaB
 	public EtapaModeloB Etapa = EtapaModeloB.EsperandoImpulso;
 	public int Inicio;
 
+	/// <summary>Máximo (corto) o mínimo (largo) del barrido al empezar la secuencia: referencia fija de impulso y cancelación.</summary>
+	public decimal ExtremoBarrido;
+
 	/// <summary>Mínimo (corto) o máximo (largo) del impulso desde el barrido.</summary>
 	public decimal ExtremoImpulso;
 
