@@ -1,1 +1,5 @@
 * text=auto
+
+# Scripts de Windows del instalador (C:\homs\): fin de linea CRLF al descargarlos.
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
