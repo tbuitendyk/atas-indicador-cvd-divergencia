@@ -15,6 +15,7 @@
   <ItemGroup>
     <Compile Include="*.cs" />
     <Compile Include="..\Nucleo\*.cs" LinkBase="Nucleo" />
+    <Compile Include="..\Atas\*.cs" LinkBase="Atas" />
   </ItemGroup>
 
 </Project>
