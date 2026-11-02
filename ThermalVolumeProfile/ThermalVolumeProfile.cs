@@ -33,9 +33,17 @@ using StringAlignment = System.Drawing.StringAlignment;
 /// gráfico porque solo usa la hora de cada vela. Todo el cálculo está en MotorTermico.cs (sin tipos de ATAS); aquí se
 /// eligen las velas, se dibuja y se avisa. Ver LEEME.md y DECISIONES.md.
 /// </summary>
+// El mismo código se compila también dentro de SuiteOrderFlowStacker (símbolo SUITE) con otro nombre de clase, para que
+// ATAS no vea dos indicadores con el mismo nombre de tipo cuando están instaladas las dos DLL.
+#if SUITE
+[DisplayName("Thermal Volume Profile + LVN (Suite)")]
+[Description("Suite Order Flow Stacker: perfil de volumen con color térmico, POC/VA, clústeres de espigas, EDGE, SPIKE y LVN (también manuales).")]
+public class ThermalVolumeProfileLVN : Indicator
+#else
 [DisplayName("Thermal Volume Profile (perfil térmico)")]
 [Description("Perfil de volumen con color térmico, POC/VA, clústeres de espigas, EDGE, SPIKE y LVN (también manuales) en una zona de búsqueda.")]
 public class ThermalVolumeProfile : Indicator
+#endif
 {
 	#region Parámetros
 
@@ -490,7 +498,11 @@ public class ThermalVolumeProfile : Indicator
 
 	#endregion
 
+#if SUITE
+	public ThermalVolumeProfileLVN()
+#else
 	public ThermalVolumeProfile()
+#endif
 		: base(true)
 	{
 		// Solo dibuja: la serie por defecto se oculta para que no deforme la escala.

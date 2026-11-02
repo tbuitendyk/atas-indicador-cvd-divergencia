@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Proyecto autónomo: la configuración (framework, referencias a ATAS) está en el Directory.Build.props de esta
+       carpeta. Una sola DLL con los 6 indicadores de la suite y su núcleo (Nucleo/). -->
+  <PropertyGroup>
+    <AssemblyName>SuiteOrderFlowStacker</AssemblyName>
+    <RootNamespace>ATAS.Indicators.Custom</RootNamespace>
+    <!-- SUITE: el Thermal Volume Profile se compila aquí con el nombre ThermalVolumeProfileLVN. -->
+    <DefineConstants>$(DefineConstants);SUITE</DefineConstants>
+  </PropertyGroup>
+
+  <!-- El indicador 0 (Thermal Volume Profile + LVN) es el mismo código de ThermalVolumeProfile, compartido. -->
+  <ItemGroup>
+    <Compile Include="..\ThermalVolumeProfile\MotorTermico.cs" Link="Termico\MotorTermico.cs" />
+    <Compile Include="..\ThermalVolumeProfile\ThermalVolumeProfile.cs" Link="Termico\ThermalVolumeProfile.cs" />
+  </ItemGroup>
+
+  <!-- Las pruebas tienen su propio proyecto. -->
+  <ItemGroup>
+    <Compile Remove="pruebas/**" />
+    <None Remove="pruebas/**" />
+  </ItemGroup>
+
+</Project>
