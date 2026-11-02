@@ -4,7 +4,8 @@ Un solo acceso directo en el escritorio que, con un doble clic:
 
 1. sincroniza GitHub (`git pull upstream main` y `git push origin main`),
 2. lee en el repositorio el archivo **`instalar.txt`**, que dice qué indicador instalar,
-3. lo compila en Release y copia su DLL a `%APPDATA%\ATAS\Indicators`.
+3. lo compila en Release **solo si su código cambió** desde la última compilación,
+4. y copia su DLL a `%APPDATA%\ATAS\Indicators` **solo si es distinta** de la instalada.
 
 `instalar.txt` llega con la sincronización: cuando hay un indicador nuevo, se cambia ese archivo en GitHub y el
 mismo acceso directo instala el nuevo. El acceso directo no se toca nunca.
@@ -32,12 +33,16 @@ mismo acceso directo instala el nuevo. El acceso directo no se toca nunca.
 
 ## Uso
 
-- **Cierre ATAS** (si tiene cargada la DLL, Windows no deja reemplazarla).
+- **Cierre ATAS** si hay algo nuevo que instalar (si tiene cargada la DLL, Windows no deja reemplazarla). Si no hay
+  cambios, el acceso directo no compila ni copia nada y no hace falta cerrarlo: dice `ya compilado y al dia` y
+  `ya instalado (sin cambios)`.
 - Doble clic en el acceso directo. Al final dice `LISTO: <indicador> instalado(s)`.
 - Abra ATAS. La primera vez que se instala un indicador, agréguelo al gráfico desde el grupo **Custom**.
 
 Si `instalar.txt` nombra varios y uno falla, los demás se instalan igual; al final la ventana dice cuáles se instalaron
 (`LISTO: ...`) y cuáles no (`NO SE INSTALO: ...`).
+
+Para compilar todo aunque no haya cambios: `C:\homs\bic.cmd -Forzar`.
 
 Para instalar otro indicador sin cambiar `instalar.txt`, en una ventana de comandos:
 `C:\homs\bic.cmd IndicadorCompleto` (o varios: `C:\homs\bic.cmd IndicadorCompleto ThermalVolumeProfile`).
