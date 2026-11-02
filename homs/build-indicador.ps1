@@ -121,16 +121,27 @@ function DllCompilada([string] $nombre) {
         Sort-Object LastWriteTime -Descending | Select-Object -First 1
 }
 
-# Fecha del archivo de codigo mas reciente del indicador: su carpeta (sin bin, obj ni pruebas) mas lo compartido de la
-# raiz (Directory.Build.* y Compartido). Un git pull que cambia codigo deja esos archivos con la fecha de hoy.
+# Fecha del archivo de codigo mas reciente del indicador: su carpeta (sin bin, obj ni pruebas), lo compartido de la
+# raiz (Directory.Build.* y Compartido) y los archivos de OTRAS carpetas que su .csproj incluye
+# (Include="..\Carpeta\Archivo.cs", p. ej. la suite usa el codigo de ThermalVolumeProfile). Un git pull que cambia
+# codigo deja esos archivos con la fecha de hoy.
 function CodigoMasReciente([string] $nombre) {
-    $archivos = @(Get-ChildItem (Join-Path $Repo $nombre) -Recurse -File |
+    $carpeta = Join-Path $Repo $nombre
+    $archivos = @(Get-ChildItem $carpeta -Recurse -File |
         Where-Object { $_.FullName -notmatch '[\\/](bin|obj|pruebas)[\\/]' })
     $archivos += @(Get-ChildItem $Repo -File -Filter 'Directory.Build.*')
     $compartido = Join-Path $Repo 'Compartido'
 
     if (Test-Path $compartido) {
         $archivos += @(Get-ChildItem $compartido -Recurse -File)
+    }
+
+    $proyecto = Join-Path $carpeta "$nombre.csproj"
+
+    foreach ($m in [regex]::Matches((Get-Content $proyecto -Raw), 'Include="(\.\.[\\/][^"]+)"')) {
+        $relativa = $m.Groups[1].Value -replace '[\\/]', [IO.Path]::DirectorySeparatorChar
+        $ruta = Join-Path $carpeta $relativa
+        $archivos += @(Get-ChildItem $ruta -File -ErrorAction SilentlyContinue)
     }
 
     ($archivos | Measure-Object -Property LastWriteTime -Maximum).Maximum
