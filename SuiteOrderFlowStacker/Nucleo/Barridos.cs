@@ -221,12 +221,19 @@ public sealed class MotorBarridos
 	/// <summary>Máximo o mínimo relevante que el barrido rompió (empezó a LevelToleranceTicks o antes y lo cruzó).</summary>
 	private NivelReferencia? NivelBarrido(Barrido b)
 	{
-		if (Niveles?.Invoke() is not { Count: > 0 } niveles)
-			return null;
+		var niveles = (Niveles?.Invoke() ?? Array.Empty<NivelReferencia>()).Where(n => P.Usa(n.Nombre)).ToList();
+
+		// El precio de un iceberg del lado contrario (vivo o roto hace menos de un minuto) también es un nivel: un barrido
+		// que lo atraviesa y se mantiene fuera es la RUPTURA del Setup D.
+		if (Icebergs?.Invoke() is { } icebergs)
+		{
+			niveles.AddRange(icebergs.Where(i => i.Lado == b.Lado.Contrario() && (i.Vivo || i.Estado == "ROTO" && b.Utc - i.Evento.CambioUtc <= TimeSpan.FromMinutes(1)))
+				.Select(i => new NivelReferencia("Iceberg", i.Precio, i.Lado == Lado.Venta)));
+		}
 
 		var tolerancia = Math.Max(0, P.LevelToleranceTicks) * Tick;
 
-		var rotos = niveles.Where(n => P.Usa(n.Nombre)).Where(n => b.Lado == Lado.Venta
+		var rotos = niveles.Where(n => b.Lado == Lado.Venta
 			? b.Hasta < n.Precio && b.Desde >= n.Precio - tolerancia
 			: b.Hasta > n.Precio && b.Desde <= n.Precio + tolerancia).ToList();
 

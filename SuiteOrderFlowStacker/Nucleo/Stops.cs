@@ -24,7 +24,7 @@ public sealed class CascadaStops
 {
 	public EventoFlujo Evento = null!;
 	public Lado Lado;
-	public decimal Desde, Hasta, Volumen;
+	public decimal Desde, Hasta, Min, Max, Volumen;
 	public NivelReferencia? Zona;
 	public DateTime Utc;
 	public string Estado = "EVALUANDO";
@@ -138,13 +138,15 @@ public sealed class MotorStops
 			Lado = lado,
 			Desde = r.Primero,
 			Hasta = r.UltimoPrecio,
+			Min = r.Min,
+			Max = r.Max,
 			Volumen = r.Volumen,
 			Zona = zona,
 			Utc = r.Inicio
 		};
 
 		c.Evento = _eventos.Crear("Stops", "StopRun", lado, r.Inicio, r.Primero, Modo, Sesiones.De(r.Inicio));
-		c.Evento.PrecioFin = r.UltimoPrecio;
+		c.Evento.PrecioFin = lado == Lado.Venta ? r.Min : r.Max;
 		c.Evento.Volumen = r.Volumen;
 		c.Evento.Contexto = zona?.Nombre ?? "";
 		Cascadas.Add(c);
@@ -202,35 +204,42 @@ public sealed class MotorStops
 
 		var tolerancia = Math.Max(1, P.ZoneToleranceTicks) * Tick;
 
-		foreach (var z in zonas)
-		{
-			var clave = $"{z.Nombre}|{z.Precio}";
-			var distancia = Math.Abs(precio - z.Precio);
+		// Se rearma cuando el precio se aleja tres veces la tolerancia.
+		foreach (var z in zonas.Where(z => Math.Abs(precio - z.Precio) > 3 * tolerancia))
+			_avisadas.Remove(Clave(z));
 
-			// Se rearma cuando el precio se aleja tres veces la tolerancia.
-			if (distancia > 3 * tolerancia)
-				_avisadas.Remove(clave);
+		var cerca = zonas.Where(z => Math.Abs(precio - z.Precio) <= tolerancia && !_avisadas.ContainsKey(Clave(z))).ToList();
 
-			if (distancia > tolerancia || _avisadas.ContainsKey(clave))
-				continue;
+		if (cerca.Count == 0)
+			return;
 
-			_avisadas[clave] = utc;
+		foreach (var z in cerca)
+			_avisadas[Clave(z)] = utc;
 
-			// Solo se guarda el último aviso (es una línea de estado del panel, no un evento).
-			_eventos.Quitar(x => x.Tipo == "StopZone");
-			var e = _eventos.Crear("Stops", "StopZone", z.EsMaximo ? Lado.Compra : Lado.Venta, utc, z.Precio, Modo, Sesiones.De(utc));
-			e.Informativo = true;
-			e.Texto = $"Zona probable de stops {z.Nombre} {Textos.Precio(z.Precio, Tick)} a {(int)Math.Round(distancia / Tick)} ticks | {Textos.Hora(utc)}";
-			_eventos.Publicar(e, utc);
-		}
+		// Se avisa la más cercana (con empate, la que no es un número redondo).
+		var zona = cerca.OrderBy(z => Math.Abs(precio - z.Precio)).ThenBy(z => EsRedondo(z) ? 1 : 0).First();
+		var ticks = (int)Math.Round(Math.Abs(precio - zona.Precio) / Tick);
+
+		// Solo se guarda el último aviso (es una línea de estado del panel, no un evento).
+		_eventos.Quitar(x => x.Tipo == "StopZone");
+		var e = _eventos.Crear("Stops", "StopZone", zona.EsMaximo ? Lado.Compra : Lado.Venta, utc, zona.Precio, Modo, Sesiones.De(utc));
+		e.Informativo = true;
+		e.Texto = $"Zona probable de stops {NombreZona(zona)} a {ticks} ticks | {Textos.Hora(utc)}";
+		_eventos.Publicar(e, utc);
 	}
+
+	private static string Clave(NivelReferencia z) => $"{z.Nombre}|{z.Precio}";
+
+	private static bool EsRedondo(NivelReferencia z) => z.Nombre.EndsWith("R", StringComparison.Ordinal);
+
+	private string NombreZona(NivelReferencia z) => EsRedondo(z) ? z.Nombre : $"{z.Nombre} {Textos.Precio(z.Precio, Tick)}";
 
 	private void Texto(CascadaStops c)
 	{
 		var e = c.Evento;
 		e.Estado = c.Estado;
 		var zona = c.Zona is { } z ? (c.Lado == Lado.Venta ? "bajo " : "sobre ") + z.Nombre : "sin zona";
-		var rango = $"{Textos.Precio(Math.Max(c.Desde, c.Hasta), Tick)}-{Textos.Precio(Math.Min(c.Desde, c.Hasta), Tick)}";
+		var rango = $"{Textos.Precio(c.Max, Tick)}-{Textos.Precio(c.Min, Tick)}";
 		var vuelta = c.SegundosVuelta is { } s ? $" (volvió en {s:0} s)" : "";
 
 		// Dirección del nuevo impulso: contraria a la cascada si fue trampa; la misma si continúa.
@@ -252,7 +261,7 @@ public sealed class MotorStops
 			return "Zonas probables: (esperando datos)";
 
 		var cerca = zonas.OrderBy(z => Math.Abs(z.Precio - UltimoPrecio)).Take(Math.Max(1, maximo))
-			.Select(z => z.Nombre.EndsWith("R", StringComparison.Ordinal) ? z.Nombre : $"{z.Nombre} {Textos.Precio(z.Precio, Tick)}");
+			.Select(NombreZona);
 
 		return "Zonas probables: " + string.Join(" · ", cerca);
 	}

@@ -71,12 +71,16 @@ public sealed class MedidorDelta
 
 	public decimal Suma(DateTime desde, DateTime hasta) => _trades.Where(x => x.Utc > desde && x.Utc <= hasta).Sum(x => x.Delta);
 
-	/// <summary>Giro a favor de ese lado: el delta de la última ventana va a favor y el de la ventana anterior iba en contra.</summary>
+	/// <summary>
+	/// Giro a favor de ese lado: el delta del último tercio de la ventana (10 s con EventContextSeconds = 30) va a favor y
+	/// el de la ventana completa anterior iba en contra (p. ej. ventas absorbidas y después compras).
+	/// </summary>
 	public bool Giro(Lado lado, DateTime utc, int segundos)
 	{
 		var v = TimeSpan.FromSeconds(Math.Max(1, segundos));
-		var reciente = Suma(utc - v, utc) * lado.Signo();
-		var anterior = Suma(utc - v - v, utc - v) * lado.Signo();
+		var corto = TimeSpan.FromTicks(v.Ticks / 3);
+		var reciente = Suma(utc - corto, utc) * lado.Signo();
+		var anterior = Suma(utc - corto - v, utc - corto) * lado.Signo();
 		return reciente > 0 && anterior < 0;
 	}
 }

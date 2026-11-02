@@ -183,10 +183,11 @@ public sealed class MotorImbalance
 	private void ActualizarConVela(ZonaImbalance z, VelaFlujo v)
 	{
 		z.Velas++;
-		var rotura = Math.Max(0, P.MinBreakTicks) * Tick;
 
-		// ROTA: cierre de vela más allá de la zona en MinBreakTicks.
-		if (z.Lado == Lado.Compra ? v.Close < z.Bajo - rotura : v.Close > z.Alto + rotura)
+		// ROTA: cierre de vela más allá de la zona en MinBreakTicks (o más).
+		var fuera = z.Lado == Lado.Compra ? z.Bajo - v.Close : v.Close - z.Alto;
+
+		if (fuera >= Math.Max(1, P.MinBreakTicks) * Tick)
 		{
 			CambiarEstado(z, "ROTA", v.InicioUtc);
 			z.FinUtc = v.InicioUtc;
