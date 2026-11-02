@@ -35,7 +35,14 @@ public partial class SweepsTrackerPro
 
 		_c.Alerta = (sonido, texto) => AddAlert(sonido, texto);
 		_c.Redibujar = () => RedrawChart();
-		_c.Error = (mensaje, error) => this.LogError(mensaje, error);
+		_c.Error = (mensaje, error) =>
+		{
+			// LogError de ATAS exige la excepción (no nula); sin excepción, un aviso.
+			if (error is null)
+				this.LogWarn(mensaje);
+			else
+				this.LogError(mensaje, error);
+		};
 		_c.General.InfoPanelPosition = EsquinaPanel.BottomRight;
 		_c.General.InfoPanelOffsetY = 150;
 	}

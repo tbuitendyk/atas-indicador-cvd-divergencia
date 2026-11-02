@@ -29,9 +29,11 @@ namespace ATAS.Indicators
     public class ChartInfo
     {
         public PriceChartContainer PriceChartContainer { get; set; }
-        public int GetXByBar(int bar) => 0; public int GetXByBar(int bar, bool b) => 0;
         public int GetYByPrice(decimal price, bool b) => 0;
     }
+#nullable enable
+    public static class Extensions { public static int GetXByBar(this ChartInfo chart, int bar, bool isStartOfBar = true) => 0; }
+#nullable restore
     public abstract class Indicator
     {
         protected Indicator(bool useCandles) { }
@@ -41,7 +43,12 @@ namespace ATAS.Indicators
         public bool DrawAbovePrice { get; set; }
         public string Panel { get; set; }
         public InstrumentInfo InstrumentInfo { get; set; }
-        public ChartInfo ChartInfo { get; set; }
+        // Compilación real (2026-11-02): ChartInfo admite null (aviso CS8604 en ChartInfo.GetXByBar sin '!') y la clase
+        // Indicator ya tiene ValueAreaPercent (aviso CS0108 al declarar otro).
+#nullable enable
+        public ChartInfo? ChartInfo { get; set; }
+#nullable restore
+        public decimal ValueAreaPercent { get; set; }
         public int FirstVisibleBarNumber { get; set; }
         public int LastVisibleBarNumber { get; set; }
         public int CurrentBar { get; set; }
@@ -94,9 +101,12 @@ namespace OFT.Attributes.Editors
 // Pivots.cs: this.LogError(...); un indicador oficial: this.LogWarn(texto)
 namespace Utils.Common.Logging
 {
-    public static class Registro
+#nullable enable
+    public static class LoggerHelper
     {
-        public static void LogError(this object origen, string mensaje, Exception error) { }
-        public static void LogWarn(this object origen, string mensaje) { }
+        // Firma de la compilación real (2026-11-02): la excepción NO admite null.
+        public static void LogError(this object sender, string message, Exception excp, bool isVisible = true) { }
+        public static void LogWarn(this object sender, string message) { }
     }
+#nullable restore
 }

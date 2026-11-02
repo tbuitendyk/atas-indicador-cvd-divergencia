@@ -194,3 +194,11 @@ Say plainly that the first build against the real DLLs happens on Windows.
   **Add custom indicator** button in the indicators window copies and loads the DLL. After a
   manual copy, press the reload button in the status bar. Custom indicators are listed in the
   **Custom** group. Source: docs.atas.net "Development of a user indicator".
+- Facts the real ATAS build taught us (all three compile stand-ins now model them, and every `verificar.sh`
+  builds with `-warnaserror`, so a stand-in gap shows up as a failure here, not on the owner's PC):
+  `TradeDirection` and `MarketDataType` exist in BOTH `ATAS.Indicators` and `ATAS.DataFeedsCore` (never name them
+  with both usings; compare `ToString()`); `ChartInfo` is nullable (`ChartInfo!` on every use); `GetXByBar` is an
+  extension `Extensions.GetXByBar(IChart chart, int bar, bool isStartOfBar = true)`; logging is
+  `LoggerHelper.LogError(object sender, string message, Exception excp, bool isVisible = true)` with a NON-null
+  exception (use `LogWarn(string)` when there is none) and cannot be passed as a method group; `Indicator` already
+  has a `ValueAreaPercent` member (do not declare a property with that name).

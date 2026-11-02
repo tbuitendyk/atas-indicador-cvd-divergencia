@@ -22,7 +22,7 @@ for nombre in ATAS.DataFeedsCore OFT.Rendering Utils.Common OFT.Attributes; do
 done
 
 echo "== 2. Compilación de ThermalVolumeProfile contra los sustitutos =="
-dotnet build "$raiz/ThermalVolumeProfile.slnx" -c Release -p:ATAS_BASE="$tmp/atas" -p:EnableWindowsTargeting=true --artifacts-path "$tmp/build"
+dotnet build "$raiz/ThermalVolumeProfile.slnx" -c Release -p:ATAS_BASE="$tmp/atas" -p:EnableWindowsTargeting=true -warnaserror --artifacts-path "$tmp/build"
 
 echo "== 3. Pruebas del núcleo y del indicador =="
 dotnet run --project "$raiz/pruebas/Pruebas.csproj" -c Release

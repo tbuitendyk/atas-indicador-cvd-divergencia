@@ -136,3 +136,7 @@ motivo de cada una. Cualquiera se puede cambiar: diga cuál y cómo.
     comprueban en Windows con ATAS.
 35. Pensado para **ATAS clásico**, como los demás indicadores (usa los colores de los ajustes de ATAS clásico). No se
     probó en ATAS X.
+36. **El área de valor se llama `ProfileValueAreaPercent`, no `ValueAreaPercent`** (2026-11-02). La primera compilación
+    real avisó (CS0108) de que la clase `Indicator` de ATAS ya tiene un miembro `ValueAreaPercent`: el nuestro lo
+    ocultaba y la ventana de ajustes podía confundirlos. En ATAS se sigue viendo "Área de Valor (%)"; quien la había
+    cambiado debe volver a ponerla (por defecto, 70).

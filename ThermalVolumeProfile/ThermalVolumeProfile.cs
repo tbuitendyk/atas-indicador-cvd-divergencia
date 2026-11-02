@@ -130,9 +130,11 @@ public class ThermalVolumeProfile : Indicator
 
 	private decimal _valueAreaPercent = 70;
 
+	// No se llama ValueAreaPercent: la clase Indicator de ATAS ya tiene un miembro con ese nombre (aviso CS0108 en la
+	// compilación real del 2026-11-02) y ocultarlo puede confundir a la ventana de ajustes de ATAS.
 	[Display(Name = "Área de Valor (%)", GroupName = G3, Order = 10)]
 	[Range(50, 95)]
-	public decimal ValueAreaPercent { get => _valueAreaPercent; set => Cambiar(ref _valueAreaPercent, Math.Clamp(value, 50, 95)); }
+	public decimal ProfileValueAreaPercent { get => _valueAreaPercent; set => Cambiar(ref _valueAreaPercent, Math.Clamp(value, 50, 95)); }
 
 	[Display(Name = "Mostrar POC", GroupName = G3, Order = 20)]
 	public bool ShowPOC { get; set; } = true;
@@ -911,7 +913,7 @@ public class ThermalVolumeProfile : Indicator
 			var hasta = Rangos.UltimaHasta(Tiempo, total, _searchEndTime - info.TimeZoneOffset);
 
 			if (desde <= hasta && desde < total && hasta >= 0)
-				(x1, x2) = (ChartInfo!.GetXByBar(desde), ChartInfo.GetXByBar(hasta) + AnchoBarra);
+				(x1, x2) = (ChartInfo!.GetXByBar(desde), ChartInfo!.GetXByBar(hasta) + AnchoBarra);
 		}
 
 		var caja = new Rectangle(x1, Math.Min(yArriba, yAbajo), Math.Max(1, x2 - x1), Math.Max(1, Math.Abs(yAbajo - yArriba)));
