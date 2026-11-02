@@ -13,7 +13,9 @@ el **POC**, el **VAH** y el **VAL**, y detecta automáticamente:
 Todo dentro de una **zona de búsqueda** opcional. Funciona en todas las temporalidades y tipos de gráfico (segundos,
 minutos, horas, diario, semanal, tick, range, volumen y Renko).
 
-Es un indicador **separado** para comprobarlo; después se agregará a IndicadorCompleto. Las decisiones que tomó la IA
+Es un indicador **separado** para comprobarlo; después se agregará a IndicadorCompleto. El mismo código es también el
+indicador 0 de la **[Suite Order Flow Stacker](../SuiteOrderFlowStacker/LEEME.md)** ("Thermal Volume Profile + LVN
+(Suite)"): un cambio aquí llega a los dos. Las decisiones que tomó la IA
 donde el documento dejaba algo abierto están en **[DECISIONES.md](DECISIONES.md)**.
 
 Contenido: [1. Compilar](#1-compilar) · [2. Instalar](#2-instalar) · [3. Usar](#3-usar) ·

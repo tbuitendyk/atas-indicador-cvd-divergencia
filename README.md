@@ -14,6 +14,7 @@ Un solo repositorio con una carpeta por indicador; `Indicadores.slnx` los compil
 | **Indicador Completo** (+ panel *Indicador Completo CVD*) — solución aparte | `IndicadorCompleto/` | `IndicadorCompleto.dll` |
 | **Thermal Volume Profile** (perfil térmico) — solución aparte | `ThermalVolumeProfile/` | `ThermalVolumeProfile.dll` |
 | **NQ Session Sweeps Pro** (barridos de liquidez) — solución aparte | `NQSessionSweepsPro/` | `NQSessionSweepsPro.dll` |
+| **Suite Order Flow Stacker** (6 indicadores: Thermal VP + LVN, Stacked Imbalance, Icebergs, Stops, Sweeps, Absorption Master) — solución aparte | `SuiteOrderFlowStacker/` | `SuiteOrderFlowStacker.dll` |
 
 **Indicador Completo** tiene su **propia solución**, `IndicadorCompleto\IndicadorCompleto.slnx`, y su propio
 manual: **[IndicadorCompleto/LEEME.md](IndicadorCompleto/LEEME.md)**. Estructura 1H, barridos de liquidez, mapas
@@ -30,6 +31,13 @@ Se agregará a Indicador Completo cuando esté comprobado.
 barridos de liquidez con la lógica del Pine "Session Sweeps" de LuxAlgo validados con Order Flow, alerta en el tick,
 contexto H1, objetivos, FVG/IFVG, LVN, Modelos A y B y correo. Manual:
 [NQSessionSweepsPro/LEEME.md](NQSessionSweepsPro/LEEME.md); decisiones: [DECISIONES.md](NQSessionSweepsPro/DECISIONES.md).
+
+**Suite Order Flow Stacker** (solución `SuiteOrderFlowStacker\SuiteOrderFlowStacker.slnx`, una DLL con 6 indicadores):
+el Thermal Volume Profile + LVN (el mismo código de `ThermalVolumeProfile/`), Stacked Imbalance Pro, Iceberg Tracker Pro
+(icebergs nativos/sintéticos con MBO o inferidos con el DOM), Stops Tracker Pro, Sweeps Tracker Pro y Absorption Master
+(la señal única, setups A-D). Manual de usuario: [SuiteOrderFlowStacker/LEEME.md](SuiteOrderFlowStacker/LEEME.md);
+manual de operativa: [OPERATIVA.md](SuiteOrderFlowStacker/OPERATIVA.md); parámetros:
+[PARAMETROS.md](SuiteOrderFlowStacker/PARAMETROS.md); decisiones: [DECISIONES.md](SuiteOrderFlowStacker/DECISIONES.md).
 
 Pasos completos para subir el código a otro repositorio de GitHub, descargarlo en Windows, compilarlo, instalarlo y
 recibir actualizaciones: **[docs/GUIA.md](docs/GUIA.md)**.

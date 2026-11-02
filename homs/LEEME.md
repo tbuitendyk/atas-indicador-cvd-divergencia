@@ -48,7 +48,11 @@ Para instalar otro indicador sin cambiar `instalar.txt`, en una ventana de coman
 `C:\homs\bic.cmd IndicadorCompleto` (o varios: `C:\homs\bic.cmd IndicadorCompleto ThermalVolumeProfile`).
 
 Los nombres son los de las carpetas del repositorio: IndicadorTendenciaHourly, IndicadorCvdDivergencia,
-IndicadorFootprintPredictor, IndicadorLvn, IndicadorCombinado, IndicadorCompleto, ThermalVolumeProfile…
+IndicadorFootprintPredictor, IndicadorLvn, IndicadorCombinado, IndicadorCompleto, ThermalVolumeProfile,
+NQSessionSweepsPro, SuiteOrderFlowStacker…
+
+"Código del indicador" incluye los archivos de otras carpetas que su proyecto usa (`Include="..\Carpeta\..."` en el
+`.csproj`): la suite usa el código de ThermalVolumeProfile, así que un cambio allí recompila los dos.
 
 ## Si algo falla
 

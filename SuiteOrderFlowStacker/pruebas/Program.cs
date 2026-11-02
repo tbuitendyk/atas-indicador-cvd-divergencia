@@ -3,5 +3,6 @@ var c = new Comprobador();
 
 PruebasNucleo.Ejecutar(c);
 PruebasIndicador.Ejecutar(c);
+Documentacion.Ejecutar(c);
 
 return c.Resumen();

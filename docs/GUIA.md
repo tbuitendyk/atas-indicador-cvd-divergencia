@@ -130,6 +130,12 @@ Igual: **`NQSessionSweepsPro\NQSessionSweepsPro.slnx`** → **Release** → **Co
 `NQSessionSweepsPro\bin\Release\net10.0-windows\NQSessionSweepsPro.dll`. Uso y configuración del correo:
 [NQSessionSweepsPro/LEEME.md](../NQSessionSweepsPro/LEEME.md).
 
+### Suite Order Flow Stacker (solución aparte)
+
+Igual: **`SuiteOrderFlowStacker\SuiteOrderFlowStacker.slnx`** → **Release** → **Compilar solución**; la DLL (con los 6
+indicadores) queda en `SuiteOrderFlowStacker\bin\Release\net10.0-windows\SuiteOrderFlowStacker.dll`. Usa también el código
+de `ThermalVolumeProfile\` (enlazado). Uso: [SuiteOrderFlowStacker/LEEME.md](../SuiteOrderFlowStacker/LEEME.md).
+
 ### Si la compilación falla
 
 - **`No se encontró ATAS.Indicators.dll en '...'`**: ATAS no está en `C:\Program Files (x86)\ATAS Platform`.
