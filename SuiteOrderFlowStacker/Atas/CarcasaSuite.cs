@@ -76,8 +76,11 @@ public sealed class CarcasaSuite : IDisposable
 
 	public Action<string, Exception?>? Error { get; set; }
 
-	/// <summary>Carpeta de los CSV (cambia solo en las pruebas).</summary>
-	public string CarpetaGrabacion { get; set; } = GrabadorEventos.CarpetaPorDefecto;
+	/// <summary>Solo para las pruebas: carpeta de los CSV de todas las carcasas (null = %APPDATA%\ATAS\OrderFlowSuite).</summary>
+	public static string? CarpetaForzada { get; set; }
+
+	/// <summary>Carpeta de los CSV.</summary>
+	public string CarpetaGrabacion { get; set; } = CarpetaForzada ?? GrabadorEventos.CarpetaPorDefecto;
 
 	/// <summary>Línea de estado (errores) que se muestra en el panel.</summary>
 	public string Estado { get; private set; } = "";

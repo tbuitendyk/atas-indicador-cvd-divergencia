@@ -2,5 +2,6 @@
 var c = new Comprobador();
 
 PruebasNucleo.Ejecutar(c);
+PruebasIndicador.Ejecutar(c);
 
 return c.Resumen();
