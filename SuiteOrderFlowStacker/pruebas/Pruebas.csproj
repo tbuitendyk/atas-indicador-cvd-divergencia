@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Pruebas sin ATAS ni Windows: compila el núcleo (Nucleo/ y el motor térmico de ThermalVolumeProfile) y los
+       indicadores reales (Atas/) contra los sustitutos de comportamiento de StubsAtas.cs. Se ejecuta con
+       pruebas/verificar.sh. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoWarn>CS8602;CS8604</NoWarn>
+    <DefineConstants>$(DefineConstants);SUITE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="*.cs" />
+    <Compile Include="..\Nucleo\*.cs" LinkBase="Nucleo" />
+    <Compile Include="..\..\ThermalVolumeProfile\MotorTermico.cs" LinkBase="Termico" />
+  </ItemGroup>
+
+</Project>
