@@ -36,6 +36,9 @@ mismo acceso directo instala el nuevo. El acceso directo no se toca nunca.
 - Doble clic en el acceso directo. Al final dice `LISTO: <indicador> instalado(s)`.
 - Abra ATAS. La primera vez que se instala un indicador, agréguelo al gráfico desde el grupo **Custom**.
 
+Si `instalar.txt` nombra varios y uno falla, los demás se instalan igual; al final la ventana dice cuáles se instalaron
+(`LISTO: ...`) y cuáles no (`NO SE INSTALO: ...`).
+
 Para instalar otro indicador sin cambiar `instalar.txt`, en una ventana de comandos:
 `C:\homs\bic.cmd IndicadorCompleto` (o varios: `C:\homs\bic.cmd IndicadorCompleto ThermalVolumeProfile`).
 
@@ -50,5 +53,5 @@ IndicadorFootprintPredictor, IndicadorLvn, IndicadorCombinado, IndicadorCompleto
 | `git pull upstream main fallo` | Revise Internet o si hay cambios hechos a mano en la carpeta del repositorio. |
 | `AVISO: git push origin main fallo` | La instalación sigue; el GitHub destino se actualiza la próxima vez. |
 | `No existe el indicador '...'` | El nombre de `instalar.txt` no coincide con ninguna carpeta; el mensaje lista los que hay. |
-| `La compilacion de ... fallo` | Copie los errores que se ven arriba y envíelos. No se instaló nada nuevo. |
+| `La compilacion de ... fallo` | Copie los errores que se ven arriba y envíelos. Ese indicador no se instaló; los demás de la lista sí. |
 | `No se encontro el repositorio` | El repositorio no está en `C:\Users\<usuario>\source\repos\atas-indicador-cvd-divergencia`. |

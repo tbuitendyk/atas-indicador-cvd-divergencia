@@ -96,21 +96,30 @@ if (-not (Test-Path $Destino)) {
     New-Item -ItemType Directory -Path $Destino | Out-Null
 }
 
+# Cada indicador por separado: si uno falla, se sigue con los demas y al final se resume.
 $instalados = @()
+$fallidos = @()
+
+function Error([string] $nombre, [string] $mensaje) {
+    Write-Host "ERROR: $mensaje" -ForegroundColor Red
+    $script:fallidos += $nombre
+}
 
 foreach ($nombre in $Indicador) {
     $proyecto = Join-Path (Join-Path $Repo $nombre) "$nombre.csproj"
 
     if (-not (Test-Path $proyecto)) {
         $hay = Get-ChildItem $Repo -Directory | Where-Object { Test-Path (Join-Path $_.FullName "$($_.Name).csproj") } | ForEach-Object { $_.Name }
-        Fallo "No existe el indicador '$nombre' en el repositorio. Disponibles: $($hay -join ', ')"
+        Error $nombre "No existe el indicador '$nombre' en el repositorio. Disponibles: $($hay -join ', ')"
+        continue
     }
 
     Paso "3. Compilar $nombre (Release)"
     dotnet build $proyecto -c Release
 
     if ($LASTEXITCODE -ne 0) {
-        Fallo "La compilacion de $nombre fallo (ver los errores de arriba). No se instalo nada nuevo."
+        Error $nombre "La compilacion de $nombre fallo (ver los errores de arriba). No se instalo."
+        continue
     }
 
     # La DLL recien compilada (la carpeta del framework, net10.0-windows, no se fija aqui).
@@ -118,7 +127,8 @@ foreach ($nombre in $Indicador) {
         Sort-Object LastWriteTime -Descending | Select-Object -First 1
 
     if (-not $dll) {
-        Fallo "No se encontro $nombre.dll en $nombre\bin\Release despues de compilar."
+        Error $nombre "No se encontro $nombre.dll en $nombre\bin\Release despues de compilar."
+        continue
     }
 
     Paso "4. Instalar $nombre.dll en $Destino"
@@ -127,13 +137,23 @@ foreach ($nombre in $Indicador) {
         Copy-Item $dll.FullName $Destino -Force -ErrorAction Stop
     }
     catch {
-        Fallo "No se pudo copiar $nombre.dll: ATAS probablemente lo tiene abierto. Cierre ATAS y vuelva a usar el acceso directo."
+        Error $nombre "No se pudo copiar $nombre.dll: ATAS probablemente lo tiene abierto. Cierre ATAS y vuelva a usar el acceso directo."
+        continue
     }
 
     $instalados += $nombre
 }
 
 Write-Host ''
-Write-Host "LISTO: $($instalados -join ', ') instalado(s) en $Destino" -ForegroundColor Green
-Write-Host 'Si ATAS estaba abierto, cierrelo y vuelva a abrirlo para cargar la version nueva.'
+
+if ($instalados.Count -gt 0) {
+    Write-Host "LISTO: $($instalados -join ', ') instalado(s) en $Destino" -ForegroundColor Green
+    Write-Host 'Si ATAS estaba abierto, cierrelo y vuelva a abrirlo para cargar la version nueva.'
+}
+
+if ($fallidos.Count -gt 0) {
+    Write-Host "NO SE INSTALO: $($fallidos -join ', ') (ver los errores de arriba)" -ForegroundColor Red
+    exit 1
+}
+
 exit 0
