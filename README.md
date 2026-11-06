@@ -14,7 +14,7 @@ Un solo repositorio con una carpeta por indicador; `Indicadores.slnx` los compil
 | **Indicador Completo** (+ panel *Indicador Completo CVD*) — solución aparte | `IndicadorCompleto/` | `IndicadorCompleto.dll` |
 | **Thermal Volume Profile** (perfil térmico) — solución aparte | `ThermalVolumeProfile/` | `ThermalVolumeProfile.dll` |
 | **NQ Session Sweeps Pro** (barridos de liquidez) — solución aparte | `NQSessionSweepsPro/` | `NQSessionSweepsPro.dll` |
-| **Suite Order Flow Stacker** (6 indicadores: Thermal VP + LVN, Stacked Imbalance, Icebergs, Stops, Sweeps, Absorption Master) — solución aparte | `SuiteOrderFlowStacker/` | `SuiteOrderFlowStacker.dll` |
+| **Suite Order Flow Stacker** (Thermal VP + LVN, Stacked Imbalance, Icebergs, Stops, Sweeps, Absorption Master, Session Sweeps Pro v2.0 y su CVD) — solución aparte | `SuiteOrderFlowStacker/` | `SuiteOrderFlowStacker.dll` |
 
 **Indicador Completo** tiene su **propia solución**, `IndicadorCompleto\IndicadorCompleto.slnx`, y su propio
 manual: **[IndicadorCompleto/LEEME.md](IndicadorCompleto/LEEME.md)**. Estructura 1H, barridos de liquidez, mapas
@@ -38,6 +38,10 @@ el Thermal Volume Profile + LVN (el mismo código de `ThermalVolumeProfile/`), S
 (la señal única, setups A-D). Manual de usuario: [SuiteOrderFlowStacker/LEEME.md](SuiteOrderFlowStacker/LEEME.md);
 manual de operativa: [OPERATIVA.md](SuiteOrderFlowStacker/OPERATIVA.md); parámetros:
 [PARAMETROS.md](SuiteOrderFlowStacker/PARAMETROS.md); decisiones: [DECISIONES.md](SuiteOrderFlowStacker/DECISIONES.md).
+En la misma DLL, **Session Sweeps Pro v2.0 (Suite)** (el NQ Session Sweeps Pro rehecho con otro nombre, para no
+sobrescribirlo): clasificador de barridos premium con barras de volumen y los eventos de la suite, MOD1-MOD4 y BFVG con
+gatillo de order flow, LVN del Thermal, panel flotante, GATILLO manual desde el Thermal, CVD con divergencias, alertas,
+correo y CSV. Manual: [SuiteOrderFlowStacker/SessionSweeps/LEEME.md](SuiteOrderFlowStacker/SessionSweeps/LEEME.md).
 
 Pasos completos para subir el código a otro repositorio de GitHub, descargarlo en Windows, compilarlo, instalarlo y
 recibir actualizaciones: **[docs/GUIA.md](docs/GUIA.md)**.

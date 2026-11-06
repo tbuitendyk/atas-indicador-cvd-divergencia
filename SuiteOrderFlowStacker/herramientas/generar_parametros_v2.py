@@ -9,6 +9,7 @@ import os
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SALIDA = os.path.join(RAIZ, "SessionSweeps", "Atas", "Generado", "SessionSweepsPro.V2.g.cs")
+DOC = os.path.join(RAIZ, "SessionSweeps", "PARAMETROS.md")
 
 P = "_cfg.V2."
 
@@ -175,7 +176,8 @@ GRUPOS = [
         ("ShowInternalLiquidity", "bool", "_v.ShowInternalLiquidity", "Liquidez interna", "Niveles de sesión e iguales.", None, None, False),
         ("ShowExternalLiquidity", "bool", "_v.ShowExternalLiquidity", "Liquidez externa", "PDH/PDL y semana anterior.", None, None, False),
         ("ShowLvnLines", "bool", "_v.ShowLvnLines", "LVN del Thermal", "Las zonas que llegan del Thermal (activas y mitigadas).", None, None, False),
-        ("ShowManualTriggerBoxes", "bool", "_v.ShowManualTriggerBoxes", "Cajas del gatillo manual", "", None, None, False),
+        ("ShowManualTriggerBoxes", "bool", "_v.ShowManualTriggerBoxes", "Cajas del gatillo manual",
+         "Las dibuja el Thermal que las pidió; actívelo solo si el Thermal está en otro gráfico.", None, None, False),
         ("ShowCvdDivergences", "bool", "_v.ShowCvdDivergences", "Divergencias del CVD en el precio", "Tramos entre pivotes, sin líneas verticales.", None, None, False),
     ]),
 ]
@@ -214,6 +216,60 @@ def propiedad(p, grupo, orden):
     return "\n".join(attrs) + "\n\t" + cuerpo + "\n"
 
 
+def defectos():
+    """Valores por defecto leídos del código (ParametrosV2, PesoFuente y VisualV2): la tabla no se desfasa."""
+    import re
+    d = {}
+    with open(os.path.join(RAIZ, "SessionSweeps", "Nucleo", "ParametrosV2.cs"), encoding="utf-8") as f:
+        texto = f.read()
+    for nombre, valor in re.findall(r"public\s+[\w<>?]+\s+(\w+)\s*\{\s*get;\s*set;\s*\}\s*=\s*(\"[^\"]*\"|[^;]+);", texto):
+        d[P + nombre] = valor.strip()
+    for nombre in re.findall(r"public\s+bool\s+(\w+)\s*\{\s*get;\s*set;\s*\}(?!\s*=)", texto):
+        d.setdefault(P + nombre, "false")
+    for fuente in ("Iceberg", "Stops", "Sweeps", "Stacked", "Imbalance", "Absorption"):
+        d[P + fuente + ".Enabled"] = "true"
+        d[P + fuente + ".Weight"] = "1.0m"
+    with open(os.path.join(RAIZ, "SessionSweeps", "Atas", "SessionSweepsPro.V2.cs"), encoding="utf-8") as f:
+        texto = f.read()
+    bloque = texto[texto.index("class VisualV2"):texto.index("private const int MaximoRecalculosPorFuentes")]
+    for nombre, valor in re.findall(r"public\s+\w+\s+(\w+)(?:\s*=\s*([^;]+))?;", bloque):
+        d["_v." + nombre] = (valor or "false").strip()
+    return d
+
+
+def bonito(valor, tipo):
+    import re
+    v = valor.replace("m", "") if re.fullmatch(r"[0-9.]+m", valor) else valor
+    if tipo == "bool":
+        return "Sí" if v == "true" else "No"
+    if tipo == "hora":
+        m = re.match(r"new\((\d+),\s*(\d+),", v)
+        return f"{int(m.group(1)):02d}:{int(m.group(2)):02d}" if m else v
+    if tipo.startswith("enum:"):
+        return v.split(".")[-1]
+    return v.strip('"')
+
+
+def documentar():
+    d = defectos()
+    filas = ["# Parámetros de Session Sweeps Pro v2.0 (Suite)", "",
+             "Tabla generada por `herramientas/generar_parametros_v2.py` (nombres, rangos y descripciones del generador; valores por",
+             "defecto leídos del código). No se edita a mano. Todos son **valores iniciales a calibrar** con el CSV; las puntuaciones",
+             "no son probabilidades. Los grupos 1-15 son los del NQ Session Sweeps Pro (ver [LEEME.md](LEEME.md#ajustes-heredados-del-nq)).", ""]
+    for grupo, params in GRUPOS:
+        filas += [f"## {grupo}", "", "| Parámetro | En ATAS | Defecto | Rango | Descripción |", "|---|---|---|---|---|"]
+        for nombre, tipo, destino, titulo, descripcion, minimo, maximo, _ in params:
+            defecto = bonito(d.get(destino, "?"), tipo)
+            rango = f"{minimo}-{maximo}" if minimo is not None else ""
+            filas.append(f"| `{nombre}` | {titulo} | {defecto} | {rango} | {descripcion.replace('|', '/')} |")
+        filas.append("")
+    with open(DOC, "w", encoding="utf-8", newline="\n") as f:
+        f.write("\n".join(filas))
+    faltan = [p[2] for _, ps in GRUPOS for p in ps if p[2] not in d]
+    if faltan:
+        raise SystemExit("sin valor por defecto: " + ", ".join(faltan))
+
+
 def main():
     partes = []
     for grupo, params in GRUPOS:
@@ -242,7 +298,8 @@ public partial class SessionSweepsPro
     os.makedirs(os.path.dirname(SALIDA), exist_ok=True)
     with open(SALIDA, "w", encoding="utf-8", newline="\n") as f:
         f.write(texto)
-    print("generado:", os.path.relpath(SALIDA, RAIZ), sum(len(g[1]) for g in GRUPOS), "parámetros")
+    documentar()
+    print("generado:", os.path.relpath(SALIDA, RAIZ), "y", os.path.relpath(DOC, RAIZ), sum(len(g[1]) for g in GRUPOS), "parámetros")
 
 
 if __name__ == "__main__":

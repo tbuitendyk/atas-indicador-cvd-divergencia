@@ -471,7 +471,7 @@ public partial class SessionSweepsPro
 	[Display(Name = "LVN del Thermal", GroupName = "28. Panel y dibujo", Order = 100, Description = "Las zonas que llegan del Thermal (activas y mitigadas).")]
 	public bool ShowLvnLines { get => _v.ShowLvnLines; set { _v.ShowLvnLines = value; RedrawChart(); } }
 
-	[Display(Name = "Cajas del gatillo manual", GroupName = "28. Panel y dibujo", Order = 110, Description = "")]
+	[Display(Name = "Cajas del gatillo manual", GroupName = "28. Panel y dibujo", Order = 110, Description = "Las dibuja el Thermal que las pidió; actívelo solo si el Thermal está en otro gráfico.")]
 	public bool ShowManualTriggerBoxes { get => _v.ShowManualTriggerBoxes; set { _v.ShowManualTriggerBoxes = value; RedrawChart(); } }
 
 	[Display(Name = "Divergencias del CVD en el precio", GroupName = "28. Panel y dibujo", Order = 120, Description = "Tramos entre pivotes, sin líneas verticales.")]

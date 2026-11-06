@@ -1,6 +1,6 @@
 # Suite Order Flow Stacker — Manual de usuario
 
-Seis indicadores de order flow para ATAS en **una sola DLL** (`SuiteOrderFlowStacker.dll`), pensados para NQ y MNQ:
+Los indicadores de order flow para ATAS en **una sola DLL** (`SuiteOrderFlowStacker.dll`), pensados para NQ y MNQ:
 
 | # | En ATAS se llama | Qué hace (en una línea) |
 |---|---|---|
@@ -10,6 +10,8 @@ Seis indicadores de order flow para ATAS en **una sola DLL** (`SuiteOrderFlowSta
 | 3 | **Stops Tracker Pro (Suite)** | Zonas probables de stops y cascadas de stops ya disparadas: ¿TRAMPA o CONTINUACIÓN? |
 | 4 | **Sweeps Tracker Pro (Suite)** | Barridos (una orden agresiva que se come varios niveles): LIQUIDEZ, RUPTURA o CONTRA ICEBERG. |
 | 5 | **Absorption Master (Suite)** | **La señal única.** Ejecuta todo lo anterior por dentro y solo avisa cuando hay confluencia (setups A-D). |
+| 6 | **Session Sweeps Pro (Suite)** | Barridos de liquidez v2.0: clasificador premium, MOD1-MOD4 y BFVG, panel flotante, correo. Manual: [SessionSweeps/LEEME.md](SessionSweeps/LEEME.md). |
+| 6b | **Session Sweeps CVD (Suite)** | Subpanel: CVD en velas con divergencias macro y micro. |
 
 **Principio:** mucho cálculo por dentro, **resultado simple por fuera**. Por defecto cada indicador muestra solo un
 panel pequeño con los últimos eventos, **una línea por evento** (el "dato"), y el Absorption Master una flecha.

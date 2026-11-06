@@ -29,7 +29,7 @@ public partial class SessionSweepsPro
 		public bool ShowInternalLiquidity = true;
 		public bool ShowExternalLiquidity = true;
 		public bool ShowLvnLines = true;
-		public bool ShowManualTriggerBoxes = true;
+		public bool ShowManualTriggerBoxes;
 		public bool ShowCvdDivergences = true;
 	}
 
