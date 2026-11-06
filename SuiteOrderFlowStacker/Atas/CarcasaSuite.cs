@@ -10,6 +10,7 @@ using System.Threading;
 using OFT.Rendering.Context;
 using OFT.Rendering.Tools;
 
+using OrderFlowSuite.Comun;
 using OrderFlowSuite.Nucleo;
 
 /// <summary>Parámetros del grupo "0. General" (comunes a los cinco indicadores; nombres de la especificación).</summary>
@@ -55,10 +56,115 @@ public sealed class CarcasaSuite : IDisposable
 	private RenderFont? _fuente;
 	private int _tamanoFuente;
 
+	private readonly List<EventoSuite> _paraBus = new();
+	private DateTime _ultimoLatido;
+	private bool _latidoConDatos;
+
 	public CarcasaSuite(string indicador, bool conMaster)
 	{
 		Indicador = indicador;
 		Suite = new MotorSuite(Cfg, conMaster);
+
+		// Bus de la suite: cada indicador publica SOLO sus eventos (aunque corra todos los motores por dentro).
+		Suite.Eventos.AlPublicar = e =>
+		{
+			if (e.Indicador == Indicador && AEventoBus(e) is { } x)
+				_paraBus.Add(x);
+		};
+
+		if (indicador == "Imbalance")
+		{
+			Suite.Imbalance.AlImbalances = (utc, lado, precios) => _paraBus.Add(new ImbalanceEvent
+			{
+				Id = RegistroEventos.IdEstable("Imbalance", lado, utc, precios[0]),
+				Fuente = FuenteSuite.Imbalance,
+				Utc = utc,
+				CambioUtc = utc,
+				Version = 1,
+				Precios = precios,
+				Compra = lado == Lado.Compra
+			});
+		}
+	}
+
+	/// <summary>Fuentes del bus que representa este indicador (para el latido).</summary>
+	public IReadOnlyList<FuenteSuite> Fuentes => Indicador switch
+	{
+		"Imbalance" => new[] { FuenteSuite.Stacked, FuenteSuite.Imbalance },
+		"Iceberg" => new[] { FuenteSuite.Iceberg },
+		"Stops" => new[] { FuenteSuite.Stops },
+		"Sweeps" => new[] { FuenteSuite.Sweeps },
+		"Master" => new[] { FuenteSuite.Absorption },
+		_ => Array.Empty<FuenteSuite>()
+	};
+
+	/// <summary>Un evento de la suite traducido al tipo del bus (null si no se publica).</summary>
+	private EventoSuite? AEventoBus(EventoFlujo e)
+	{
+		var compra = e.Lado == Lado.Compra;
+
+		return e.Tipo switch
+		{
+			"Iceberg" => new IcebergEvent
+			{
+				Id = e.Id, Fuente = FuenteSuite.Iceberg, Utc = e.Utc, CambioUtc = e.CambioUtc, Version = e.Version, Precio = e.Precio, Compra = compra,
+				Estado = e.Estado, Ejecutado = e.Volumen, Recargas = e.Recargas ?? 0, Mbo = e.Modo is ModoDatos.MBO or ModoDatos.Sintetico,
+				AltaProbabilidad = e.AltaProbabilidad
+			},
+			"StopRun" => new StopsEvent
+			{
+				Id = e.Id, Fuente = FuenteSuite.Stops, Utc = e.Utc, CambioUtc = e.CambioUtc, Version = e.Version, Desde = e.Precio,
+				Extremo = e.PrecioFin ?? e.Precio, Compra = compra, Contratos = e.Volumen, Estado = e.Estado, Zona = e.Contexto
+			},
+			"Sweep" => new SweepTrackerEvent
+			{
+				Id = e.Id, Fuente = FuenteSuite.Sweeps, Utc = e.Utc, CambioUtc = e.CambioUtc, Version = e.Version, Desde = e.Precio,
+				Hasta = e.PrecioFin ?? e.Precio, Niveles = e.Niveles ?? 0, Contratos = e.Volumen, DuracionMs = e.DuracionMs ?? 0, Compra = compra, Tipo = e.Estado
+			},
+			"StackedImb" => new StackedEvent
+			{
+				Id = e.Id, Fuente = FuenteSuite.Stacked, Utc = e.Utc, CambioUtc = e.CambioUtc, Version = e.Version, Bajo = e.Precio,
+				Alto = e.PrecioFin ?? e.Precio, Niveles = e.Niveles ?? 0, Compra = compra, Estado = e.Estado
+			},
+			"Signal" => new AbsorptionEvent
+			{
+				Id = e.Id, Fuente = FuenteSuite.Absorption, Utc = e.Utc, CambioUtc = e.CambioUtc, Version = e.Version,
+				Precio = e.Referencia ?? e.Precio, Compra = compra, Score = e.Score ?? 0, Setup = e.Contexto
+			},
+			_ => null
+		};
+	}
+
+	/// <summary>Lleva al bus lo encolado (fuera del cerrojo del motor) y, cada 2 s, el latido.</summary>
+	private void PublicarBus()
+	{
+		if (string.IsNullOrEmpty(_instrumento))
+			return;
+
+		List<EventoSuite> lote;
+		bool conDatos;
+
+		lock (Suite.Cerrojo)
+		{
+			lote = _paraBus.ToList();
+			_paraBus.Clear();
+			conDatos = _enVivo && _ultimoMercado != default && _cronometro.Elapsed < TimeSpan.FromSeconds(60);
+		}
+
+		var canal = SuiteEventBus.Para(_instrumento);
+
+		foreach (var e in lote)
+			canal.Publicar(e);
+
+		var ahora = DateTime.UtcNow;
+
+		if (ahora - _ultimoLatido >= TimeSpan.FromSeconds(2) || conDatos != _latidoConDatos)
+		{
+			(_ultimoLatido, _latidoConDatos) = (ahora, conDatos);
+
+			foreach (var f in Fuentes)
+				canal.Latido(f, conDatos, ahora);
+		}
 	}
 
 	/// <summary>"Imbalance", "Iceberg", "Stops", "Sweeps" o "Master": los eventos que este indicador muestra, suena y graba.</summary>
@@ -132,6 +238,7 @@ public sealed class CarcasaSuite : IDisposable
 			CargarGrabados();
 		}
 
+		PublicarBus();
 		IniciarReloj();
 	}
 
@@ -185,7 +292,10 @@ public sealed class CarcasaSuite : IDisposable
 		try
 		{
 			_grabador?.Vaciar();
-			var leidos = GrabadorEventos.Leer(CarpetaGrabacion, _instrumento, Indicador, Ahora, Math.Clamp(General.RecordedDaysToLoad, 1, 60), Error);
+			// Los días se cuentan desde la última vela del gráfico (no desde el reloj del PC): así vale en Market Replay
+			// y en fin de semana.
+			var referencia = _tiempos.Count > 0 ? _tiempos[^1] : Ahora;
+			var leidos = GrabadorEventos.Leer(CarpetaGrabacion, _instrumento, Indicador, referencia, Math.Clamp(General.RecordedDaysToLoad, 1, 60), Error);
 			Suite.Eventos.Importar(leidos);
 		}
 		catch (Exception ex)
@@ -292,6 +402,7 @@ public sealed class CarcasaSuite : IDisposable
 	/// <summary>Novedades de este indicador: alerta (una por evento y estado) y fila del CSV. Después, redibujar.</summary>
 	private void Despachar()
 	{
+		PublicarBus();
 		List<EventoFlujo> novedades;
 		bool cambios;
 

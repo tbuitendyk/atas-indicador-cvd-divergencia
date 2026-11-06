@@ -113,9 +113,21 @@ public sealed class MotorImbalance
 		return (compra, venta);
 	}
 
+	/// <summary>Imbalances sueltos de cada vela cerrada (la carcasa los publica en el bus como ImbalanceEvent).</summary>
+	public Action<DateTime, Lado, List<decimal>>? AlImbalances { get; set; }
+
 	private void Detectar(VelaFlujo v, Sesion sesion, bool rth)
 	{
 		var (compra, venta) = Imbalances(v, rth);
+
+		if (AlImbalances is { } aviso)
+		{
+			if (compra.Count > 0)
+				aviso(v.InicioUtc, Lado.Compra, compra.Select(t => t * Tick).ToList());
+
+			if (venta.Count > 0)
+				aviso(v.InicioUtc, Lado.Venta, venta.Select(t => t * Tick).ToList());
+		}
 
 		foreach (var (ticks, lado) in new[] { (compra, Lado.Compra), (venta, Lado.Venta) })
 		{
@@ -150,6 +162,7 @@ public sealed class MotorImbalance
 
 				z.Evento = _eventos.Crear("Imbalance", "StackedImb", lado, v.InicioUtc, z.Bajo, ModoDatos.Velas, sesion);
 				z.Evento.PrecioFin = z.Alto;
+				z.Evento.Niveles = niveles;
 				Zonas.Add(z);
 				Texto(z);
 				_eventos.Publicar(z.Evento, v.InicioUtc);

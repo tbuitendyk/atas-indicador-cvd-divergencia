@@ -191,6 +191,14 @@ public sealed class EventoFlujo
 	/// <summary>Stop de la señal del Absorption Master (PrecioFin es el objetivo).</summary>
 	public decimal? StopLoss;
 
+	/// <summary>Señal: precio donde está la absorción (iceberg o LVN), antes de los ticks de confirmación.</summary>
+	public decimal? Referencia;
+
+	/// <summary>Niveles que abarca (barridos y zonas de imbalance) y duración del barrido en ms.</summary>
+	public int? Niveles;
+
+	public double? DuracionMs;
+
 	public string Clave => $"{Id}|{Version}";
 }
 

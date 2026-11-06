@@ -1,4 +1,4 @@
-# Plan — Session Sweeps Pro v2.0 (propuesta, pendiente de aprobación)
+# Plan — Session Sweeps Pro v2.0 (aprobado: "tienes que hacer las propias decisiones -- hágalo", 2026-11-06)
 
 Fuente: "PROMPT MAESTRO PARA CLAUDE CODE - NQ SESSION SWEEPS PRO v2.0 (INTEGRACION TOTAL)" (2026-11-06).
 Pedido del propietario: el indicador modificado se llama **Session Sweeps Pro** y es **otro indicador**. El NQ Session
@@ -107,13 +107,38 @@ no cambia: `instalar.txt` ya lista `SuiteOrderFlowStacker`.
 7. **Tamaño.** Es más grande que el NQ actual (~4.500 líneas): se estima 8.000-10.000 líneas más las pruebas. Por eso
    va por subfases S1-S10 (sección 18), cada una compilada, con todas las pruebas en verde y PROGRESO.md al día.
 
-## Preguntas antes de empezar
+## Decisiones (el propietario delegó todas)
 
-1. Los tres documentos que menciona (Prompt_Clasificador_Barridos_Premium, Prompt_Integrado_Panel_Modelos_Fase10,
-   Prompt_Fase10_BarrasVolumen_VelaCompuesta) **no los tengo**. ¿Trabajo solo con este documento maestro, o los envía?
-   Si los envía y no coinciden con el maestro, ¿cuál manda?
-2. ¿Session Sweeps Pro **dentro de la DLL de la suite** (recomendado) o en una DLL aparte (`SessionSweepsPro.dll`)? En
-   una DLL aparte el bus necesita la alternativa de `MemoryMappedFile`.
-3. Ritmo:
-   - **(a)** una subfase por mensaje, esperando su aprobación en cada una (lo que pide el documento); o
-   - **(b)** aprobar el plan una vez y construir S1-S10 seguidas, cada una compilada, probada y subida a GitHub.
+1. **Base:** el documento maestro + el anexo del 2026-11-06 (abajo). Los tres documentos anteriores no se recibieron; el
+   maestro dice que los sustituye.
+2. **Ubicación:** Session Sweeps Pro es el 7.º indicador de `SuiteOrderFlowStacker.dll` (bus seguro en la misma DLL).
+3. **Ritmo:** S1-S10 seguidas; cada subfase compilada (0 avisos), con todas las pruebas y subida a GitHub.
+4. **Gráfico de 1 minuto** (como el NQ actual): 5m, 15m y H1 se agregan por dentro.
+5. **Recarga del historial:** los barridos congelados del día se restauran del CSV (el CSV manda).
+
+## Anexo del propietario (2026-11-06) y cómo se aplica
+
+- **Panel desplegable:** Resumen y Detalle como en 11.2/11.3.
+  - "Certificada como real por iceberg" solo con MBO y AGUANTANDO (regla 1.3 del maestro); si no, "Probable".
+- **CVD:**
+  - Indicador de panel aparte, "Session Sweeps CVD", porque un indicador dibuja en un solo panel.
+  - Velas del delta acumulado.
+  - Divergencias de máximo a máximo y de mínimo a mínimo, en el precio y en el CVD, sin líneas verticales conectoras.
+  - Sensibilidad ajustable: macro (pivote largo) y micro-divergencias dentro de una macro.
+- **Sensibilidad por defecto:** la de la sesión de NY en NQ (valores de la sección 15).
+- **Correo automático:** destinatario por defecto `uniontradingacademy@gmail.com`.
+  - Se envía en cada toma de liquidez externa válida con entrada, SL y TP listos.
+  - El SMTP (usuario y contraseña de aplicación) se escribe en ATAS, nunca en el código.
+- **Vela compuesta:**
+  - Panel flotante con la vela macro: POC en el tercio correcto, delta acumulado e imbalances.
+  - Salida: flecha verde (alcista válida), flecha roja (bajista válida) o `[-]` (sin direccionalidad: no operar).
+  - Es el análisis manual del botón GATILLO (sección 10) con la nomenclatura del anexo.
+- **Fase final (gatillo):** confluencias que se añaden al TriggerAnalyzer como razones y puntos:
+  - imbalance de intención a favor;
+  - ruptura de la línea de micro-tendencia del retroceso;
+  - confluencia con la EMA 15 (1m);
+  - CVD a favor o sin divergencia en contra.
+  - Vela de arranque de una vela: pinbar/hammer con el POC en el tercio correcto, envolvente o vela interna.
+  - Entrada al cierre de la vela gatillo.
+  - SL más allá de la zona o estructura (maestro); opción: más allá del POC de la vela de arranque.
+  - TP en el siguiente LVN o en el cruce de vuelta de la EMA 15 (micro-impulso).

@@ -400,6 +400,7 @@ public sealed class MotorConfluencia
 		var e = _eventos.Crear("Master", "Signal", c.Lado, utc, c.Entrada, _icebergs.ModoMboActivo ? ModoDatos.MBO : ModoDatos.Inferido, Sesiones.De(utc));
 		e.PrecioFin = c.Objetivo;
 		e.StopLoss = c.Stop;
+		e.Referencia = c.Referencia;
 		e.Score = c.Score;
 		e.Estado = "EMITIDA";
 		e.Sesgo = c.Sesgo;

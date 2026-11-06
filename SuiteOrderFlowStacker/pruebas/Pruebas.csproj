@@ -20,6 +20,7 @@
     <Compile Include="..\..\ThermalVolumeProfile\MotorTermico.cs" LinkBase="Termico" />
     <Compile Include="..\Atas\*.cs" LinkBase="Atas" />
     <Compile Include="..\Atas\Generado\*.cs" LinkBase="Atas\Generado" />
+    <Compile Include="..\Comun\*.cs" LinkBase="Comun" />
   </ItemGroup>
 
 </Project>

@@ -22,6 +22,12 @@ public sealed class RegistroEventos
 	/// <summary>Falso mientras se recalcula el historial: entonces no hay novedades (ni alertas ni grabación).</summary>
 	public bool EnVivo { get; set; }
 
+	/// <summary>
+	/// Se llama en cada publicación (también al recalcular el historial), con el evento original y bajo el cerrojo del
+	/// motor: la carcasa lo usa para copiar sus eventos al bus de la suite. Debe ser rápido (solo encolar).
+	/// </summary>
+	public Action<EventoFlujo>? AlPublicar { get; set; }
+
 	/// <summary>Contador de publicaciones (el Master se reevalúa cuando cambia).</summary>
 	public long Publicaciones { get; private set; }
 
@@ -90,6 +96,9 @@ public sealed class RegistroEventos
 
 		if (EnVivo && !e.Grabado && !e.Informativo)
 			Novedades.Add(Copia(e));
+
+		if (!e.Grabado && !e.Informativo)
+			AlPublicar?.Invoke(e);
 	}
 
 	public List<EventoFlujo> TomarNovedades()
@@ -166,7 +175,10 @@ public sealed class RegistroEventos
 		Grabado = e.Grabado,
 		Informativo = e.Informativo,
 		AltaProbabilidad = e.AltaProbabilidad,
-		StopLoss = e.StopLoss
+		StopLoss = e.StopLoss,
+		Referencia = e.Referencia,
+		Niveles = e.Niveles,
+		DuracionMs = e.DuracionMs
 	};
 
 	private void Recortar()

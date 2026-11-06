@@ -209,6 +209,8 @@ public sealed class MotorBarridos
 		b.Evento = _eventos.Crear("Sweeps", "Sweep", g.Lado, g.Inicio, g.Primero, modo, Sesiones.De(g.Inicio));
 		b.Evento.PrecioFin = b.Hasta;
 		b.Evento.Volumen = g.Volumen;
+		b.Evento.Niveles = niveles;
+		b.Evento.DuracionMs = (g.Ultimo - g.Inicio).TotalMilliseconds;
 		b.Evento.Contexto = b.Nivel?.Nombre ?? (b.ContraIceberg is not null ? "Iceberg" : "");
 		Barridos.Add(b);
 		Texto(b);
