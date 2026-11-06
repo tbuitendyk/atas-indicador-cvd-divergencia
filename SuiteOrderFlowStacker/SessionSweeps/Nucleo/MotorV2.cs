@@ -10,36 +10,91 @@ public readonly record struct TickV2(DateTime Utc, decimal Precio, decimal Volum
 /// <summary>
 /// Trades del instrumento en orden de tiempo: los del historial (petición de trades acumulados) y los que llegan en vivo.
 /// La carcasa lo conserva entre recálculos: un recálculo vuelve a construir las barras de volumen con los mismos trades.
+/// Seguro entre hilos (ATAS entrega los trades y la respuesta del historial en hilos distintos del cálculo).
 /// </summary>
 public sealed class AlmacenTicks
 {
+	private readonly object _cerrojo = new();
 	private readonly List<TickV2> _ticks = new();
 
-	public IReadOnlyList<TickV2> Ticks => _ticks;
+	/// <summary>Copia de los trades (para pruebas e inspección).</summary>
+	public IReadOnlyList<TickV2> Ticks
+	{
+		get
+		{
+			lock (_cerrojo)
+				return _ticks.ToList();
+		}
+	}
 
-	public int Count => _ticks.Count;
+	public int Count
+	{
+		get
+		{
+			lock (_cerrojo)
+				return _ticks.Count;
+		}
+	}
+
+	public TickV2 this[int i]
+	{
+		get
+		{
+			lock (_cerrojo)
+				return _ticks[i];
+		}
+	}
 
 	/// <summary>Añade un trade en vivo (si llega con hora anterior al último, se ignora: el orden se mantiene).</summary>
 	public bool Agregar(TickV2 t)
 	{
-		if (_ticks.Count > 0 && t.Utc < _ticks[^1].Utc)
-			return false;
+		lock (_cerrojo)
+		{
+			if (_ticks.Count > 0 && t.Utc < _ticks[^1].Utc)
+				return false;
 
-		_ticks.Add(t);
-		return true;
+			_ticks.Add(t);
+			return true;
+		}
 	}
 
 	/// <summary>Trades del historial: se ponen DELANTE de los que ya hay (solo los anteriores al primero guardado).</summary>
 	public int AgregarHistorial(IEnumerable<TickV2> historicos)
 	{
-		var primero = _ticks.Count > 0 ? _ticks[0].Utc : DateTime.MaxValue;
-		var nuevos = historicos.Where(t => t.Utc < primero).OrderBy(t => t.Utc).ToList();
-		_ticks.InsertRange(0, nuevos);
-		return nuevos.Count;
+		lock (_cerrojo)
+		{
+			var primero = _ticks.Count > 0 ? _ticks[0].Utc : DateTime.MaxValue;
+			var nuevos = historicos.Where(t => t.Utc < primero).OrderBy(t => t.Utc).ToList();
+			_ticks.InsertRange(0, nuevos);
+			return nuevos.Count;
+		}
+	}
+
+	/// <summary>Quita los trades anteriores a 'utc' (la carcasa guarda como mucho un par de días).</summary>
+	public int RecortarAntesDe(DateTime utc)
+	{
+		lock (_cerrojo)
+		{
+			var n = PrimeroDesdeSinCerrojo(utc);
+			_ticks.RemoveRange(0, n);
+			return n;
+		}
+	}
+
+	public void Vaciar()
+	{
+		lock (_cerrojo)
+			_ticks.Clear();
 	}
 
 	/// <summary>Primer índice con hora >= utc.</summary>
 	public int PrimeroDesde(DateTime utc)
+	{
+		lock (_cerrojo)
+			return PrimeroDesdeSinCerrojo(utc);
+	}
+
+	private int PrimeroDesdeSinCerrojo(DateTime utc)
 	{
 		int bajo = 0, alto = _ticks.Count;
 
@@ -90,14 +145,14 @@ public sealed partial class MotorSweeps
 
 		if (Almacen is { } a)
 		{
-			if (_cursorTicks < a.Count && a.Ticks[_cursorTicks].Utc < v.InicioUtc)
+			if (_cursorTicks < a.Count && a[_cursorTicks].Utc < v.InicioUtc)
 				_cursorTicks = a.PrimeroDesde(v.InicioUtc);
 
 			var hubo = false;
 
-			while (_cursorTicks < a.Count && a.Ticks[_cursorTicks].Utc < v.FinUtc)
+			while (_cursorTicks < a.Count && a[_cursorTicks].Utc < v.FinUtc)
 			{
-				var t = a.Ticks[_cursorTicks++];
+				var t = a[_cursorTicks++];
 				BarrasV.Agregar(t.Utc, t.Precio, t.Volumen, t.Compra);
 				TickV2(t.Utc, t.Precio);
 				hubo = true;
@@ -129,6 +184,14 @@ public sealed partial class MotorSweeps
 
 		if (Almacen is { } a)
 		{
+			// Los trades que la carcasa guardó mientras se recalculaba (velas aún abiertas) entran primero, en orden.
+			while (_cursorTicks < a.Count && a[_cursorTicks].Utc <= utc)
+			{
+				var t = a[_cursorTicks++];
+				BarrasV.Agregar(t.Utc, t.Precio, t.Volumen, t.Compra);
+				TickV2(t.Utc, t.Precio);
+			}
+
 			if (!a.Agregar(new TickV2(utc, precio, volumen, compra)))
 				return;
 

@@ -131,12 +131,12 @@ public sealed partial class MotorSweeps
 	{
 		var desde = t0.AddSeconds(-Math.Max(1, P2.PreT0DeltaSec));
 
-		if (Almacen is { Count: > 0 } a && a.Ticks[0].Utc <= desde)
+		if (Almacen is { Count: > 0 } a && a[0].Utc <= desde)
 		{
 			decimal d = 0;
 
-			for (var i = a.PrimeroDesde(desde); i < a.Count && a.Ticks[i].Utc < t0; i++)
-				d += a.Ticks[i].Compra switch { true => a.Ticks[i].Volumen, false => -a.Ticks[i].Volumen, _ => 0 };
+			for (var i = a.PrimeroDesde(desde); i < a.Count && a[i].Utc < t0; i++)
+				d += a[i].Compra switch { true => a[i].Volumen, false => -a[i].Volumen, _ => 0 };
 
 			return (d, false);
 		}

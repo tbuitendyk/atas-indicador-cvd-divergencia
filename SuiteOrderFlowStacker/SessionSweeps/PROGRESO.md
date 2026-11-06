@@ -12,7 +12,7 @@ las comprobaciones).
 | S5 FvgEngine + BFVG | **hecha** | `Fvg.cs`: FVG de 3 velas en 1m y 5m (ACTIVO, PARCIAL, MITIGADO, INVALIDADO; máximo por lado), tipo y calidad de zona (FVG+LVN > LVN > FVG > nivel), BFVG para TODOS los FVG de la pierna de recuperación (con o sin LVN; BFVG+LVN con +ConfluenceBonus). T22. 244 comprobaciones. |
 | S6 TriggerAnalyzer (+ confluencias del anexo) | **hecha** | `Gatillo.cs`: VÁLIDO por ARRANQUE (F1, F2 absorción/compresión/subasta/delta sin progreso, F3 fuera de la zona) o CONTINUIDAD (sesgo 5m/15m, barra rápida con intención, tercio a favor), PENDIENTE con lo que falta, INVÁLIDO / NO EJECUTABLE (zona atravesada, iceberg en contra, stacked en contra, delta en contra con progreso, F3 lenta, ventana, noticia, killzone, R:R, stop). Anexo: imbalance de intención, micro-tendencia, EMA 15, CVD, velas de arranque. Gatillo manual (vela de volumen / compuesta / auto, dirección auto con [-]). 259 comprobaciones. |
 | S7 ModelEngine MOD1-MOD4, ConflictResolver, RiskCalculator, micro-impulso | **hecha** | `MotorV2.Modelos.cs`: MOD1 (solo ARRANQUE), BFVG, MOD2 (sesgo, LVN AUTO/MANUAL, FVG, EMA, nivel roto; "MOD2 tras MOD3"), MOD3 (iceberg o super big trade ROTO + imbalance + stops + aceptación; invalida contrarios), MOD4 (ruptura con aceptación, zonas de la pierna, retroceso ≤ 61.8 %, intentos), matriz de conflictos 8.6, una posición por dirección, gestión simulada (TP1, TP2, stop, MAE/MFE) y micro-impulso. `Riesgo.cs`. T20, T21, T23-T27, T29 por el motor real con trades tick a tick. 276 comprobaciones. |
-| S8 Panel flotante principal + opciones del gráfico + CVD | pendiente | |
+| S8 Panel flotante principal + opciones del gráfico + CVD | **hecha** | `Comun/Panel.cs` (modelo del panel, colocación T30, fábrica), `Ui/VentanaFlotante.cs` (ventana WPF movible a cualquier monitor: Resumen/Detalle, fijar, A−/A+, opacidad, minimizar, guarda posición en %APPDATA%\\ATAS\\OrderFlowSuite\\ventanas), `PanelV2.cs` (secciones 1-8 del anexo y Detalle, aviso legal), carcasa v2 (`SessionSweepsPro.V2.cs`: almacén de trades entre recálculos, bus, LVN vigentes al entrar en vivo, respuesta al GATILLO, latido, recálculo si una fuente carga después; `Historial.cs`: trades acumulados del día; `DibujoV2.cs`: cajas por estado, modelos, FVG, LVN, gatillo manual, divergencias CVD y panel en el gráfico), 116 parámetros v2 generados (`herramientas/generar_parametros_v2.py`), solo gráfico de 1 minuto, indicador aparte **Session Sweeps CVD (Suite)** (velas CVD, divergencias macro y micro). 306 comprobaciones. |
 | S9 Panel flotante Thermal + GATILLO + vela compuesta manual | pendiente | |
 | S10 Alertas, correo, CSV, documentación, lista para ATAS real | pendiente | |
 
@@ -20,3 +20,9 @@ las comprobaciones).
 
 - Estáticos compartidos entre indicadores de la misma DLL (el bus). El latido lo muestra: si no, el panel dirá NO CARGADO.
 - MessageBox de WPF desde el ratón del gráfico (ConfirmBeforeClear del Thermal).
+- Ventana flotante: se abre en el hilo de la interfaz de ATAS (si no, en su propio hilo STA). Comprobar que aparece al
+  terminar de cargar el historial y que recuerda posición y monitor.
+- `RequestForCumulativeTrades` (como TapePattern / DomStrength oficiales): que la respuesta llegue y que el panel pase de
+  "APROX" a "TICKS" tras el recálculo único. Sin respuesta, todo sigue funcionando con APROX.
+- `TradingManager?.Portfolio.Balance` (como AccountInfoDisplay oficial) para "Leer el saldo de ATAS".
+- `CandleDataSeries` / `MaxDelta` / `MinDelta` en el panel CVD (los usa el Indicador Completo CVD, ya compilado en ATAS).

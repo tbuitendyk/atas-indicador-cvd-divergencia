@@ -14,7 +14,19 @@ namespace ATAS.Indicators
     {
         public ValueDataSeries() { } public ValueDataSeries(string id, string name) { }
         public bool IsHidden { get; set; } public VisualMode VisualType { get; set; }
+        // IndicadorCompletoCvd (compilado contra el ATAS real): ShowZeroValue, Width, Color, indexador.
+        public bool ShowZeroValue { get; set; } public int Width { get; set; } public System.Windows.Media.Color Color { get; set; }
+        public decimal this[int bar] { get => 0; set { } }
     }
+    public class Candle { public decimal Open { get; set; } public decimal High { get; set; } public decimal Low { get; set; } public decimal Close { get; set; } }
+    public class CandleDataSeries : IDataSeries
+    {
+        public CandleDataSeries(string id) { } public CandleDataSeries(string id, string name) { }
+        public bool IsHidden { get; set; }
+        public System.Windows.Media.Color UpCandleColor { get; set; } public System.Windows.Media.Color DownCandleColor { get; set; }
+        public Candle this[int bar] { get => null; set { } }
+    }
+    public class IndicatorContainer { public Rectangle Region { get; set; } }
     // HRanges.cs: Dictionary<int, IEnumerable<PriceVolumeInfo>> ... = GetCandle(i).GetAllPriceLevels(); .Price, .Volume
     public class PriceVolumeInfo { public decimal Price { get; set; } public decimal Volume { get; set; } public decimal Bid { get; set; } public decimal Ask { get; set; } }
     public class IndicatorCandle
@@ -22,9 +34,19 @@ namespace ATAS.Indicators
         public DateTime Time { get; set; }
         public decimal Open { get; set; } public decimal High { get; set; } public decimal Low { get; set; } public decimal Close { get; set; }
         public decimal Delta { get; set; } public decimal Volume { get; set; } public decimal Ask { get; set; } public decimal Bid { get; set; }
+        public decimal MaxDelta { get; set; } public decimal MinDelta { get; set; }
         public IEnumerable<PriceVolumeInfo> GetAllPriceLevels() => null;
     }
-    public static class IndicatorDataProvider { public const string CandlesPanel = "CandlesPanel"; }
+    public static class IndicatorDataProvider { public const string NewPanel = "NewPanel"; public const string CandlesPanel = "CandlesPanel"; }
+    // TapePattern.cs / DomStrength.cs (oficiales): RequestForCumulativeTrades(new CumulativeTradesRequest(GetCandle(i).Time));
+    // OnCumulativeTradesResponse(request, IEnumerable<CumulativeTrade>); trade.FirstPrice, .Lastprice, .Time, .Volume,
+    // .Direction, .Ticks (List<MarketDataArg>: tick.Time, .Price, .Volume, .Direction).
+    public class CumulativeTradesRequest { public CumulativeTradesRequest(DateTime from) { } }
+    public class CumulativeTrade
+    {
+        public decimal FirstPrice { get; set; } public decimal Lastprice { get; set; } public DateTime Time { get; set; } public decimal Volume { get; set; }
+        public TradeDirection Direction { get; set; } public List<MarketDataArg> Ticks { get; set; } = new();
+    }
     public class InstrumentInfo { public TimeSpan TimeZoneOffset { get; set; } public decimal TickSize { get; set; } public string Instrument { get; set; } }
     public class PriceChartContainer { public decimal BarsWidth { get; set; } public Rectangle Region { get; set; } }
     // TapePattern.cs: OnNewTrade(MarketDataArg trade), trade.Price/Volume/Time, trade.Direction == TradeDirection.Buy
@@ -66,6 +88,15 @@ namespace ATAS.Indicators
         public int CurrentBar { get; set; }
         protected void SubscribeToDrawingEvents(DrawingLayouts layouts) { }
         public IndicatorCandle GetCandle(int bar) => new IndicatorCandle();
+        public IndicatorContainer Container { get; set; }
+        protected void RequestForCumulativeTrades(CumulativeTradesRequest request) { }
+        protected virtual void OnCumulativeTradesResponse(CumulativeTradesRequest request, IEnumerable<CumulativeTrade> cumulativeTrades) { }
+        protected virtual void OnCumulativeTrade(CumulativeTrade trade) { }
+        protected virtual void OnUpdateCumulativeTrade(CumulativeTrade trade) { }
+        // OHLCPlus.cs (oficial, variante WPF por GlobalUsings: CrossKeyEventArgs = System.Windows.Input.KeyEventArgs).
+        public virtual bool ProcessKeyDown(System.Windows.Input.KeyEventArgs e) => false;
+        // AccountInfoDisplay.cs (oficial): TradingManager?.Portfolio; p.Balance.
+        public ATAS.DataFeedsCore.ITradingManager TradingManager { get; set; }
         public void RecalculateValues() { }
         protected abstract void OnCalculate(int bar, decimal value);
         protected virtual void OnNewTrade(MarketDataArg trade) { }
@@ -140,6 +171,8 @@ namespace ATAS.DataFeedsCore
     public enum MarketDataType { Trade, Bid, Ask }
     // DomV3/MboGridController.cs: order.Type is MarketByOrderUpdateTypes.New / Snapshot / Change / Delete
     public enum MarketByOrderUpdateTypes { Snapshot, New, Change, Delete }
+    public interface ITradingManager { Portfolio Portfolio { get; } }
+    public class Portfolio { public decimal Balance { get; set; } }
     // DomV3: order.Type, order.Side, order.Price, order.Volume (decimal MaxVol() => Order.Volume), order.ExchangeOrderId, order.Priority
     public class MarketByOrder
     {
