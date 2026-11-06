@@ -33,6 +33,7 @@ public sealed partial class MotorSweeps
 			return;
 
 		_lvnConectado = true;
+		Lvn.AlBorrar ??= BorradasLvn;
 		ObjetivosExtra ??= () => Lvn.Activas.Select(z => ($"LVN {z.Origen}", z.Centro)).ToList();
 	}
 

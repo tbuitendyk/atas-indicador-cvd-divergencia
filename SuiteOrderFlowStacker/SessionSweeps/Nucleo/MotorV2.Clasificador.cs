@@ -55,6 +55,9 @@ public sealed partial class MotorSweeps
 		{
 			if (!e.Congelada && e.Signo * (precio - e.Extremo) > 0)
 				(e.Extremo, e.ExtremoUtc) = (precio, utc);
+
+			if (e.Signo * (precio - e.ExtremoPierna) > 0 && (!e.Congelada || e.Estado == EstadoBarrido.Ruptura))
+				e.ExtremoPierna = precio;
 		}
 
 		if (!EnVentana(utc))
@@ -88,6 +91,7 @@ public sealed partial class MotorSweeps
 			Signo = n.Lado.Signo(),
 			L = n.Precio,
 			Extremo = extremo,
+			ExtremoPierna = extremo,
 			T0Utc = t0,
 			ExtremoUtc = t0,
 			BarraT0 = barra,
@@ -205,6 +209,8 @@ public sealed partial class MotorSweeps
 				if (e.Estado.EsTrampa())
 					RegistrarBfvgExistentes(e);
 
+				ModelosAlEstado(e, "CONFIRMADO", b.FinUtc);
+
 				if (TiempoV2.EsRth(e.T0Utc))
 				{
 					_historialVolBeyond.Add(e.VolBeyond);
@@ -217,6 +223,7 @@ public sealed partial class MotorSweeps
 			}
 
 			Novedad(e, transicion, b.FinUtc, $"{transicion} {e.Nombre} {Precio(e.L)} | {e.Total:0}/100");
+			ModelosAlEstado(e, transicion, b.FinUtc);
 
 			// FALLIDO: candidato a RUPTURA (nueva evaluación); RUPTURA FALLIDA: nueva evaluación como TRAMPA.
 			if (e.Estado == EstadoBarrido.Fallido)
@@ -224,6 +231,8 @@ public sealed partial class MotorSweeps
 			else if (e.Estado == EstadoBarrido.RupturaFallida)
 				Hija(e, b, "TRAS RUPTURA FALLIDA");
 		}
+
+		ModelosBarra(b);
 	}
 
 	/// <summary>Evaluación hija como TRAMPA tras una RUPTURA FALLIDA: el mismo barrido (T0, extremo) con ventana nueva.</summary>
@@ -258,6 +267,7 @@ public sealed partial class MotorSweeps
 		ContextoV2.Agregar(v);
 		MitigarLvn(v);
 		ProcesarFvgV2(v);
+		ModelosVela(v);
 		var cinco = (v.FinUtc.Ticks / TimeSpan.TicksPerMinute) % 5 == 0;
 		var minimo = P2.RecoveryTicks * Cfg.TamanoTick;
 

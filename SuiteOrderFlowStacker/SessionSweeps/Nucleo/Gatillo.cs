@@ -194,7 +194,9 @@ public static class AnalizadorGatillo
 		var stacked = comp.Stacked(p.ImbalanceRatio, p.ImbalanceMinVolume, p.StackedMinLevels);
 		var stackedFavor = stacked.Any(x => x.Compra == (s > 0)) ||
 			(p.Stacked.Factor > 0 && c.Fuentes.Consultar<StackedEvent>(desde, hasta, x => x.Compra == (s > 0) && x.Bajo <= z.Alto + 4 * tick && x.Alto >= z.Bajo - 4 * tick).Count > 0);
-		var stackedContra = stacked.Any(x => x.Compra == (s < 0) && x.Bajo <= z.Alto && x.Alto >= z.Bajo);
+		// Stacked en contra DESPUÉS de la llegada (el de la llegada es F1).
+		var trasLlegada = finComp > toque ? Compuesta.Construir(b, toque + 1, finComp, tick, p.ValueAreaPct) : null;
+		var stackedContra = trasLlegada?.Stacked(p.ImbalanceRatio, p.ImbalanceMinVolume, p.StackedMinLevels).Any(x => x.Compra == (s < 0) && x.Bajo <= z.Alto && x.Alto >= z.Bajo) ?? false;
 		var imbalanceFavor = p.Imbalance.Factor > 0 && c.Fuentes.Consultar<ImbalanceEvent>(desde, hasta, x => x.Compra == (s > 0)).Count > 0;
 		var sweepFavor = p.Sweeps.Factor > 0 ? c.Fuentes.Consultar<SweepTrackerEvent>(desde, hasta, x => x.Compra == (s > 0)).FirstOrDefault() : null;
 		var stops = p.Stops.Factor > 0 ? c.Fuentes.Consultar<StopsEvent>(desde, hasta, x => z.Contiene(x.Extremo, 8 * tick)).FirstOrDefault() : null;

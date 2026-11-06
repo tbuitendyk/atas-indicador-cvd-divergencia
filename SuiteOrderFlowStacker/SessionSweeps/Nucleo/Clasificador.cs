@@ -100,6 +100,9 @@ public sealed class EvaluacionBarrido
 	public int Signo;
 
 	public decimal L, Extremo;
+
+	/// <summary>Extremo de la pierna desde T0, que sigue moviéndose después de congelar (para MOD4: zonas y retroceso).</summary>
+	public decimal ExtremoPierna;
 	public DateTime T0Utc, ExtremoUtc;
 	public int BarraT0, BarraExtremo = -1;
 
@@ -109,6 +112,7 @@ public sealed class EvaluacionBarrido
 	public bool PreT0DeltaAprox;
 	public decimal BurstRatio;
 	public string StopsEvento = "", IcebergEstado = "", IcebergModo = "", AbsorptionEvento = "";
+	public decimal? IcebergPrecio;
 	public int F2Bars, CompositeBars, ReclaimBars = -1, F3RangeTicks;
 	public decimal CompositePoc, F3DeltaPct;
 	public double F3DurationSec;
@@ -467,9 +471,13 @@ public static class Clasificador
 			? c.Fuentes.Consultar<IcebergEvent>(e.T0Utc - ventanaSuite, hasta, x => x.Compra == (s < 0) && Math.Abs(x.Precio - e.Extremo) <= distIce)
 			: new List<IcebergEvent>();
 		var aguantando = icebergs.Where(x => x.Estado == "AGUANTANDO").OrderByDescending(x => x.Mbo).ThenByDescending(x => x.Ejecutado).FirstOrDefault();
-		var roto = icebergs.FirstOrDefault(x => x.Estado == "ROTO");
+		// Un iceberg ROTO cuenta en todo el camino del barrido (en una ruptura suele estar en el nivel, no en el extremo).
+		var roto = fIce > 0
+			? c.Fuentes.Consultar<IcebergEvent>(e.T0Utc - ventanaSuite, hasta, x => x.Compra == (s < 0) && x.Estado == "ROTO" && Dentro(x.Precio, pMin, pMax)).FirstOrDefault()
+			: null;
 		var mejor = aguantando ?? icebergs.OrderByDescending(x => x.Ejecutado).FirstOrDefault();
-		e.IcebergEstado = mejor?.Estado ?? "";
+		e.IcebergEstado = roto is not null && aguantando is null ? "ROTO" : mejor?.Estado ?? "";
+		e.IcebergPrecio = (aguantando ?? roto ?? mejor)?.Precio;
 		e.IcebergModo = mejor is null ? "" : mejor.Mbo ? "MBO" : "INFERIDO";
 
 		if (aguantando is not null)
