@@ -116,6 +116,9 @@ public sealed class MotorContextoV2
 		return null;
 	}
 
+	/// <summary>CVD a favor de 's' en las últimas 5 velas de 1 minuto (sin divergencia en contra).</summary>
+	public bool CvdAFavor(int s) => _cvd.Count >= 5 && s * (_cvd[^1].Cvd - _cvd[^5].Cvd) > 0;
+
 	/// <summary>
 	/// Divergencia de CVD del barrido: el precio supera el nivel pero el CVD en el extremo no supera el CVD de cuando se
 	/// formó el nivel (máximo a máximo / mínimo a mínimo).

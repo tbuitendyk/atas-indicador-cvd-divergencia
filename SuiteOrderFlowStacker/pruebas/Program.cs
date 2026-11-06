@@ -8,6 +8,7 @@ PruebasV2Barras.Ejecutar(c);
 PruebasV2Clasificador.Ejecutar(c);
 PruebasV2Lvn.Ejecutar(c);
 PruebasV2Fvg.Ejecutar(c);
+PruebasV2Gatillo.Ejecutar(c);
 Documentacion.Ejecutar(c);
 
 return c.Resumen();
