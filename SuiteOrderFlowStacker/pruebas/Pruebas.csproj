@@ -21,6 +21,7 @@
     <Compile Include="..\Atas\*.cs" LinkBase="Atas" />
     <Compile Include="..\Atas\Generado\*.cs" LinkBase="Atas\Generado" />
     <Compile Include="..\Comun\*.cs" LinkBase="Comun" />
+    <Compile Include="..\SessionSweeps\Nucleo\*.cs" LinkBase="SessionSweeps\Nucleo" />
   </ItemGroup>
 
 </Project>

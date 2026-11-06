@@ -4,6 +4,7 @@ var c = new Comprobador();
 PruebasNucleo.Ejecutar(c);
 PruebasIndicador.Ejecutar(c);
 PruebasBus.Ejecutar(c);
+PruebasV2Barras.Ejecutar(c);
 Documentacion.Ejecutar(c);
 
 return c.Resumen();

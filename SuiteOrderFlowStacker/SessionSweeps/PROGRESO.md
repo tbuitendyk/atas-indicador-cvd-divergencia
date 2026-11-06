@@ -6,7 +6,7 @@ las comprobaciones).
 | Subfase | Estado | Notas |
 |---|---|---|
 | S1 Common + SuiteEventBus + publicación de los 5 indicadores + latido | **hecha** | `Comun/EventosSuite.cs`. Los 5 publican sus eventos (también el historial) y laten cada 2 s (CARGADO / SIN DATOS / NO CARGADO). 174 comprobaciones. La recarga del CSV cuenta los días desde la última vela del gráfico. |
-| S2 Barras de volumen, trades, medianas, compuesta (3 contextos), fases | pendiente | |
+| S2 Barras de volumen, trades, medianas, compuesta (3 contextos), fases | **hecha** | Motor del NQ copiado a `SessionSweeps/Nucleo` (espacio de nombres propio) sin su perfil LVN ni los Modelos A/B. `BarrasVolumen.cs` (barras de VolumePerBar, reparto, medianas RTH, velocidad 5 s, APROX desde el footprint), `AlmacenTicks` (historial delante + vivo, mismo resultado al recalcular), `Compuesta.cs` (POC, VA, tercios, subasta, stacked contiguo P11, fases F1/F2/F3 y F3 lenta). 193 comprobaciones. |
 | S3 Clasificador de barridos (P1-P12, bloques A-E, estados, anti-repintado) | pendiente | |
 | S4 Integración Thermal (LvnRepository, RangeReset, sin LVN interno) | pendiente | |
 | S5 FvgEngine + BFVG | pendiente | |
