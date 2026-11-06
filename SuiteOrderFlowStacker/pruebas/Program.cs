@@ -5,6 +5,7 @@ PruebasNucleo.Ejecutar(c);
 PruebasIndicador.Ejecutar(c);
 PruebasBus.Ejecutar(c);
 PruebasV2Barras.Ejecutar(c);
+PruebasV2Clasificador.Ejecutar(c);
 Documentacion.Ejecutar(c);
 
 return c.Resumen();

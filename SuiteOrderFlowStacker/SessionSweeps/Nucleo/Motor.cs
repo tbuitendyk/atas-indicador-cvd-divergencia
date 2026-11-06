@@ -159,6 +159,10 @@ public sealed partial class MotorSweeps
 		if (Cfg.NivelesIguales)
 			Niveles.Pivotes(Velas);
 
+		// v2.0: los trades del minuto (o su reconstrucción APROX) entran ahora, con los niveles al día y antes del Pine,
+		// igual que en vivo (donde llegan durante el minuto).
+		AlimentarBarras(v);
+
 		// 4. Contexto H1.
 		var antes = _a60.Velas.Count;
 		_a60.Agregar(v);

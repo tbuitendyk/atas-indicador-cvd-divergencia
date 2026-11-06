@@ -111,7 +111,9 @@ public sealed class Ema
 {
 	private readonly decimal _alfa;
 
-	public Ema(int periodo) => _alfa = 2m / (Math.Max(1, periodo) + 1);
+	public Ema(int periodo) => (_alfa, Periodo) = (2m / (Math.Max(1, periodo) + 1), Math.Max(1, periodo));
+
+	public int Periodo { get; }
 
 	public decimal? Valor { get; private set; }
 

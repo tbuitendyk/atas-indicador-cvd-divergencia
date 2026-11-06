@@ -77,6 +77,7 @@ public sealed partial class MotorSweeps
 
 	private void ConfigurarBarras()
 	{
+		BarrasV.AlCerrar ??= BarraCerradaV2;
 		BarrasV.Tick = Cfg.TamanoTick;
 		BarrasV.ContratosPorBarra = P2.ContratosPorBarra(Mnq);
 		BarrasV.MedianLookbackBars = P2.MedianLookbackBars;
@@ -98,6 +99,7 @@ public sealed partial class MotorSweeps
 			{
 				var t = a.Ticks[_cursorTicks++];
 				BarrasV.Agregar(t.Utc, t.Precio, t.Volumen, t.Compra);
+				TickV2(t.Utc, t.Precio);
 				hubo = true;
 			}
 
@@ -110,7 +112,10 @@ public sealed partial class MotorSweeps
 		if (UltimoMinutoAprox)
 		{
 			foreach (var (utc, precio, vol, compra) in MotorBarrasVolumen.Aproximar(v, Cfg.TamanoTick))
+			{
 				BarrasV.Agregar(utc, precio, vol, compra, aprox: true);
+				TickV2(utc, precio);
+			}
 		}
 
 		if (_minutosConTicks.Count > 5000)
@@ -131,11 +136,12 @@ public sealed partial class MotorSweeps
 		}
 
 		BarrasV.Agregar(utc, precio, volumen, compra);
+		TickV2(utc, precio);
 		_minutosConTicks.Add(new DateTime(utc.Ticks - utc.Ticks % TimeSpan.TicksPerMinute, DateTimeKind.Utc));
 	}
 
 	private void ProcesarV2(Vela v)
 	{
-		AlimentarBarras(v);
+		ProcesarV2Cierre(v);
 	}
 }
