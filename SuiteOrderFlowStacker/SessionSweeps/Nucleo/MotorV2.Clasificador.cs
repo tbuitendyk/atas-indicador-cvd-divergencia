@@ -202,6 +202,9 @@ public sealed partial class MotorSweeps
 			{
 				Novedad(e, "CONFIRMADO", b.FinUtc, $"{e.Estado.Texto()} {e.Nombre} {Precio(e.L)} | {e.Total:0}/100");
 
+				if (e.Estado.EsTrampa())
+					RegistrarBfvgExistentes(e);
+
 				if (TiempoV2.EsRth(e.T0Utc))
 				{
 					_historialVolBeyond.Add(e.VolBeyond);
@@ -254,6 +257,7 @@ public sealed partial class MotorSweeps
 		ContextoV2.Configurar(P2.MicroImpulseEmaLen);
 		ContextoV2.Agregar(v);
 		MitigarLvn(v);
+		ProcesarFvgV2(v);
 		var cinco = (v.FinUtc.Ticks / TimeSpan.TicksPerMinute) % 5 == 0;
 		var minimo = P2.RecoveryTicks * Cfg.TamanoTick;
 
