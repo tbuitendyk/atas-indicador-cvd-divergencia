@@ -16,6 +16,7 @@
     <Compile Include="*.cs" />
     <Compile Include="..\MotorTermico.cs" LinkBase="Indicador" />
     <Compile Include="..\ThermalVolumeProfile.cs" LinkBase="Indicador" />
+    <Compile Include="..\ThermalVolumeProfile.Suite.cs" LinkBase="Indicador" />
   </ItemGroup>
 
 </Project>

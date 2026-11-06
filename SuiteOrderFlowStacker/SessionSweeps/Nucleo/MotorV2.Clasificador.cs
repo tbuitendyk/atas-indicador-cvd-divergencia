@@ -253,6 +253,7 @@ public sealed partial class MotorSweeps
 	{
 		ContextoV2.Configurar(P2.MicroImpulseEmaLen);
 		ContextoV2.Agregar(v);
+		MitigarLvn(v);
 		var cinco = (v.FinUtc.Ticks / TimeSpan.TicksPerMinute) % 5 == 0;
 		var minimo = P2.RecoveryTicks * Cfg.TamanoTick;
 

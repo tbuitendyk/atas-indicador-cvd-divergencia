@@ -38,11 +38,11 @@ using StringAlignment = System.Drawing.StringAlignment;
 #if SUITE
 [DisplayName("Thermal Volume Profile + LVN (Suite)")]
 [Description("Suite Order Flow Stacker: perfil de volumen con color térmico, POC/VA, clústeres de espigas, EDGE, SPIKE y LVN (también manuales).")]
-public class ThermalVolumeProfileLVN : Indicator
+public partial class ThermalVolumeProfileLVN : Indicator
 #else
 [DisplayName("Thermal Volume Profile (perfil térmico)")]
 [Description("Perfil de volumen con color térmico, POC/VA, clústeres de espigas, EDGE, SPIKE y LVN (también manuales) en una zona de búsqueda.")]
-public class ThermalVolumeProfile : Indicator
+public partial class ThermalVolumeProfile : Indicator
 #endif
 {
 	#region Parámetros
@@ -563,6 +563,10 @@ public class ThermalVolumeProfile : Indicator
 				if (bar < CurrentBar - 1)
 					return;
 
+#if SUITE
+				SuiteLatido();
+#endif
+
 				Actualizar(bar, false);
 			}
 		}
@@ -576,6 +580,9 @@ public class ThermalVolumeProfile : Indicator
 	/// <summary>ATAS vuelve a calcular desde la vela 0 al cambiar de instrumento, de temporalidad o un ajuste.</summary>
 	private void Reiniciar()
 	{
+#if SUITE
+		SuiteAlReiniciar();
+#endif
 		_principal.Limpiar();
 		_filtro.Limpiar();
 		_resultado = null;
@@ -648,6 +655,9 @@ public class ThermalVolumeProfile : Indicator
 
 		_resultado = resultado;
 		_ultimoAnalisis = DateTime.UtcNow;
+#if SUITE
+		SuitePublicarLvn(resultado);
+#endif
 		_estado = $"{perfil.Velas} velas  {perfil.Filas} filas de {perfil.TicksPorFila} ticks{(conFiltro && detectores is null ? "  FILTRO DE TIEMPO SIN VELAS" : "")}";
 
 		// Alertas: solo en vivo; lo que la vela actual ya tocaba al terminar la carga no suena.
@@ -1357,6 +1367,9 @@ public class ThermalVolumeProfile : Indicator
 
 		if (_herramienta == Herramienta.Rango)
 		{
+#if SUITE
+			SuiteAntesDeNuevoRango();
+#endif
 			_rangeMode = ModosRango.CustomDateTime;
 			_startDateTime = horaA;
 			_endDateTime = horaB;

@@ -13,6 +13,7 @@
   <ItemGroup>
     <Compile Include="..\ThermalVolumeProfile\MotorTermico.cs" Link="Termico\MotorTermico.cs" />
     <Compile Include="..\ThermalVolumeProfile\ThermalVolumeProfile.cs" Link="Termico\ThermalVolumeProfile.cs" />
+    <Compile Include="..\ThermalVolumeProfile\ThermalVolumeProfile.Suite.cs" Link="Termico\ThermalVolumeProfile.Suite.cs" />
   </ItemGroup>
 
   <!-- Las pruebas tienen su propio proyecto. -->

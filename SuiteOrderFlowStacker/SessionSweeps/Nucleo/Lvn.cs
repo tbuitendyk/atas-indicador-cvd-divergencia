@@ -1,0 +1,106 @@
+namespace SessionSweeps.Nucleo;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using OrderFlowSuite.Comun;
+
+/// <summary>Un LVN conocido por Session Sweeps Pro (siempre del Thermal Volume Profile + LVN (Suite)).</summary>
+public sealed class ZonaLvn
+{
+	public long Id, RangoId;
+	public decimal Bajo, Alto, Centro;
+	public bool Manual;
+
+	/// <summary>ACTIVO, MITIGADO o BORRADO.</summary>
+	public string Estado = "ACTIVO";
+
+	public DateTime Utc;
+
+	public string Origen => Manual ? "MANUAL" : "AUTO";
+
+	public bool Activo => Estado == "ACTIVO";
+
+	public bool Contiene(decimal precio, decimal margen) => precio >= Bajo - margen && precio <= Alto + margen;
+}
+
+/// <summary>
+/// LvnRepository (5): Session Sweeps Pro no calcula LVN; los recibe del Thermal (automáticos y los trazados con el botón
+/// LVN). Un RangeReset borra las zonas del rango anterior y avisa (los setups PENDIENTES que dependan solo de ellas se
+/// cancelan; los ejecutados se mantienen).
+/// </summary>
+public sealed class RepositorioLvn
+{
+	private readonly Dictionary<long, ZonaLvn> _zonas = new();
+
+	public long RangoActual { get; private set; }
+
+	/// <summary>Se llama con las zonas que un RangeReset (o un BORRADO) acaba de quitar.</summary>
+	public Action<IReadOnlyList<ZonaLvn>>? AlBorrar { get; set; }
+
+	public IEnumerable<ZonaLvn> Activas => _zonas.Values.Where(z => z.Activo);
+
+	public IEnumerable<ZonaLvn> Todas => _zonas.Values;
+
+	public void Reiniciar()
+	{
+		_zonas.Clear();
+		RangoActual = 0;
+	}
+
+	public void Aplicar(EventoSuite e)
+	{
+		switch (e)
+		{
+			case LvnZone z when z.Estado == "BORRADO":
+				if (_zonas.Remove(z.Id, out var quitada))
+					AlBorrar?.Invoke(new[] { quitada });
+
+				break;
+
+			case LvnZone z:
+				if (z.RangoId < RangoActual)
+					return;
+
+				RangoActual = Math.Max(RangoActual, z.RangoId);
+				_zonas[z.Id] = new ZonaLvn
+				{
+					Id = z.Id, RangoId = z.RangoId, Bajo = Math.Min(z.Bajo, z.Alto), Alto = Math.Max(z.Bajo, z.Alto), Centro = z.Centro, Manual = z.Manual,
+					Estado = z.Estado == "MITIGADO" ? "MITIGADO" : "ACTIVO", Utc = z.Utc
+				};
+
+				break;
+
+			case RangeReset r:
+				var viejas = _zonas.Values.Where(x => x.RangoId <= r.RangoAnteriorId || x.RangoId < r.RangoNuevoId).ToList();
+
+				foreach (var x in viejas)
+					_zonas.Remove(x.Id);
+
+				RangoActual = Math.Max(RangoActual, r.RangoNuevoId);
+
+				if (viejas.Count > 0)
+					AlBorrar?.Invoke(viejas);
+
+				break;
+		}
+	}
+
+	/// <summary>Una vela que cierra al otro lado de una zona activa la deja MITIGADA.</summary>
+	public void Mitigar(decimal alto, decimal bajo, decimal cierre)
+	{
+		foreach (var z in Activas.ToList())
+		{
+			if (bajo <= z.Bajo && alto >= z.Alto && (cierre < z.Bajo || cierre > z.Alto))
+				z.Estado = "MITIGADO";
+		}
+	}
+
+	/// <summary>Próximo LVN objetivo (5.6): el ACTIVO más cercano en la dirección de la operación a TargetMinDistTicks o más.</summary>
+	public ZonaLvn? Proximo(decimal precio, int signo, decimal distanciaMinima) =>
+		Activas.Where(z => signo * (z.Centro - precio) >= distanciaMinima).OrderBy(z => Math.Abs(z.Centro - precio)).FirstOrDefault();
+
+	/// <summary>LVN (activos) que tocan una zona de precios.</summary>
+	public IEnumerable<ZonaLvn> Solapan(decimal bajo, decimal alto, decimal margen) => Activas.Where(z => z.Bajo - margen <= alto && z.Alto + margen >= bajo);
+}
