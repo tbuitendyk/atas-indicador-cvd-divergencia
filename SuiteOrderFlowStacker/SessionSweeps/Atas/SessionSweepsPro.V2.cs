@@ -48,6 +48,8 @@ public partial class SessionSweepsPro
 	private DateTime? _recalcularEn;
 	private bool _panelAbierto;
 	private bool _mboVisto;
+	private DateTime _ultimaPeticionVisual, _ultimoVisual;
+	private (bool, bool, bool) _visualPublicado;
 	private DateTime _ultimoSaldo;
 
 	private string InstrumentoV2 => InstrumentInfo?.Instrument ?? "";
@@ -121,6 +123,16 @@ public partial class SessionSweepsPro
 	{
 		try
 		{
+			// FVG y liquidez interna/externa pedidos desde el panel del Thermal (anexo 10).
+			if (e is VisualSuite { Id: VisualSuite.IdPeticion } v && v.CambioUtc > _ultimaPeticionVisual)
+			{
+				_ultimaPeticionVisual = v.CambioUtc;
+				(_v.ShowFvgV2, _v.ShowInternalLiquidity, _v.ShowExternalLiquidity) = (v.Fvg, v.Interna, v.Externa);
+				PublicarVisual(DateTime.UtcNow, forzar: true);
+				RedrawChart();
+				return;
+			}
+
 			if (!_enVivo || _motor is not { } motor)
 				return;
 
@@ -176,6 +188,7 @@ public partial class SessionSweepsPro
 
 		_ultimoLatidoV2 = ahora;
 		canal.Latido(FuenteSuite.SessionSweeps, _enVivo && _motor is not null, ahora);
+		PublicarVisual(ahora);
 		_mboVisto = canal.Consultar<IcebergEvent>(ahora.AddHours(-12), ahora, i => i.Mbo).Count > 0;
 
 		if (_motor is { } motor && _cfg.V2.ReadAtasAccount && ahora - _ultimoSaldo > TimeSpan.FromSeconds(5))
@@ -220,6 +233,22 @@ public partial class SessionSweepsPro
 
 		_recalculosPorFuentes++;
 		_recalcularEn = ahora.AddSeconds(3);
+	}
+
+	/// <summary>Estado de los interruptores de dibujo para el panel del Thermal (si cambió, o cada 10 s).</summary>
+	private void PublicarVisual(DateTime ahora, bool forzar = false)
+	{
+		var estado = (_v.ShowFvgV2, _v.ShowInternalLiquidity, _v.ShowExternalLiquidity);
+
+		if (_canal is not { } canal || (!forzar && estado == _visualPublicado && ahora - _ultimoVisual < TimeSpan.FromSeconds(10)))
+			return;
+
+		(_visualPublicado, _ultimoVisual) = (estado, ahora);
+		canal.Publicar(new VisualSuite
+		{
+			Id = VisualSuite.IdEstado, Fuente = FuenteSuite.SessionSweeps, Utc = ahora, CambioUtc = ahora, Version = 1,
+			Fvg = estado.ShowFvgV2, Interna = estado.ShowInternalLiquidity, Externa = estado.ShowExternalLiquidity
+		});
 	}
 
 	private static bool HayHistorial(CanalSuite canal, List<FuenteSuite> fuentes, DateTime hasta)

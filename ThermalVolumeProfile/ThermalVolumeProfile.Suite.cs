@@ -147,6 +147,8 @@ public partial class ThermalVolumeProfileLVN
 
 		_ultimoLatido = ahora;
 		SuiteEventBus.Para(Instrumento).Latido(FuenteSuite.Thermal, _resultado is not null, ahora);
+		OrderFlowSuite.Ui.VentanaFlotante.Registrar();
+		SuiteCiclo(ahora);
 	}
 }
 #endif

@@ -2,6 +2,7 @@ namespace OrderFlowSuite.Comun;
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 // =====================================================================================================================
@@ -154,15 +155,25 @@ public sealed class RangeReset : EventoSuite
 
 public enum TipoAnalisisManual
 {
+	[Display(Name = "AUTO")]
 	Auto,
+
+	[Display(Name = "Vela de volumen")]
 	VelaVolumen,
+
+	[Display(Name = "Vela compuesta")]
 	VelaCompuesta
 }
 
 public enum DireccionManual
 {
+	[Display(Name = "AUTO")]
 	Auto,
+
+	[Display(Name = "LARGO")]
 	Largo,
+
+	[Display(Name = "CORTO")]
 	Corto
 }
 
@@ -207,6 +218,23 @@ public sealed class ManualTriggerResult : EventoSuite
 	public decimal Bajo { get; init; }
 
 	public override decimal PrecioReferencia => (Alto + Bajo) / 2;
+}
+
+/// <summary>
+/// Interruptores de dibujo de Session Sweeps Pro (FVG, liquidez interna y externa) que se cambian desde el panel del
+/// Thermal (anexo 10). Session Sweeps publica su estado (Fuente SessionSweeps, Id 1); el Thermal pide el cambio (Fuente
+/// Thermal, Id 2, una versión nueva por pulsación).
+/// </summary>
+public sealed class VisualSuite : EventoSuite
+{
+	public const long IdEstado = 1;
+	public const long IdPeticion = 2;
+
+	public bool Fvg { get; init; }
+	public bool Interna { get; init; }
+	public bool Externa { get; init; }
+
+	public override decimal PrecioReferencia => 0;
 }
 
 /// <summary>

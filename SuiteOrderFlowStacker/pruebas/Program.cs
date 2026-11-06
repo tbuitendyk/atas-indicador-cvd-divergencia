@@ -11,6 +11,7 @@ PruebasV2Fvg.Ejecutar(c);
 PruebasV2Gatillo.Ejecutar(c);
 PruebasV2Modelos.Ejecutar(c);
 PruebasV2Panel.Ejecutar(c);
+PruebasV2Manual.Ejecutar(c);
 Documentacion.Ejecutar(c);
 
 return c.Resumen();

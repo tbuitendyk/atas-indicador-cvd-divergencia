@@ -825,6 +825,9 @@ public partial class ThermalVolumeProfile : Indicator
 		}
 
 		DibujarSeleccion(context, area);
+#if SUITE
+		SuiteDibujar(context);
+#endif
 
 		if (ShowToolbar)
 			DibujarBarra(context, area);
@@ -1190,27 +1193,32 @@ public partial class ThermalVolumeProfile : Indicator
 		Ninguna,
 		Rango,
 		Zona,
-		Lvn
+		Lvn,
+		Gatillo
 	}
 
+#if SUITE
+	private static readonly string[] Botones = { "PERFIL", "RANGO", "ZONA", "LVN", "GATILLO" };
+#else
 	private static readonly string[] Botones = { "PERFIL", "RANGO", "ZONA", "LVN" };
-	private readonly Rectangle[] _botones = new Rectangle[4];
+#endif
+	private readonly Rectangle[] _botones = new Rectangle[Botones.Length];
 	private Herramienta _herramienta;
 	private Point? _inicioSeleccion, _finSeleccion;
 
 	private void DibujarBarra(RenderContext context, Rectangle area)
 	{
-		const int ancho = 260;
 		const int alto = 56;
+		var ancho = 65 * Botones.Length;
 		var panel = _arrastre.Ubicar(ToolbarX, ToolbarY, ancho, alto, 16, area);
 
 		context.FillRectangle(Color.FromArgb(215, 18, 20, 26), panel);
 		context.FillRectangle(Color.FromArgb(235, 30, 34, 44), new Rectangle(panel.X, panel.Y, ancho, 16));
 		context.DrawString("THERMAL VOLUME PROFILE", _fuenteBarra, Color.Gainsboro, new Rectangle(panel.X + 6, panel.Y, ancho - 12, 16), _izquierda);
 
-		var celda = (ancho - 12) / 4;
+		var celda = (ancho - 12) / Botones.Length;
 
-		for (var i = 0; i < 4; i++)
+		for (var i = 0; i < Botones.Length; i++)
 		{
 			var caja = new Rectangle(panel.X + 6 + i * celda, panel.Y + 19, celda - 4, 17);
 			_botones[i] = caja;
@@ -1224,6 +1232,7 @@ public partial class ThermalVolumeProfile : Indicator
 			Herramienta.Rango => "RANGO: arrastre sobre el grafico de inicio a fin",
 			Herramienta.Zona => "ZONA: arrastre un rectangulo de precios",
 			Herramienta.Lvn => "LVN: clic = nueva linea, clic sobre una = quitar",
+			Herramienta.Gatillo => "GATILLO: arrastre un recuadro sobre las velas (ESC cancela)",
 			_ => _estado
 		};
 
@@ -1250,7 +1259,7 @@ public partial class ThermalVolumeProfile : Indicator
 		if (!ShowToolbar)
 			return -1;
 
-		for (var i = 0; i < 4; i++)
+		for (var i = 0; i < Botones.Length; i++)
 		{
 			if (_botones[i].Width > 0 && _botones[i].Contains(p))
 				return i;
@@ -1288,6 +1297,7 @@ public partial class ThermalVolumeProfile : Indicator
 			{
 				case Herramienta.Rango:
 				case Herramienta.Zona:
+				case Herramienta.Gatillo:
 					_inicioSeleccion = _finSeleccion = p;
 					return true;
 
@@ -1364,6 +1374,14 @@ public partial class ThermalVolumeProfile : Indicator
 		var barB = BarraDeX(Math.Max(a.X, b.X));
 		var horaA = GetCandle(barA).Time + info.TimeZoneOffset;
 		var horaB = GetCandle(barB).Time + info.TimeZoneOffset;
+
+#if SUITE
+		if (_herramienta == Herramienta.Gatillo)
+		{
+			SuiteGatillo(barA, barB, PrecioDeY(Math.Min(a.Y, b.Y)), PrecioDeY(Math.Max(a.Y, b.Y)));
+			return;
+		}
+#endif
 
 		if (_herramienta == Herramienta.Rango)
 		{
