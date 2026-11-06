@@ -14,6 +14,9 @@ public sealed class NovedadV2
 
 	public DateTime Utc;
 	public string Texto = "";
+
+	/// <summary>El setup del modelo (GATILLO VÁLIDO, MODELO CERRADO, MODELO INVALIDADO): correo y CSV.</summary>
+	public SetupModelo? Setup;
 }
 
 /// <summary>S3: detección de T0 en el tick, seguimiento de extremos y evaluación del clasificador en cada barra de volumen.</summary>
@@ -43,8 +46,14 @@ public sealed partial class MotorSweeps
 		}
 	}
 
-	private void Novedad(EvaluacionBarrido? e, string tipo, DateTime utc, string texto) =>
-		NovedadesV2.Add(new NovedadV2 { Evaluacion = e, Tipo = tipo, Utc = utc, Texto = texto });
+	private void Novedad(EvaluacionBarrido? e, string tipo, DateTime utc, string texto, SetupModelo? setup = null)
+	{
+		NovedadesV2.Add(new NovedadV2 { Evaluacion = e, Tipo = tipo, Utc = utc, Texto = texto, Setup = setup });
+
+		// Sin carcasa que las consuma (pruebas, o el historial si nadie las toma), no crecen sin límite.
+		if (NovedadesV2.Count > 2000)
+			NovedadesV2.RemoveRange(0, NovedadesV2.Count - 2000);
+	}
 
 	/// <summary>Cada trade (real o APROX): extremos de las evaluaciones abiertas y T0 de los niveles nuevos.</summary>
 	private void TickV2(DateTime utc, decimal precio)
@@ -100,6 +109,7 @@ public sealed partial class MotorSweeps
 		};
 
 		(e.PreT0Delta, e.PreT0DeltaAprox) = DeltaPrevio(t0);
+		AsignarCsv(e);
 		Evaluaciones.Add(e);
 		_evalPorNivel[n.Id] = e;
 
@@ -193,6 +203,10 @@ public sealed partial class MotorSweeps
 
 		foreach (var e in Evaluaciones.ToList())
 		{
+			// Restaurada del CSV del día: manda el CSV hasta su última fila (7.7, T16).
+			if (AplicarCsv(e, b))
+				continue;
+
 			if (!Vigente(e, b.Indice))
 				continue;
 

@@ -139,6 +139,12 @@ public sealed class EvaluacionBarrido
 
 	public string Origen = "";
 
+	/// <summary>Filas del CSV del día que mandan sobre esta evaluación al recargar (pendientes de aplicar, en orden).</summary>
+	public List<RegistroCsvBarrido>? FilasCsv;
+
+	/// <summary>Su estado viene del CSV (recarga del historial).</summary>
+	public bool Restaurada;
+
 	/// <summary>Inicio de la ventana de evaluación (la de T0; una hija tras RUPTURA FALLIDA empieza una nueva).</summary>
 	public int? VentanaDesdeBarra;
 

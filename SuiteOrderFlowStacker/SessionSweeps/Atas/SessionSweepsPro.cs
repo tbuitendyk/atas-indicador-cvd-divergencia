@@ -263,11 +263,17 @@ public partial class SessionSweepsPro : Indicator
 	[Range(1, 59)]
 	public int TriggerCountdownSec { get => _cfg.TriggerCountdownSec; set { _cfg.TriggerCountdownSec = value; Recalcular(); } }
 
-	[Display(Name = "Alerta de clasificación", GroupName = G12, Order = 40)]
+	[Display(Name = "Alerta TRAMPA / UPGRADE PREMIUM", GroupName = G12, Order = 40, Description = "Al congelar una TRAMPA igual o mayor que el estado mínimo (22. Estados y alertas) y en cada UPGRADE PREMIUM.")]
 	public bool AlertaClasificacion { get; set; } = true;
 
-	[Display(Name = "Alerta de entrada (Modelos A y B)", GroupName = G12, Order = 50)]
+	[Display(Name = "Alerta de gatillo VÁLIDO", GroupName = G12, Order = 50, Description = "Entrada de MOD1, BFVG, MOD2, MOD3 o MOD4.")]
 	public bool AlertaEntrada { get; set; } = true;
+
+	[Display(Name = "Alerta MOD3 / RUPTURA (arma MOD4)", GroupName = G12, Order = 52)]
+	public bool AlertaModelos { get; set; } = true;
+
+	[Display(Name = "Alerta FALLIDO / RUPTURA FALLIDA", GroupName = G12, Order = 54)]
+	public bool AlertaFallidos { get; set; } = true;
 
 	[Display(Name = "Alerta de IFVG", GroupName = G12, Order = 60)]
 	public bool AlertaIfvg { get; set; }
@@ -281,8 +287,8 @@ public partial class SessionSweepsPro : Indicator
 	[Display(Name = "Correo activado", GroupName = G13, Order = 10)]
 	public bool EmailEnabled { get; set; } = true;
 
-	[Display(Name = "Para (EmailTo)", GroupName = G13, Order = 20)]
-	public string EmailTo { get; set; } = "";
+	[Display(Name = "Para (EmailTo)", GroupName = G13, Order = 20, Description = "Destinatario del correo de cada toma de liquidez externa válida.")]
+	public string EmailTo { get; set; } = "uniontradingacademy@gmail.com";
 
 	[Display(Name = "Servidor SMTP", GroupName = G13, Order = 30)]
 	public string SmtpServer { get; set; } = "smtp.gmail.com";
@@ -300,20 +306,15 @@ public partial class SessionSweepsPro : Indicator
 	[Display(Name = "Contraseña de aplicación", GroupName = G13, Order = 70, Description = "Gmail: contraseña de aplicación de 16 letras (verificación en 2 pasos).")]
 	public SecureString? SmtpPassword { get; set; }
 
-	[Display(Name = "Correo al barrer (en t0)", GroupName = G13, Order = 80)]
-	public bool EmailOnSweep { get; set; } = true;
+	[Display(Name = "Correo en cada toma de liquidez externa válida", GroupName = G13, Order = 75,
+		Description = "Gatillo VÁLIDO sobre un barrido de liquidez externa (PDH/PDL, días y semana anteriores) con entrada, stop y objetivos. Solo en vivo, nunca con NOTICIA.")]
+	public bool EmailOnValidEntry { get; set; } = true;
 
-	[Display(Name = "Correo de actualización (al cierre de W5)", GroupName = G13, Order = 85)]
-	public bool EmailOnUpdate { get; set; } = true;
+	[Display(Name = "Correo al barrer (en t0, aviso del NQ)", GroupName = G13, Order = 80)]
+	public bool EmailOnSweep { get; set; }
 
-	[Display(Name = "Correo de entrada Modelo A", GroupName = G13, Order = 90)]
-	public bool EmailOnEntryA { get; set; } = true;
-
-	[Display(Name = "Correo de entrada Modelo B", GroupName = G13, Order = 100)]
-	public bool EmailOnEntryB { get; set; } = true;
-
-	[Display(Name = "Correo de falso rompimiento", GroupName = G13, Order = 110)]
-	public bool EmailOnFake { get; set; }
+	[Display(Name = "Correo de actualización (al cierre de W5, NQ)", GroupName = G13, Order = 85)]
+	public bool EmailOnUpdate { get; set; }
 
 	[Display(Name = "Zona horaria del correo", GroupName = G13, Order = 120, Description = "Por ejemplo Eastern Standard Time o Central Standard Time (Mexico).")]
 	public string EmailTimeZone { get; set; } = "Eastern Standard Time";
@@ -374,6 +375,7 @@ public partial class SessionSweepsPro : Indicator
 	private int _minutos;
 	private string _estado = "";
 	private Correo? _correo;
+	private bool _avisoSinSmtp;
 
 	#endregion
 
@@ -432,6 +434,7 @@ public partial class SessionSweepsPro : Indicator
 		}
 
 		RevisarAvisos();
+		ProcesarNovedadesV2();
 		LatidoV2();
 	}
 
@@ -522,6 +525,7 @@ public partial class SessionSweepsPro : Indicator
 			var vela = GetCandle(CurrentBar - 1);
 			motor.Trade(trade.Time, trade.Price, trade.Volume, compra, vela.Open, vela.Time);
 			RevisarAvisos();
+			ProcesarNovedadesV2();
 			LatidoV2();
 		}
 		catch (Exception ex)
@@ -533,6 +537,8 @@ public partial class SessionSweepsPro : Indicator
 	protected override void OnDispose()
 	{
 		CerrarV2();
+		_grabador?.Dispose();
+		_grabador = null;
 		_correo?.Dispose();
 		_correo = null;
 	}
@@ -563,12 +569,12 @@ public partial class SessionSweepsPro : Indicator
 			{
 				_avisoVisto = a.Numero;
 
+				// De los avisos del motor del NQ quedan los del tick (ruptura, cuentas atrás) e IFVG; la clasificación y las
+				// entradas son las de v2.0 (ProcesarNovedadesV2).
 				var alerta = a.Tipo switch
 				{
 					TipoAviso.Ruptura => AlertaRuptura,
 					TipoAviso.CuentaAtras1m or TipoAviso.CuentaAtras5m => AlertaCuentaAtras,
-					TipoAviso.Clasificacion or TipoAviso.Falso => AlertaClasificacion,
-					TipoAviso.EntradaA or TipoAviso.EntradaB => AlertaEntrada,
 					TipoAviso.Ifvg => AlertaIfvg,
 					_ => false
 				};
@@ -580,9 +586,6 @@ public partial class SessionSweepsPro : Indicator
 				{
 					TipoAviso.Ruptura => EmailOnSweep,
 					TipoAviso.ActualizacionW5 => EmailOnUpdate,
-					TipoAviso.EntradaA => EmailOnEntryA,
-					TipoAviso.EntradaB => EmailOnEntryB,
-					TipoAviso.Falso => EmailOnFake,
 					_ => false
 				};
 
@@ -596,6 +599,16 @@ public partial class SessionSweepsPro : Indicator
 	{
 		if (!EmailEnabled || string.IsNullOrWhiteSpace(EmailTo))
 			return;
+
+		// Sin usuario o contraseña SMTP no se intenta (se avisa una vez en el registro de ATAS).
+		if (string.IsNullOrWhiteSpace(SmtpUser) || SmtpPassword is not { Length: > 0 })
+		{
+			if (!_avisoSinSmtp)
+				this.LogWarn("Session Sweeps Pro: correo sin configurar (usuario y contraseña SMTP en 13. Correo); no se envía.");
+
+			_avisoSinSmtp = true;
+			return;
+		}
 
 		_correo ??= new Correo((mensaje, error) => this.LogError(mensaje, error));
 		_correo.Encolar(clave, new ConfiguracionCorreo(SmtpServer, SmtpPort, UseSSL, SmtpUser, SmtpPassword, EmailTo), asunto, cuerpo);

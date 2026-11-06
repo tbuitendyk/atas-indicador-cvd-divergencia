@@ -75,6 +75,7 @@ public partial class SessionSweepsPro
 		motor.Mnq = motor.Simbolo.StartsWith("MNQ", StringComparison.OrdinalIgnoreCase);
 		motor.Fuentes = string.IsNullOrEmpty(instrumento) ? SinFuentes.Instancia : new FuentesBus(instrumento, () => DateTime.UtcNow);
 		Suscribir();
+		PrepararCsvV2(motor);
 
 		lock (_syncV2)
 			_cajasManuales.Clear();
@@ -156,6 +157,7 @@ public partial class SessionSweepsPro
 					}
 
 					_canal?.Publicar(resultado);
+					GrabarManualV2(r, resultado);
 					RedrawChart();
 					break;
 			}

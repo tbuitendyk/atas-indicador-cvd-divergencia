@@ -109,7 +109,7 @@ public sealed partial class MotorSweeps
 		foreach (var s in Setups.Where(s => s.Pendiente && condicion(s)))
 		{
 			(s.Estado, s.Motivo, s.Resultado, s.CierreUtc) = (EstadoModelo.Invalidado, motivo, "INVALIDADO", utc);
-			Novedad(s.Barrido, "MODELO INVALIDADO", utc, $"{s.Etiqueta} {(s.Signo > 0 ? "LARGO" : "CORTO")} INVALIDADO: {motivo}");
+			Novedad(s.Barrido, "MODELO INVALIDADO", utc, $"{s.Etiqueta} {(s.Signo > 0 ? "LARGO" : "CORTO")} INVALIDADO: {motivo}", s);
 		}
 	}
 
@@ -500,7 +500,7 @@ public sealed partial class MotorSweeps
 		s.Zona.Resultado = "ENTRADA";
 		Micro.Reiniciar();
 		Novedad(s.Barrido, "GATILLO VÁLIDO", utc,
-			$"{s.Etiqueta} {(s.Signo > 0 ? "LARGO" : "CORTO")} | {a.Respuesta} | Entrada {Precio(a.Entrada.Value)} SL {Precio(a.Stop.Value)} TP1 {Precio(a.Tp1!.Value)} | {plan.Texto(Mnq)}");
+			$"{s.Etiqueta} {(s.Signo > 0 ? "LARGO" : "CORTO")} | {a.Respuesta} | Entrada {Precio(a.Entrada.Value)} SL {Precio(a.Stop.Value)} TP1 {Precio(a.Tp1!.Value)} | {plan.Texto(Mnq)}", s);
 	}
 
 	/// <summary>Gestión simulada: MAE/MFE, stop, TP1 (después actúa el micro-impulso) y TP2.</summary>
@@ -534,7 +534,7 @@ public sealed partial class MotorSweeps
 	{
 		(s.Estado, s.Resultado, s.CierreUtc) = (EstadoModelo.Cerrado, resultado, utc);
 		s.Zona.Resultado = resultado;
-		Novedad(s.Barrido, "MODELO CERRADO", utc, $"{s.Etiqueta} {(s.Signo > 0 ? "LARGO" : "CORTO")} CERRADO: {resultado} (MAE {s.MaeTicks} / MFE {s.MfeTicks} ticks)");
+		Novedad(s.Barrido, "MODELO CERRADO", utc, $"{s.Etiqueta} {(s.Signo > 0 ? "LARGO" : "CORTO")} CERRADO: {resultado} (MAE {s.MaeTicks} / MFE {s.MfeTicks} ticks)", s);
 	}
 
 	/// <summary>Cada vela de 1 minuto: micro-impulso de la posición abierta (tras TP1, o desde la entrada si se pidió).</summary>

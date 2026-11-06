@@ -17,7 +17,7 @@ internal sealed class SimMotor
 	public readonly FuentesPrueba Fuentes = new();
 	public readonly MotorSweeps M;
 
-	public SimMotor(bool sinBarridos = false)
+	public SimMotor(bool sinBarridos = false, Action<ConfiguracionSweeps>? ajustar = null, List<RegistroCsvBarrido>? csv = null)
 	{
 		var cfg = new ConfiguracionSweeps { TamanoTick = Tick, MinutosGrafico = 1 };
 
@@ -27,7 +27,11 @@ internal sealed class SimMotor
 
 		cfg.V2.VolumePerBar = 100;
 		cfg.V2.Fvg5m = false;
+		ajustar?.Invoke(cfg);
 		M = new MotorSweeps(cfg) { Almacen = new AlmacenTicks(), Fuentes = Fuentes };
+
+		if (csv is not null)
+			M.RestaurarDesde.AddRange(csv);
 
 		for (var t = new DateTime(2026, 10, 29, 9, 30, 0); t < new DateTime(2026, 10, 29, 10, 30, 0); t = t.AddMinutes(1))
 			M.Procesar(PruebasV2Fvg.E(t, 21400, t.Minute == 0 ? 21420 : 21402, 21400, 21401));
