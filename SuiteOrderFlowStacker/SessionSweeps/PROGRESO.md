@@ -27,3 +27,26 @@ las comprobaciones).
 - `TradingManager?.Portfolio.Balance` (como AccountInfoDisplay oficial) para "Leer el saldo de ATAS".
 - ESC en el gráfico (`ProcessKeyDown(System.Windows.Input.KeyEventArgs)`, firma WPF de OHLCPlus oficial).
 - `CandleDataSeries` / `MaxDelta` / `MinDelta` en el panel CVD (los usa el Indicador Completo CVD, ya compilado en ATAS).
+
+## v3 — Sessions Sweeps Pro (corrección del 08-11-2026)
+
+Plan: [PLAN_V3.md](PLAN_V3.md) · especificación: [PROMPT_V3.md](PROMPT_V3.md) · rama `sessions-sweeps-pro-v3`.
+
+| Subfase | Estado | Notas |
+|---|---|---|
+| S1 Plan | **hecha** | PLAN_V3.md |
+| S2 Nombre visible | pendiente | |
+| S3 Perfiles e instrumento | pendiente | |
+| S4 Parámetros por instrumento y calibración | pendiente | |
+| S5 Bus, latidos, EdgeZone | pendiente | |
+| S6 Trackers: panel propio apagado, diagnóstico, VALIDACION_TRACKERS.md | pendiente | |
+| S7 Paneles (cabecera + 17 recuadros, Thermal) | pendiente | |
+| S8 Thermal: perfil fino y LVN entre picos | pendiente | |
+| S9 Thermal: PIERNA, LVN manual, rango | pendiente | |
+| S10 EDGE | pendiente | |
+| S11 Modelo A | pendiente | |
+| S12 Modelo B, FVG/BFVG, gatillos | pendiente | |
+| S13 CVD y Trigger Matrix | pendiente | |
+| S14 Alertas, correo, Telegram | pendiente | |
+| S15 MT5 | pendiente | |
+| S16 CSV, documentación, pruebas, manual | pendiente | |
