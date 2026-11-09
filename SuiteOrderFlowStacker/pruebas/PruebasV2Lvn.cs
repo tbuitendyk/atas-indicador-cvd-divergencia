@@ -35,8 +35,8 @@ internal static class PruebasV2Lvn
 		c.Check("sin LVN en esa dirección: null (el panel dirá 'Sin objetivo LVN')", (r.Proximo(21420, +1, 8 * Tick) is null).ToString(), "True");
 
 		r.Mitigar(21402, 21399, 21401.75m);
-		c.Check("vela que atraviesa la zona y cierra fuera: MITIGADO", r.Todas.Single(z => z.Id == 1).Estado, "MITIGADO");
-		c.Check("el MITIGADO ya no es objetivo", F(r.Proximo(21395, +1, 8 * Tick)?.Centro), "21412.5");
+		c.Check("vela que atraviesa la zona y cierra fuera: ATRAVESADO", r.Todas.Single(z => z.Id == 1).Estado, "ATRAVESADO");
+		c.Check("el ATRAVESADO ya no es objetivo", F(r.Proximo(21395, +1, 8 * Tick)?.Centro), "21412.5");
 
 		r.Aplicar(Z(3, 1, 21380, 21381, manual: false, estado: "BORRADO"));
 		c.Check("BORRADO quita la zona y avisa", $"{r.Todas.Count()} {borradas.Count}", "2 1");

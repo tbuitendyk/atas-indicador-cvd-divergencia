@@ -436,6 +436,42 @@ public partial class ThermalVolumeProfile : Indicator
 	[Display(Name = "Color LVN manual", GroupName = G9, Order = 120)]
 	public MediaColor ManualLVNColor { get; set; } = MediaColor.FromArgb(255, 255, 239, 0);
 
+	[Display(Name = "Método de detección", GroupName = G9, Order = 130,
+		Description = "Valle entre picos: en un perfil fino propio (1-2 ticks por fila), independiente del dibujo. Porcentaje del POC: el detector anterior.")]
+	public MetodoLvn LvnMethod { get => _p.LvnMethod; set { _p.LvnMethod = value; Recalcular(); } }
+
+	[Display(Name = "Perfil fino: ticks por fila", GroupName = G9, Order = 140, Description = "Filas del perfil de detección (1 o 2 ticks del instrumento).")]
+	[Range(1, 10)]
+	public int LvnDetectRowTicks { get => _p.LvnDetectRowTicks; set { _p.LvnDetectRowTicks = Math.Clamp(value, 1, 10); Recalcular(); } }
+
+	[Display(Name = "Perfil fino: filas máximas", GroupName = G9, Order = 150, Description = "Límite explícito de memoria y cálculo; si el rango no cabe, el estado lo dice.")]
+	[Range(100, 200000)]
+	public int LvnMaxDetectRows { get => _p.LvnMaxDetectRows; set { _p.LvnMaxDetectRows = Math.Clamp(value, 100, 200000); Recalcular(); } }
+
+	[Display(Name = "Perfil fino: suavizado (ticks)", GroupName = G9, Order = 160, Description = "Gaussiano con sigma = valor / 2: suave, para no borrar escalones ni valles pequeños.")]
+	[Range(0, 50)]
+	public decimal LvnFineSmoothTicks { get => (decimal)_p.LvnFineSmoothTicks; set { _p.LvnFineSmoothTicks = (double)Math.Clamp(value, 0, 50); Recalcular(); } }
+
+	[Display(Name = "Pico mínimo (% del máximo)", GroupName = G9, Order = 170, Description = "Prominencia mínima de un pico para enmarcar un valle (PicoMinRelative).")]
+	[Range(1, 90)]
+	public decimal PicoMinRelative { get => (decimal)_p.PicoMinRelative * 100; set { _p.PicoMinRelative = (double)Math.Clamp(value, 1, 90) / 100; Recalcular(); } }
+
+	[Display(Name = "Profundidad mínima del valle (%)", GroupName = G9, Order = 180, Description = "Respecto al menor de los dos picos (ProfundidadMin).")]
+	[Range(5, 99)]
+	public decimal ProfundidadMin { get => (decimal)_p.ProfundidadMin * 100; set { _p.ProfundidadMin = (double)Math.Clamp(value, 5, 99) / 100; Recalcular(); } }
+
+	[Display(Name = "Puntuación mínima (0-100)", GroupName = G9, Order = 190, Description = "Ranking de calidad del LVN, nunca una probabilidad.")]
+	[Range(0, 100)]
+	public int LvnMinScore { get => _p.LvnMinScore; set { _p.LvnMinScore = Math.Clamp(value, 0, 100); Recalcular(); } }
+
+	[Display(Name = "Ancho estrecho (ticks)", GroupName = G9, Order = 200, Description = "Hasta este ancho suma los 15 puntos de zona estrecha.")]
+	[Range(1, 200)]
+	public int LvnNarrowTicks { get => _p.LvnNarrowTicks; set { _p.LvnNarrowTicks = Math.Clamp(value, 1, 200); Recalcular(); } }
+
+	[Display(Name = "LVN manual: ajuste al valle (ticks)", GroupName = G9, Order = 210, Description = "Busca el mínimo de volumen a +/- estos ticks (0 = sin ajuste).")]
+	[Range(0, 100)]
+	public int ManualSnapTicks { get => _p.ManualSnapTicks; set { _p.ManualSnapTicks = Math.Clamp(value, 0, 100); Recalcular(); } }
+
 	// --- 10. Etiquetas y alertas -----------------------------------------------------------------------------------
 
 	[Display(Name = "Mostrar etiquetas (borde derecho)", GroupName = G10, Order = 10)]
@@ -624,7 +660,7 @@ public partial class ThermalVolumeProfile : Indicator
 		}
 
 		_rango = r;
-		var perfil = Construir(_principal, r, ultima, instrumento.TickSize);
+		var perfil = Construir(_principal, r, ultima, instrumento.TickSize, out var finoPrincipal);
 
 		if (perfil is null)
 		{
@@ -635,13 +671,14 @@ public partial class ThermalVolumeProfile : Indicator
 
 		// Perfil secundario de los detectores: solo con las velas del filtro de tiempo.
 		Perfil? detectores = null;
+		Perfil? finoFiltro = null;
 		var conFiltro = _useSearchZone && _useTimeFilter;
 
 		if (conFiltro)
 		{
 			var desde = Rangos.PrimeraDesde(Tiempo, total, _searchStartTime - instrumento.TimeZoneOffset);
 			var hasta = Math.Min(ultima, Rangos.UltimaHasta(Tiempo, total, _searchEndTime - instrumento.TimeZoneOffset));
-			detectores = desde <= hasta ? Construir(_filtro, (desde, hasta), ultima, instrumento.TickSize) : null;
+			detectores = desde <= hasta ? Construir(_filtro, (desde, hasta), ultima, instrumento.TickSize, out finoFiltro) : null;
 		}
 
 		ZonaBusqueda? zona = _useSearchZone && (_searchZoneHigh != 0 || _searchZoneLow != 0)
@@ -651,14 +688,16 @@ public partial class ThermalVolumeProfile : Indicator
 		_p.ValueAreaPercent = (double)_valueAreaPercent;
 		var resultado = conFiltro && detectores is null
 			? MotorTermico.Analizar(perfil, new Perfil { Tick = perfil.Tick, TicksPorFila = perfil.TicksPorFila }, _p, zona, Utilidades.LeerPrecios(_manualLvnPrices))
-			: MotorTermico.Analizar(perfil, detectores, _p, zona, Utilidades.LeerPrecios(_manualLvnPrices));
+			: MotorTermico.Analizar(perfil, detectores, _p, zona, Utilidades.LeerPrecios(_manualLvnPrices), conFiltro ? finoFiltro : finoPrincipal);
 
 		_resultado = resultado;
 		_ultimoAnalisis = DateTime.UtcNow;
 #if SUITE
-		SuitePublicarLvn(resultado);
+		SuitePublicarLvn(resultado, ultima);
 #endif
-		_estado = $"{perfil.Velas} velas  {perfil.Filas} filas de {perfil.TicksPorFila} ticks{(conFiltro && detectores is null ? "  FILTRO DE TIEMPO SIN VELAS" : "")}";
+		var fino = resultado.Fino;
+		_estado = $"{perfil.Velas} velas  {perfil.Filas} filas de {perfil.TicksPorFila} ticks{(conFiltro && detectores is null ? "  FILTRO DE TIEMPO SIN VELAS" : "")}" +
+			(fino is null ? "" : $"  detección {fino.Filas} filas de {fino.TicksPorFila} tick{(fino.TicksPorFila > _p.LvnDetectRowTicks ? " (AGRUPADO por el límite de filas)" : "")}");
 
 		// Alertas: solo en vivo; lo que la vela actual ya tocaba al terminar la carga no suena.
 		if (!_enVivo)
@@ -673,8 +712,9 @@ public partial class ThermalVolumeProfile : Indicator
 	}
 
 	/// <summary>Perfil de [desde, hasta]: las velas cerradas se suman una vez; la abierta se rehace en cada actualización.</summary>
-	private Perfil? Construir(PerfilIncremental p, (int Desde, int Hasta) r, int ultima, decimal tick)
+	private Perfil? Construir(PerfilIncremental p, (int Desde, int Hasta) r, int ultima, decimal tick, out Perfil? fino)
 	{
+		fino = null;
 		var cerradasHasta = Math.Min(r.Hasta, ultima - 1);
 
 		if (p.Sucio || p.Base is null || p.Desde != r.Desde || cerradasHasta < p.IncluidasHasta)
@@ -703,6 +743,10 @@ public partial class ThermalVolumeProfile : Indicator
 			if (!conNiveles)
 				AvisarSinNiveles();
 		}
+
+		// Perfil fino de detección (v3, 7.3), aparte del de dibujo: lo usan el detector de valles y el ajuste de los manuales.
+		if (_p.LvnMethod == MetodoLvn.ValleEntrePicos || (_p.ShowManualLVN && _p.ManualSnapTicks > 0 && !string.IsNullOrWhiteSpace(_manualLvnPrices)))
+			fino = MotorTermico.PerfilFino(p.Base, abierta, _profileType, _p);
 
 		return Perfil.Construir(p.Base, abierta, _profileType, _rowSizeTicks, _autoRowSize, _maxRows);
 	}
@@ -1043,30 +1087,41 @@ public partial class ThermalVolumeProfile : Indicator
 			Nota(SpikeLabels, y, $"SPK {f(s.Precio)}", ADibujo(SpikeColor));
 		}
 
-		foreach (var l in r.Lvns)
+		var lvns = r.Lvns;
+#if SUITE
+		lvns = SuiteLvnsParaDibujo(r);
+#endif
+
+		foreach (var l in lvns)
 		{
 			var y = Y(l.Precio);
 
 			if (l.Manual)
 			{
 				Linea(context, estilo.LvnManual, x1, x2, y);
-				Nota(LVNLabels, y, $"LVN MANUAL {f(l.Precio)}", ADibujo(ManualLVNColor));
+				Nota(LVNLabels, y, $"LVN MANUAL {f(l.Precio)}{(l.PrecioOriginal is { } o ? $" (marcado {f(o)})" : "")}{(l.Metodo.Length > 0 && l.Metodo != "MANUAL" ? " " + l.Metodo : "")}",
+					ADibujo(ManualLVNColor));
 				continue;
 			}
 
 			if (LVNDisplay == DibujosLvn.Band)
 			{
+				// Zona en precios (v3: del perfil fino); la heredada, por sus filas.
 				var p = r.Detectores;
-				var yArriba = Y(p.PrecioFila(l.Superior) + (p.TicksPorFila - 1) * p.Tick);
-				var yAbajo = Y(p.PrecioFila(l.Inferior));
+				var (arriba, abajo) = l.Alto > 0 ? (l.Alto, l.Bajo) : (p.PrecioFila(l.Superior) + (p.TicksPorFila - 1) * p.Tick, p.PrecioFila(l.Inferior));
+				var yArriba = Y(arriba);
+				var yAbajo = Y(abajo);
 				context.FillRectangle(estilo.FranjaLvn, new Rectangle(x1, Math.Min(yArriba, yAbajo), Math.Max(1, x2 - x1), Math.Max(2, Math.Abs(yAbajo - yArriba))));
+				Linea(context, estilo.Lvn, x1, x2, y);
 			}
 			else
 			{
 				Linea(context, estilo.Lvn, x1, x2, y);
 			}
 
-			Nota(LVNLabels, y, $"LVN {l.Ranking} {f(l.Precio)}", ADibujo(LVNColor));
+			var puntos = l.Score100 > 0 ? $" · {l.Score100}" : "";
+			var estado = l.Metodo is "PROVISIONAL" or "PROBADO" or "ATRAVESADO" ? " " + l.Metodo : "";
+			Nota(LVNLabels, y, $"LVN {l.Ranking} {f(l.Precio)}{puntos}{estado}", ADibujo(LVNColor));
 		}
 
 		if (ShowVAH)

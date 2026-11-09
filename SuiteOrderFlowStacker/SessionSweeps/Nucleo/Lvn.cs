@@ -13,14 +13,23 @@ public sealed class ZonaLvn
 	public decimal Bajo, Alto, Centro;
 	public bool Manual;
 
-	/// <summary>ACTIVO, MITIGADO o BORRADO.</summary>
+	/// <summary>ACTIVO, PROBADO, ATRAVESADO o BORRADO (v3, 7.7).</summary>
 	public string Estado = "ACTIVO";
+
+	/// <summary>Sin confirmar con velas cerradas (no se usa para setups ni objetivos).</summary>
+	public bool Provisional;
+
+	public int Score, WidthTicks;
+	public decimal Depth;
+	public bool Tocado;
+	public decimal? PrecioOriginal;
 
 	public DateTime Utc;
 
 	public string Origen => Manual ? "MANUAL" : "AUTO";
 
-	public bool Activo => Estado == "ACTIVO";
+	/// <summary>Utilizable: confirmado y no atravesado (ACTIVO o PROBADO).</summary>
+	public bool Activo => !Provisional && Estado is "ACTIVO" or "PROBADO";
 
 	public bool Contiene(decimal precio, decimal margen) => precio >= Bajo - margen && precio <= Alto + margen;
 }
@@ -67,7 +76,8 @@ public sealed class RepositorioLvn
 				_zonas[z.Id] = new ZonaLvn
 				{
 					Id = z.Id, RangoId = z.RangoId, Bajo = Math.Min(z.Bajo, z.Alto), Alto = Math.Max(z.Bajo, z.Alto), Centro = z.Centro, Manual = z.Manual,
-					Estado = z.Estado == "MITIGADO" ? "MITIGADO" : "ACTIVO", Utc = z.Utc
+					Estado = z.Estado switch { "MITIGADO" or "ATRAVESADO" => "ATRAVESADO", "PROBADO" => "PROBADO", _ => "ACTIVO" }, Utc = z.Utc,
+					Provisional = z.Provisional, Score = z.Score, WidthTicks = z.WidthTicks, Depth = z.Depth, Tocado = z.WasTouched, PrecioOriginal = z.PrecioOriginal
 				};
 
 				break;
@@ -87,13 +97,13 @@ public sealed class RepositorioLvn
 		}
 	}
 
-	/// <summary>Una vela que cierra al otro lado de una zona activa la deja MITIGADA.</summary>
+	/// <summary>Una vela que cierra al otro lado de una zona activa la deja ATRAVESADA.</summary>
 	public void Mitigar(decimal alto, decimal bajo, decimal cierre)
 	{
 		foreach (var z in Activas.ToList())
 		{
 			if (bajo <= z.Bajo && alto >= z.Alto && (cierre < z.Bajo || cierre > z.Alto))
-				z.Estado = "MITIGADO";
+				z.Estado = "ATRAVESADO";
 		}
 	}
 

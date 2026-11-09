@@ -54,6 +54,8 @@ public partial class ThermalVolumeProfileLVN
 			return;
 
 		_identidadRango = identidad;
+		_seguidorLvn.Reiniciar();
+		(_ultimaSeguida, _seguidorCargado) = (-1, false);
 
 		if (ClearLinesOnNewRange && !_conservarLineas)
 			_manualLvnPrices = "";
@@ -88,24 +90,60 @@ public partial class ThermalVolumeProfileLVN
 		}
 	}
 
-	/// <summary>Tras cada análisis: publica los LVN nuevos y marca BORRADO los que ya no están.</summary>
-	private void SuitePublicarLvn(ResultadoTermico r)
+	[Display(Name = "Confirmación: cierres de vela", GroupName = G9, Order = 220,
+		Description = "Un LVN nuevo es PROVISIONAL hasta verse en estos cierres de vela seguidos (LvnConfirmUpdates).")]
+	[Range(1, 50)]
+	public int LvnConfirmUpdates { get; set; } = 2;
+
+	[Display(Name = "Histéresis (% del ancho)", GroupName = G9, Order = 230,
+		Description = "Un LVN confirmado no se mueve mientras el nuevo centro quede dentro de su zona más este margen (LvnHysteresisPct).")]
+	[Range(0, 500)]
+	public int LvnHysteresisPct { get; set; } = 50;
+
+	private readonly SeguidorLvn _seguidorLvn = new();
+	private int _ultimaSeguida = -1;
+	private bool _seguidorCargado;
+
+	/// <summary>
+	/// Tras cada análisis (v3, 7.7): las velas cerradas nuevas pasan por el estabilizador (toque, rechazo, aceptación), el
+	/// resultado lo confirma o lo mantiene con histéresis, y se publican las zonas estables (con PROVISIONAL, estado,
+	/// puntuación, profundidad, ancho) y BORRADO las que ya no están.
+	/// </summary>
+	private void SuitePublicarLvn(ResultadoTermico r, int ultima)
 	{
 		var ahora = DateTime.UtcNow;
+		var cerrada = ultima != _ultimaSeguida;
+
+		if (_seguidorCargado && cerrada && _ultimaSeguida >= 0)
+		{
+			for (var i = Math.Max(0, _ultimaSeguida); i < ultima; i++)
+			{
+				var c = GetCandle(i);
+				_seguidorLvn.Precio(c.High, c.Low, c.Close);
+			}
+		}
+
+		// La primera vez (fin de la carga) el perfil sale de velas cerradas: se confirma en el acto.
+		_seguidorLvn.Actualizar(r.Lvns, cerrada, ahora, _seguidorCargado ? LvnConfirmUpdates : 1, LvnHysteresisPct);
+		(_ultimaSeguida, _seguidorCargado) = (ultima, true);
+
 		var actuales = new Dictionary<long, LvnZone>();
 
-		foreach (var l in r.Lvns)
+		foreach (var z in _seguidorLvn.Zonas)
 		{
-			var bajo = l.Manual ? l.Precio : r.Detectores.PrecioFila(l.Inferior);
-			var alto = l.Manual ? l.Precio : r.Detectores.PrecioFila(l.Superior) + r.Detectores.TicksPorFila * r.Detectores.Tick - r.Detectores.Tick;
-			var id = IdLvn(l.Precio, l.Manual);
+			var id = (_rangoId * 1_000_003 + z.Id * 2 + (z.Manual ? 1 : 0)) & long.MaxValue;
+			var previo = _lvnPublicados.GetValueOrDefault(id);
+			var igual = previo is not null && previo.Bajo == z.Bajo && previo.Alto == z.Alto && previo.Estado == z.Estado && previo.Provisional == z.Provisional &&
+				previo.Score == z.ScoreTotal && previo.WasTouched == z.Tocado;
 
-			actuales[id] = _lvnPublicados.TryGetValue(id, out var previo) && previo.Bajo == bajo && previo.Alto == alto
-				? previo
+			actuales[id] = igual
+				? previo!
 				: new LvnZone
 				{
 					Id = id, Fuente = FuenteSuite.Thermal, Utc = previo?.Utc ?? ahora, CambioUtc = ahora, Version = (previo?.Version ?? 0) + 1,
-					RangoId = _rangoId, Bajo = Math.Min(bajo, alto), Alto = Math.Max(bajo, alto), Centro = l.Precio, Manual = l.Manual, Estado = "ACTIVO"
+					RangoId = _rangoId, Bajo = Math.Min(z.Bajo, z.Alto), Alto = Math.Max(z.Bajo, z.Alto), Centro = z.Centro, Manual = z.Manual, Estado = z.Estado,
+					Score = z.ScoreTotal, Depth = (decimal)z.Depth, WidthTicks = z.WidthTicks, WasTouched = z.Tocado, Provisional = z.Provisional,
+					ConfirmedUtc = z.ConfirmadoUtc, PrecioOriginal = z.PrecioOriginal
 				};
 		}
 
@@ -127,6 +165,20 @@ public partial class ThermalVolumeProfileLVN
 
 		foreach (var (id, z) in actuales)
 			_lvnPublicados[id] = z;
+	}
+
+	/// <summary>Lo que se dibuja en la Suite: las zonas estables (sin repintado), con su estado o PROVISIONAL.</summary>
+	private List<LvnTermico> SuiteLvnsParaDibujo(ResultadoTermico r)
+	{
+		if (!_seguidorCargado)
+			return r.Lvns;
+
+		var ranking = 0;
+		return _seguidorLvn.Zonas.OrderByDescending(z => z.ScoreTotal).Select(z => new LvnTermico
+		{
+			Precio = z.Centro, Bajo = z.Bajo, Alto = z.Alto, Manual = z.Manual, Ranking = z.Manual ? 0 : ++ranking, Score100 = z.ScoreTotal, WidthTicks = z.WidthTicks,
+			PrecioOriginal = z.PrecioOriginal, Metodo = z.Provisional ? "PROVISIONAL" : z.Estado == "ACTIVO" ? "" : z.Estado
+		}).ToList();
 	}
 
 	private long IdLvn(decimal precio, bool manual) => (_rangoId * 1_000_003 + (long)Math.Round(precio * 4) * 2 + (manual ? 1 : 0)) & long.MaxValue;

@@ -112,6 +112,16 @@ public enum DireccionesPerfil
 	RightToLeft
 }
 
+/// <summary>Detector de LVN (v3, 7.4): el nuevo (valle entre dos picos en el perfil fino) o el heredado.</summary>
+public enum MetodoLvn
+{
+	[Display(Name = "Valle entre picos (perfil fino)")]
+	ValleEntrePicos,
+
+	[Display(Name = "Porcentaje del POC (heredado)")]
+	PorcentajePocHeredado
+}
+
 public enum DibujosLvn
 {
 	[Display(Name = "Línea")]
@@ -216,6 +226,21 @@ public sealed class ParametrosTermicos
 	public int LVNMinDistanceTicks { get; set; } = 8;
 	public int MaxLVN { get; set; } = 5;
 	public bool ShowManualLVN { get; set; } = true;
+
+	// LVN v3 (7.3-7.6): perfil fino de detección, separado del de dibujo.
+#if SUITE
+	public MetodoLvn LvnMethod { get; set; } = MetodoLvn.ValleEntrePicos;
+#else
+	public MetodoLvn LvnMethod { get; set; } = MetodoLvn.PorcentajePocHeredado;
+#endif
+	public int LvnDetectRowTicks { get; set; } = 1;
+	public int LvnMaxDetectRows { get; set; } = 20000;
+	public double LvnFineSmoothTicks { get; set; } = 2;
+	public double PicoMinRelative { get; set; } = 0.10;
+	public double ProfundidadMin { get; set; } = 0.35;
+	public int LvnMinScore { get; set; } = 30;
+	public int LvnNarrowTicks { get; set; } = 8;
+	public int ManualSnapTicks { get; set; } = 4;
 }
 
 public sealed class EdgeTermico
@@ -263,6 +288,16 @@ public sealed class LvnTermico
 	public int Ranking;
 
 	public bool Manual;
+
+	// v3 (7.5): la zona en precios, su profundidad, ancho y puntuación 0-100 (sin la parte de FVG ni la de "no tocado").
+	public decimal Bajo, Alto;
+	public double Depth;
+	public int WidthTicks;
+	public int Score100;
+	public string Metodo = "";
+
+	/// <summary>LVN manual ajustado al valle: el precio donde se marcó (null si no se movió).</summary>
+	public decimal? PrecioOriginal;
 }
 
 public sealed class ResultadoTermico
@@ -278,6 +313,9 @@ public sealed class ResultadoTermico
 	public List<SpikeTermico> Spikes = new();
 	public List<ClusterTermico> Clusters = new();
 	public List<LvnTermico> Lvns = new();
+
+	/// <summary>Perfil fino de detección (v3), si se calculó.</summary>
+	public Perfil? Fino;
 
 	public decimal PrecioPoc => Perfil.PrecioFila(Poc);
 
@@ -536,7 +574,7 @@ public static partial class MotorTermico
 	/// (null = el mismo perfil). Los LVN manuales cuentan como LVN y tienen prioridad sobre los automáticos.
 	/// </summary>
 	public static ResultadoTermico Analizar(Perfil perfil, Perfil? detectores, ParametrosTermicos c, ZonaBusqueda? zona,
-		IReadOnlyList<decimal>? lvnManuales = null)
+		IReadOnlyList<decimal>? lvnManuales = null, Perfil? fino = null)
 	{
 		var r = new ResultadoTermico { Perfil = perfil, Detectores = detectores ?? perfil };
 
@@ -565,8 +603,11 @@ public static partial class MotorTermico
 		// 5. CLÚSTER (vol[] sin suavizar), con el ajuste fino a los EDGE.
 		r.Clusters = c.EnableCluster ? DetectarClusters(d, volPoc, c, Zona(c.ClusterUseZone), edges) : new();
 
-		// 6. LVN.
-		r.Lvns = DetectarLvn(d, c, Zona(c.LVNUseZone), lvnManuales);
+		// 6. LVN: el nuevo detector trabaja en el perfil fino (si lo hay); el heredado, en el de los detectores.
+		r.Lvns = c.LvnMethod == MetodoLvn.ValleEntrePicos && fino is { Filas: > 4 }
+			? DetectarLvnValles(fino, c, Zona(c.LVNUseZone), lvnManuales)
+			: DetectarLvn(d, c, Zona(c.LVNUseZone), lvnManuales);
+		r.Fino = fino;
 
 		// Lo que se dibuja: EDGE no absorbidos por un clúster y espigas fuera de los clústeres (si se pide).
 		r.Edges = c.EnableEdge
@@ -1420,6 +1461,329 @@ public static class Utilidades
 
 	public static string EscribirPrecios(IEnumerable<decimal> precios) =>
 		string.Join(";", precios.Distinct().OrderBy(p => p).Select(p => p.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+}
+
+#endregion
+
+
+#region LVN v3: valle entre picos en el perfil fino, LVN manual ajustado y estabilizador
+
+public static partial class MotorTermico
+{
+	/// <summary>
+	/// LVN como valle entre dos picos relevantes (7.4), en el perfil fino (1-2 ticks por fila, independiente del dibujo):
+	/// 1) suavizado suave; 2) picos con prominencia >= PicoMinRelative del máximo; 3) pares de picos vecinos; 4) el mínimo
+	/// entre ellos; 5) profundidad contra el pico menor; 6) se descarta si no llega a ProfundidadMin; 7) la zona es el ancho
+	/// a media profundidad, sin salir de los picos; 8) el centro es el mínimo de volumen REAL dentro de la zona; 9) los
+	/// extremos del perfil no enmarcados por dos picos nunca son LVN; 10) zonas solapadas: se queda la de más puntuación.
+	/// Puntuación 0-100 (7.6, solo ranking): profundidad hasta 40, estrecho hasta 15, volumen muy bajo hasta 15; los 15 de
+	/// "no tocado" los suma el estabilizador y los 15 de FVG Sessions Sweeps Pro.
+	/// </summary>
+	public static List<LvnTermico> DetectarLvnValles(Perfil fino, ParametrosTermicos c, ZonaBusqueda? zona, IReadOnlyList<decimal>? manuales)
+	{
+		var resultado = c.ShowManualLVN ? ManualesAjustados(fino, manuales, c.ManualSnapTicks) : new List<LvnTermico>();
+
+		if (!c.EnableLVN || fino.Filas < 5)
+			return resultado;
+
+		var real = fino.Valor;
+		var tpf = Math.Max(1, fino.TicksPorFila);
+		var s = Utilidades.Gauss(real, c.LvnFineSmoothTicks / 2.0 / tpf);
+		var maximo = s.Max();
+
+		if (maximo <= 0)
+			return resultado;
+
+		var picos = PicosRelevantes(s, c.PicoMinRelative * maximo);
+		var candidatos = new List<LvnTermico>();
+
+		for (var k = 1; k < picos.Count; k++)
+		{
+			var (a, b) = (picos[k - 1], picos[k]);
+
+			if (b - a < 2)
+				continue;
+
+			var v = a + 1;
+
+			for (var i = a + 1; i < b; i++)
+			{
+				if (s[i] < s[v])
+					v = i;
+			}
+
+			var menor = Math.Min(s[a], s[b]);
+
+			if (menor <= 0)
+				continue;
+
+			var profundidad = (menor - s[v]) / menor;
+
+			if (profundidad < c.ProfundidadMin)
+				continue;
+
+			var mitad = s[v] + 0.5 * (menor - s[v]);
+			int lo = v, hi = v;
+
+			while (lo - 1 > a && s[lo - 1] <= mitad)
+				lo--;
+
+			while (hi + 1 < b && s[hi + 1] <= mitad)
+				hi++;
+
+			var centro = lo;
+
+			for (var i = lo; i <= hi; i++)
+			{
+				if (real[i] < real[centro] || (real[i] == real[centro] && Math.Abs(i - v) < Math.Abs(centro - v)))
+					centro = i;
+			}
+
+			var precio = fino.PrecioFila(centro);
+
+			if (zona is { } z && !z.Contiene(precio))
+				continue;
+
+			var ancho = (hi - lo + 1) * tpf;
+
+			// La detección usa el perfil suavizado (robusto); la profundidad que se publica y puntúa, el volumen real.
+			var menorReal = Math.Min(real[a], real[b]);
+			var profundidadReal = menorReal > 0 ? Math.Max(0, (menorReal - real[centro]) / menorReal) : profundidad;
+			var ratio = menorReal > 0 ? real[centro] / menorReal : 1;
+			var puntos = 40 * Math.Min(1, profundidadReal)
+				+ 15 * Math.Min(1, (double)Math.Max(1, c.LvnNarrowTicks) / Math.Max(1, ancho))
+				+ (ratio <= 0.05 ? 15 : 15 * Math.Clamp((0.30 - ratio) / 0.25, 0, 1));
+
+			candidatos.Add(new LvnTermico
+			{
+				Fila = centro, Inferior = lo, Superior = hi, Precio = precio, Prominencia = profundidad, Valle = s[v], Score = puntos,
+				Bajo = fino.PrecioFila(lo), Alto = fino.PrecioFila(hi) + (tpf - 1) * fino.Tick, Depth = profundidadReal, WidthTicks = ancho,
+				Score100 = (int)Math.Round(puntos), Metodo = "VALLE ENTRE PICOS"
+			});
+		}
+
+		// Solapadas, demasiado cerca (también de los manuales) o bajo la puntuación mínima: fuera. Los MaxLVN mejores.
+		var elegidos = new List<LvnTermico>();
+
+		foreach (var l in candidatos.Where(l => l.Score100 >= c.LvnMinScore).OrderByDescending(l => l.Score100))
+		{
+			if (elegidos.Count >= c.MaxLVN)
+				break;
+
+			var libre = elegidos.All(x => l.Alto < x.Bajo || l.Bajo > x.Alto) &&
+				elegidos.Concat(resultado).All(x => Math.Abs(x.Precio - l.Precio) >= c.LVNMinDistanceTicks * fino.Tick);
+
+			if (libre)
+				elegidos.Add(l);
+		}
+
+		for (var i = 0; i < elegidos.Count; i++)
+			elegidos[i].Ranking = i + 1;
+
+		resultado.AddRange(elegidos.OrderByDescending(l => l.Precio));
+		return resultado;
+	}
+
+	/// <summary>Picos locales (mesetas en su centro) cuya prominencia topográfica es al menos 'minimo'.</summary>
+	public static List<int> PicosRelevantes(double[] s, double minimo)
+	{
+		var picos = new List<int>();
+
+		for (var i = 0; i < s.Length; i++)
+		{
+			var j = i;
+
+			while (j + 1 < s.Length && s[j + 1] == s[i])
+				j++;
+
+			var izquierda = i == 0 || s[i - 1] < s[i];
+			var derecha = j == s.Length - 1 || s[j + 1] < s[j];
+			var centro = (i + j) / 2;
+			i = j;
+
+			if (!izquierda || !derecha)
+				continue;
+
+			// Prominencia: altura sobre la más alta de las dos bases (el mínimo hasta un punto más alto, o el borde).
+			double Base(int dir)
+			{
+				var minimoLado = s[centro];
+
+				for (var k = centro + dir; k >= 0 && k < s.Length; k += dir)
+				{
+					if (s[k] > s[centro])
+						return minimoLado;
+
+					minimoLado = Math.Min(minimoLado, s[k]);
+				}
+
+				return minimoLado;
+			}
+
+			if (s[centro] - Math.Max(Base(-1), Base(+1)) >= minimo)
+				picos.Add(centro);
+		}
+
+		return picos;
+	}
+
+	/// <summary>
+	/// LVN manuales (7.9): cada uno se ajusta al mínimo de volumen real a +/- snap ticks en el perfil fino; si se mueve,
+	/// se conserva el precio original. Sin perfil fino, quedan donde se marcaron.
+	/// </summary>
+	public static List<LvnTermico> ManualesAjustados(Perfil fino, IReadOnlyList<decimal>? manuales, int snapTicks)
+	{
+		var r = new List<LvnTermico>();
+
+		foreach (var precio in (manuales ?? Array.Empty<decimal>()).Distinct().OrderByDescending(x => x))
+		{
+			var fila = fino.FilaDePrecio(precio);
+			var mejor = fila;
+			var tpf = Math.Max(1, fino.TicksPorFila);
+			var radio = Math.Max(0, snapTicks) / tpf;
+
+			if (fino.Filas > 0 && fila >= 0 && fila < fino.Filas)
+			{
+				for (var f = Math.Max(0, fila - radio); f <= Math.Min(fino.Filas - 1, fila + radio); f++)
+				{
+					if (fino.Valor[f] < fino.Valor[mejor] || (fino.Valor[f] == fino.Valor[mejor] && Math.Abs(f - fila) < Math.Abs(mejor - fila)))
+						mejor = f;
+				}
+			}
+
+			var ajustado = mejor == fila ? precio : fino.PrecioFila(mejor);
+			r.Add(new LvnTermico
+			{
+				Fila = mejor, Inferior = mejor, Superior = mejor, Precio = ajustado, Bajo = ajustado, Alto = ajustado, Manual = true, Metodo = "MANUAL",
+				PrecioOriginal = ajustado != precio ? precio : null
+			});
+		}
+
+		return r;
+	}
+
+	/// <summary>Perfil fino de detección (7.3): filas de LvnDetectRowTicks ticks; si el rango no cabe en LvnMaxDetectRows, se
+	/// agrupa lo justo (y el estado lo dice), nunca en silencio.</summary>
+	public static Perfil? PerfilFino(AcumuladorTicks acumulado, IReadOnlyDictionary<long, AcumuladorTicks.Celda>? abierta, TiposPerfil tipo, ParametrosTermicos c) =>
+		Perfil.Construir(acumulado, abierta, tipo, Math.Max(1, c.LvnDetectRowTicks), true, Math.Max(100, c.LvnMaxDetectRows));
+}
+
+/// <summary>Una zona LVN estable (7.7): confirmada con velas cerradas, con histéresis y con su estado de toque.</summary>
+public sealed class ZonaLvnEstable
+{
+	public long Id;
+	public decimal Bajo, Alto, Centro;
+	public int Score100, WidthTicks;
+	public double Depth;
+	public bool Manual;
+	public decimal? PrecioOriginal;
+
+	/// <summary>ACTIVO, PROBADO o ATRAVESADO (BORRADO = ya no está).</summary>
+	public string Estado = "ACTIVO";
+
+	public bool Provisional = true;
+	public int Confirmaciones, Ausencias;
+	public DateTime CreadoUtc;
+	public DateTime? ConfirmadoUtc;
+	public bool Tocado;
+
+	/// <summary>Lado desde el que llegó el precio al tocarla (+1 desde arriba, -1 desde abajo, 0 sin saber).</summary>
+	public int LadoLlegada;
+
+	public int Lado(decimal precio) => precio > Alto ? 1 : precio < Bajo ? -1 : 0;
+
+	/// <summary>Puntuación con los 15 puntos de "no tocado desde su formación".</summary>
+	public int ScoreTotal => Math.Min(100, Score100 + (Tocado ? 0 : 15));
+}
+
+/// <summary>
+/// Estabilizador de LVN (7.7): una zona nueva es PROVISIONAL hasta verse en LvnConfirmUpdates cierres de vela seguidos;
+/// confirmada, no se mueve ni desaparece por una fluctuación pequeña (histéresis: el centro puede moverse hasta un
+/// porcentaje del ancho; ausente, aguanta varias actualizaciones). Con el precio de cada vela cerrada: PROBADO (tocada y
+/// rechazo hacia el lado de llegada) o ATRAVESADO (cierre al otro lado). Los manuales se confirman en el acto.
+/// </summary>
+public sealed class SeguidorLvn
+{
+	private long _siguiente = 1;
+	private decimal _ultimoCierre;
+
+	public List<ZonaLvnEstable> Zonas { get; } = new();
+
+	public void Reiniciar()
+	{
+		Zonas.Clear();
+		_ultimoCierre = 0;
+	}
+
+	public void Actualizar(IReadOnlyList<LvnTermico> detectados, bool velaCerrada, DateTime ahoraUtc, int confirmUpdates, double histeresisPct)
+	{
+		var vistas = new HashSet<ZonaLvnEstable>();
+
+		foreach (var d in detectados)
+		{
+			var (bajo, alto) = d.Bajo == 0 && d.Alto == 0 ? (d.Precio, d.Precio) : (d.Bajo, d.Alto);
+			var z = Zonas.FirstOrDefault(x => x.Manual == d.Manual && !vistas.Contains(x) && Coincide(x, bajo, alto, d.Precio, histeresisPct));
+
+			if (z is null)
+			{
+				z = new ZonaLvnEstable
+				{
+					Id = _siguiente++, Bajo = bajo, Alto = alto, Centro = d.Precio, Manual = d.Manual, CreadoUtc = ahoraUtc, PrecioOriginal = d.PrecioOriginal,
+					Provisional = !d.Manual, ConfirmadoUtc = d.Manual ? ahoraUtc : null
+				};
+				Zonas.Add(z);
+			}
+			else if (z.Provisional || d.Manual)
+			{
+				// Aún sin confirmar (o manual): la geometría sigue al detector.
+				(z.Bajo, z.Alto, z.Centro, z.PrecioOriginal) = (bajo, alto, d.Precio, d.PrecioOriginal);
+			}
+
+			(z.Score100, z.WidthTicks, z.Depth, z.Ausencias) = (d.Score100, d.WidthTicks, d.Depth, 0);
+			vistas.Add(z);
+
+			if (velaCerrada && z.Provisional && ++z.Confirmaciones >= Math.Max(1, confirmUpdates))
+				(z.Provisional, z.ConfirmadoUtc) = (false, ahoraUtc);
+		}
+
+		// Las que no aparecen: una provisional se va; una confirmada aguanta (histéresis) hasta varias ausencias seguidas.
+		foreach (var z in Zonas.Where(x => !vistas.Contains(x)).ToList())
+		{
+			if (z.Provisional || z.Manual || (velaCerrada && ++z.Ausencias > 3 * Math.Max(1, confirmUpdates)))
+				Zonas.Remove(z);
+		}
+	}
+
+	private static bool Coincide(ZonaLvnEstable z, decimal bajo, decimal alto, decimal centro, double histeresisPct)
+	{
+		var ancho = Math.Max(z.Alto - z.Bajo, 0.0000001m);
+		var margen = ancho * (decimal)Math.Max(0, histeresisPct) / 100m;
+		return centro >= z.Bajo - margen && centro <= z.Alto + margen || (bajo <= z.Alto && alto >= z.Bajo);
+	}
+
+	/// <summary>Vela cerrada: toque, rechazo (PROBADO) o aceptación al otro lado (ATRAVESADO).</summary>
+	public void Precio(decimal alto, decimal bajo, decimal cierre)
+	{
+		foreach (var z in Zonas.Where(x => !x.Provisional && x.Estado != "ATRAVESADO"))
+		{
+			var antes = _ultimoCierre == 0 ? 0 : z.Lado(_ultimoCierre);
+
+			if (bajo > z.Alto || alto < z.Bajo)
+				continue;
+
+			if (!z.Tocado)
+				(z.Tocado, z.LadoLlegada) = (true, antes);
+
+			var ahora = z.Lado(cierre);
+
+			if (z.LadoLlegada != 0 && ahora == -z.LadoLlegada)
+				z.Estado = "ATRAVESADO";
+			else if (ahora == z.LadoLlegada && ahora != 0)
+				z.Estado = "PROBADO";
+		}
+
+		_ultimoCierre = cierre;
+	}
 }
 
 #endregion
