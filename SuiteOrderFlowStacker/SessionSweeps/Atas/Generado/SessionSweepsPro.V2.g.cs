@@ -193,59 +193,55 @@ public partial class SessionSweepsPro
 
 	// --- 22. Estados y alertas -------------------------------------------------------------------------------
 
-	[Display(Name = "Puntos TRAMPA B", GroupName = "22. Estados y alertas", Order = 10, Description = "Puntuación (no probabilidad).")]
+	[Display(Name = "Puntos BARRIDO REAL", GroupName = "22. Estados y alertas", Order = 10, Description = "Mínimo para BARRIDO DE LIQUIDEZ REAL (con toma de stops, absorción y recuperación). Puntuación, no probabilidad.")]
 	[Range(0, 100)]
-	public int ScoreTrapB { get => _cfg.V2.ScoreTrapB; set { _cfg.V2.ScoreTrapB = Math.Clamp(value, 0, 100); Recalcular(); } }
+	public int ScoreRealMin { get => _cfg.V2.ScoreRealMin; set { _cfg.V2.ScoreRealMin = Math.Clamp(value, 0, 100); Recalcular(); } }
 
-	[Display(Name = "Puntos TRAMPA A", GroupName = "22. Estados y alertas", Order = 20, Description = "")]
+	[Display(Name = "Puntos BARRIDO REAL PREMIUM", GroupName = "22. Estados y alertas", Order = 20, Description = "Además de todas las puertas premium.")]
 	[Range(0, 100)]
-	public int ScoreTrapA { get => _cfg.V2.ScoreTrapA; set { _cfg.V2.ScoreTrapA = Math.Clamp(value, 0, 100); Recalcular(); } }
+	public int ScorePremiumMin { get => _cfg.V2.ScorePremiumMin; set { _cfg.V2.ScorePremiumMin = Math.Clamp(value, 0, 100); Recalcular(); } }
 
-	[Display(Name = "Puntos TRAMPA PREMIUM", GroupName = "22. Estados y alertas", Order = 30, Description = "Además de las 7 puertas.")]
-	[Range(0, 100)]
-	public int ScorePremium { get => _cfg.V2.ScorePremium; set { _cfg.V2.ScorePremium = Math.Clamp(value, 0, 100); Recalcular(); } }
-
-	[Display(Name = "PREMIUM: bloque A mínimo", GroupName = "22. Estados y alertas", Order = 40, Description = "")]
+	[Display(Name = "PREMIUM: bloque A mínimo", GroupName = "22. Estados y alertas", Order = 30, Description = "")]
 	[Range(0, 20)]
 	public int PremiumMinLevelScore { get => _cfg.V2.PremiumMinLevelScore; set { _cfg.V2.PremiumMinLevelScore = Math.Clamp(value, 0, 20); Recalcular(); } }
 
-	[Display(Name = "PREMIUM: recuperación máxima (barras)", GroupName = "22. Estados y alertas", Order = 50, Description = "")]
+	[Display(Name = "PREMIUM: recuperación máxima (barras)", GroupName = "22. Estados y alertas", Order = 40, Description = "")]
 	[Range(1, 20)]
 	public int PremiumMaxReclaimBars { get => _cfg.V2.PremiumMaxReclaimBars; set { _cfg.V2.PremiumMaxReclaimBars = Math.Clamp(value, 1, 20); Recalcular(); } }
 
-	[Display(Name = "UPGRADE PREMIUM: barras máximas", GroupName = "22. Estados y alertas", Order = 60, Description = "")]
+	[Display(Name = "UPGRADE PREMIUM: barras máximas", GroupName = "22. Estados y alertas", Order = 50, Description = "")]
 	[Range(1, 60)]
 	public int PremiumUpgradeMaxBars { get => _cfg.V2.PremiumUpgradeMaxBars; set { _cfg.V2.PremiumUpgradeMaxBars = Math.Clamp(value, 1, 60); Recalcular(); } }
 
-	[Display(Name = "RUPTURA: condiciones mínimas", GroupName = "22. Estados y alertas", Order = 70, Description = "")]
+	[Display(Name = "RUPTURA: condiciones mínimas", GroupName = "22. Estados y alertas", Order = 60, Description = "")]
 	[Range(1, 6)]
 	public int RuptureMinConditions { get => _cfg.V2.RuptureMinConditions; set { _cfg.V2.RuptureMinConditions = Math.Clamp(value, 1, 6); Recalcular(); } }
 
-	[Display(Name = "Aceptación: cierres", GroupName = "22. Estados y alertas", Order = 80, Description = "Cierres más allá del nivel.")]
+	[Display(Name = "Aceptación: cierres", GroupName = "22. Estados y alertas", Order = 70, Description = "Cierres más allá del nivel.")]
 	[Range(1, 10)]
 	public int AcceptanceCloses { get => _cfg.V2.AcceptanceCloses; set { _cfg.V2.AcceptanceCloses = Math.Clamp(value, 1, 10); Recalcular(); } }
 
-	[Display(Name = "RUPTURA: absorción máxima", GroupName = "22. Estados y alertas", Order = 90, Description = "Bloque C máximo para una ruptura.")]
+	[Display(Name = "RUPTURA: absorción máxima", GroupName = "22. Estados y alertas", Order = 80, Description = "Bloque C máximo para una ruptura.")]
 	[Range(0, 25)]
 	public int RuptureMaxAbsorptionScore { get => _cfg.V2.RuptureMaxAbsorptionScore; set { _cfg.V2.RuptureMaxAbsorptionScore = Math.Clamp(value, 0, 25); Recalcular(); } }
 
-	[Display(Name = "RUPTURA FALLIDA: ticks", GroupName = "22. Estados y alertas", Order = 100, Description = "")]
+	[Display(Name = "RUPTURA FALLIDA: ticks", GroupName = "22. Estados y alertas", Order = 90, Description = "")]
 	[Range(1, 40)]
 	public int FailedBreakTicks { get => _cfg.V2.FailedBreakTicks; set { _cfg.V2.FailedBreakTicks = Math.Clamp(value, 1, 40); Recalcular(); } }
 
-	[Display(Name = "RUPTURA FALLIDA: barras", GroupName = "22. Estados y alertas", Order = 110, Description = "")]
+	[Display(Name = "RUPTURA FALLIDA: barras", GroupName = "22. Estados y alertas", Order = 100, Description = "")]
 	[Range(1, 30)]
 	public int FailedBreakBars { get => _cfg.V2.FailedBreakBars; set { _cfg.V2.FailedBreakBars = Math.Clamp(value, 1, 30); Recalcular(); } }
 
-	[Display(Name = "Evaluación: barras máximas", GroupName = "22. Estados y alertas", Order = 120, Description = "")]
+	[Display(Name = "Evaluación: barras máximas", GroupName = "22. Estados y alertas", Order = 110, Description = "")]
 	[Range(3, 100)]
 	public int MaxEvaluationBars { get => _cfg.V2.MaxEvaluationBars; set { _cfg.V2.MaxEvaluationBars = Math.Clamp(value, 3, 100); Recalcular(); } }
 
-	[Display(Name = "Evaluación: segundos máximos", GroupName = "22. Estados y alertas", Order = 130, Description = "")]
+	[Display(Name = "Evaluación: segundos máximos", GroupName = "22. Estados y alertas", Order = 120, Description = "")]
 	[Range(30, 3600)]
 	public int MaxEvaluationSec { get => _cfg.V2.MaxEvaluationSec; set { _cfg.V2.MaxEvaluationSec = Math.Clamp(value, 30, 3600); Recalcular(); } }
 
-	[Display(Name = "Estado mínimo para alertar", GroupName = "22. Estados y alertas", Order = 140, Description = "Las trampas por debajo se ven en el panel pero no suenan.")]
+	[Display(Name = "Estado mínimo para alertar", GroupName = "22. Estados y alertas", Order = 130, Description = "REAL: suenan REAL y PREMIUM; PREMIUM: solo PREMIUM (el resto se ve en el panel).")]
 	public EstadoMinimoAlerta AlertMinState { get => _cfg.V2.AlertMinState; set { _cfg.V2.AlertMinState = value; RedrawChart(); } }
 
 	// --- 23. FVG / LVN ---------------------------------------------------------------------------------------

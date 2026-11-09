@@ -123,7 +123,7 @@ public sealed partial class MotorSweeps
 
 	internal void ModelosAlEstado(EvaluacionBarrido e, string tipo, DateTime utc)
 	{
-		if (tipo == "CONFIRMADO" && e.Estado.EsTrampa())
+		if (tipo == "CONFIRMADO" && e.Estado.EsReal())
 		{
 			// TRAMPA: arma MOD1 (entrada inicial con ARRANQUE sobre la zona del barrido) y los BFVG; invalida MOD4 contrario.
 			var z = new ZonaOperable

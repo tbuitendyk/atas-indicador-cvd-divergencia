@@ -174,7 +174,7 @@ public static class CsvV2
 			DateTime? T(string nombre) => DateTime.TryParseExact(V(nombre), new[] { Fecha, Fecha + ".fff" }, CultureInfo.InvariantCulture,
 				DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out var x) ? DateTime.SpecifyKind(x, DateTimeKind.Utc) : null;
 
-			if (!long.TryParse(V("EventId"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) || !Enum.TryParse<EstadoBarrido>(V("Estado"), out var estado) ||
+			if (!long.TryParse(V("EventId"), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) || TextosV2.DesdeTexto(V("Estado")) is not { } estado ||
 			    !DateTime.TryParse(V("T0Utc"), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var t0) || T("TimeConfirmUtc") is not { } confirmado)
 			{
 				continue;

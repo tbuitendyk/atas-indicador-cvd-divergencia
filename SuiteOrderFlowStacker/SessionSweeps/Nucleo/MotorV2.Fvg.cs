@@ -22,7 +22,7 @@ public sealed partial class MotorSweeps
 	{
 		Fvg2.AlNacer ??= f =>
 		{
-			foreach (var e in Evaluaciones.Where(e => e.Estado.EsTrampa()).ToList())
+			foreach (var e in Evaluaciones.Where(e => e.Estado.EsReal()).ToList())
 				RegistrarBfvg(e, f);
 		};
 
@@ -49,7 +49,7 @@ public sealed partial class MotorSweeps
 	/// </summary>
 	private void RegistrarBfvg(EvaluacionBarrido e, FvgV2 f)
 	{
-		if (!e.Estado.EsTrampa() || f.Signo != e.SignoGiro || f.Utc <= e.ExtremoUtc || !_bfvgRegistrados.Add((e.Id, f.Id)))
+		if (!e.Estado.EsReal() || f.Signo != e.SignoGiro || f.Utc <= e.ExtremoUtc || !_bfvgRegistrados.Add((e.Id, f.Id)))
 			return;
 
 		var fin = e.ExtremoUtc.AddMinutes(Math.Max(1, P2.BfvgWindowMin));

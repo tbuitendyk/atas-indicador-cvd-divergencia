@@ -60,7 +60,7 @@ public sealed partial class MotorSweeps
 				e.Transiciones.Add($"{f.Estado.Texto()} (CSV)");
 				Novedad(e, "CONFIRMADO", b.FinUtc, $"{e.Estado.Texto()} {e.Nombre} {Precio(e.L)} | {e.Total:0}/100 (CSV)");
 
-				if (e.Estado.EsTrampa())
+				if (e.Estado.EsReal())
 					RegistrarBfvgExistentes(e);
 
 				ModelosAlEstado(e, "CONFIRMADO", b.FinUtc);
@@ -72,13 +72,13 @@ public sealed partial class MotorSweeps
 
 			var transicion = f.Estado switch
 			{
-				EstadoBarrido.TrampaPremium => "UPGRADE PREMIUM",
+				EstadoBarrido.Premium => "UPGRADE PREMIUM",
 				EstadoBarrido.Fallido => "FALLIDO",
 				EstadoBarrido.RupturaFallida => "RUPTURA FALLIDA",
 				_ => f.Estado.Texto()
 			};
 
-			e.UpgradePremium |= f.Estado == EstadoBarrido.TrampaPremium;
+			e.UpgradePremium |= f.Estado == EstadoBarrido.Premium;
 			e.Transiciones.Add($"{transicion} (CSV)");
 			Novedad(e, transicion, b.FinUtc, $"{transicion} {e.Nombre} {Precio(e.L)} | {e.Total:0}/100 (CSV)");
 			ModelosAlEstado(e, transicion, b.FinUtc);

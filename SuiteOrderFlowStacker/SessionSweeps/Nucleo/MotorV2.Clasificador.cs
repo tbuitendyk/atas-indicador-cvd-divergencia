@@ -220,7 +220,7 @@ public sealed partial class MotorSweeps
 			{
 				Novedad(e, "CONFIRMADO", b.FinUtc, $"{e.Estado.Texto()} {e.Nombre} {Precio(e.L)} | {e.Total:0}/100");
 
-				if (e.Estado.EsTrampa())
+				if (e.Estado.EsReal())
 					RegistrarBfvgExistentes(e);
 
 				ModelosAlEstado(e, "CONFIRMADO", b.FinUtc);
@@ -268,7 +268,7 @@ public sealed partial class MotorSweeps
 
 		return e.Estado switch
 		{
-			EstadoBarrido.TrampaB or EstadoBarrido.TrampaA or EstadoBarrido.TrampaPremium => desde <= Math.Max(60, P2.MaxEvaluationBars * 4),
+			EstadoBarrido.Real or EstadoBarrido.Premium => desde <= Math.Max(60, P2.MaxEvaluationBars * 4),
 			EstadoBarrido.Ruptura => desde <= P2.FailedBreakBars,
 			_ => false
 		};

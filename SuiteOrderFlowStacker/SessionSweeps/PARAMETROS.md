@@ -81,9 +81,8 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 
 | Parámetro | En ATAS | Defecto | Rango | Descripción |
 |---|---|---|---|---|
-| `ScoreTrapB` | Puntos TRAMPA B | 55 | 0-100 | Puntuación (no probabilidad). |
-| `ScoreTrapA` | Puntos TRAMPA A | 70 | 0-100 |  |
-| `ScorePremium` | Puntos TRAMPA PREMIUM | 85 | 0-100 | Además de las 7 puertas. |
+| `ScoreRealMin` | Puntos BARRIDO REAL | 70 | 0-100 | Mínimo para BARRIDO DE LIQUIDEZ REAL (con toma de stops, absorción y recuperación). Puntuación, no probabilidad. |
+| `ScorePremiumMin` | Puntos BARRIDO REAL PREMIUM | 85 | 0-100 | Además de todas las puertas premium. |
 | `PremiumMinLevelScore` | PREMIUM: bloque A mínimo | 12 | 0-20 |  |
 | `PremiumMaxReclaimBars` | PREMIUM: recuperación máxima (barras) | 3 | 1-20 |  |
 | `PremiumUpgradeMaxBars` | UPGRADE PREMIUM: barras máximas | 10 | 1-60 |  |
@@ -94,7 +93,7 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `FailedBreakBars` | RUPTURA FALLIDA: barras | 5 | 1-30 |  |
 | `MaxEvaluationBars` | Evaluación: barras máximas | 15 | 3-100 |  |
 | `MaxEvaluationSec` | Evaluación: segundos máximos | 300 | 30-3600 |  |
-| `AlertMinState` | Estado mínimo para alertar | TrampaA |  | Las trampas por debajo se ven en el panel pero no suenan. |
+| `AlertMinState` | Estado mínimo para alertar | Real |  | REAL: suenan REAL y PREMIUM; PREMIUM: solo PREMIUM (el resto se ve en el panel). |
 
 ## 23. FVG / LVN
 

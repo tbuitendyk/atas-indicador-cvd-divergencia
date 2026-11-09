@@ -24,14 +24,11 @@ public enum ModoStop
 
 public enum EstadoMinimoAlerta
 {
-	[Display(Name = "TRAMPA B")]
-	TrampaB,
+	[Display(Name = "BARRIDO REAL")]
+	Real,
 
-	[Display(Name = "TRAMPA A")]
-	TrampaA,
-
-	[Display(Name = "TRAMPA PREMIUM")]
-	TrampaPremium
+	[Display(Name = "BARRIDO REAL PREMIUM")]
+	Premium
 }
 
 /// <summary>Una fuente de la suite: encendida o no y su peso (0-2) sobre los puntos que aporta (3.3).</summary>
@@ -122,9 +119,8 @@ public sealed class ParametrosV2
 	public int StopBufferTicks { get; set; } = 3;
 
 	// Estados
-	public int ScoreTrapB { get; set; } = 55;
-	public int ScoreTrapA { get; set; } = 70;
-	public int ScorePremium { get; set; } = 85;
+	public int ScoreRealMin { get; set; } = 70;
+	public int ScorePremiumMin { get; set; } = 85;
 	public int PremiumMinLevelScore { get; set; } = 12;
 	public int PremiumMaxReclaimBars { get; set; } = 3;
 	public int PremiumUpgradeMaxBars { get; set; } = 10;
@@ -135,7 +131,7 @@ public sealed class ParametrosV2
 	public int FailedBreakBars { get; set; } = 5;
 	public int MaxEvaluationBars { get; set; } = 15;
 	public int MaxEvaluationSec { get; set; } = 300;
-	public EstadoMinimoAlerta AlertMinState { get; set; } = EstadoMinimoAlerta.TrampaA;
+	public EstadoMinimoAlerta AlertMinState { get; set; } = EstadoMinimoAlerta.Real;
 
 	// FVG / LVN
 	public int FvgMinTicks { get; set; } = 4;

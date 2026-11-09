@@ -152,7 +152,7 @@ internal static class PruebasV2Clasificador
 			x.Iceberg(mbo: true);
 			var t = x.Evaluar();
 			var lado = s > 0 ? "buyside" : "sellside";
-			c.Check($"T1 {lado}: TRAMPA PREMIUM al cierre de vuelta", $"{string.Join(",", t)} | {x.E.Estado}", "TRAMPA PREMIUM | TrampaPremium");
+			c.Check($"T1 {lado}: TRAMPA PREMIUM al cierre de vuelta", $"{string.Join(",", t)} | {x.E.Estado}", "BARRIDO REAL PREMIUM | Premium");
 			c.Check($"T1 {lado}: bloques A-E, total y puertas", $"{F(x.E.ScoreA)} {F(x.E.ScoreB)} {F(x.E.ScoreC)} {F(x.E.ScoreD)} {F(x.E.ScoreE)} = {F(x.E.Total)} | {x.E.PremiumGates}", "15 16 25 25 10 = 91 | 1111111");
 			c.Check($"T1 {lado}: congelado, ReclaimBars 3, recuperación 20 ticks", $"{x.E.Congelada} {x.E.ReclaimBars} {x.E.RecoveryTicks}", "True 3 20");
 			c.Check($"T9 {lado}: el cierre de vuelta suma una sola vez", x.E.Desglose.Count(d => d.Texto.StartsWith("Cierre de vuelta")).ToString(), "1");
@@ -164,7 +164,7 @@ internal static class PruebasV2Clasificador
 		t2.Trampa();
 		t2.SuiteBasica();
 		t2.Evaluar();
-		c.Check("T2 sin iceberg ni F2 >= 3 (puerta 3): TRAMPA A", $"{t2.E.Estado} {F(t2.E.Total)} {t2.E.PremiumGates}", "TrampaA 85 1101111");
+		c.Check("T2 sin iceberg ni F2 >= 3 (puerta 3): TRAMPA A", $"{t2.E.Estado} {F(t2.E.Total)} {t2.E.PremiumGates}", "Real 85 1101111");
 
 		var t3 = new Escenario(+1, new DateTime(2026, 11, 2, 9, 31, 0));
 		t3.Trampa();
@@ -217,7 +217,7 @@ internal static class PruebasV2Clasificador
 		t10.SuiteBasica();
 		t10.Iceberg(mbo: true);
 		t10.Evaluar();
-		c.Check("T10 subasta sin terminar: -4 y no premium (puerta 4)", $"{F(t10.E.Penalties)} {t10.E.Estado} {t10.E.PremiumGates[3]}", "4 TrampaA 0");
+		c.Check("T10 subasta sin terminar: -4 y no premium (puerta 4)", $"{F(t10.E.Penalties)} {t10.E.Estado} {t10.E.PremiumGates[3]}", "4 Real 0");
 
 		var t11 = new Escenario(+1, new DateTime(2026, 11, 2, 9, 31, 0));
 		t11.Trampa(f3Seg: 30);
@@ -225,7 +225,7 @@ internal static class PruebasV2Clasificador
 		t11.Iceberg(mbo: true);
 		t11.Evaluar();
 		c.Check("T11 F3 lenta: -3, sin F3 rápida (trampa por giro de delta, no premium)",
-			$"{F(t11.E.Penalties)} {t11.E.F3Rapida} {t11.E.Estado}", "3 False TrampaA");
+			$"{F(t11.E.Penalties)} {t11.E.F3Rapida} {t11.E.Estado}", "3 False Real");
 
 		var t12 = new Escenario(+1, new DateTime(2026, 11, 2, 9, 31, 0));
 		t12.Pine = false;
@@ -233,7 +233,7 @@ internal static class PruebasV2Clasificador
 		t12.SuiteBasica();
 		t12.Iceberg(mbo: true);
 		t12.Evaluar();
-		c.Check("T12 Pine en contra: el estado lo decide el Order Flow (sigue PREMIUM) y se marca CONFLICTO PINE", $"{t12.E.Estado} {t12.E.ConflictoPine} {F(t12.E.ScoreE)}", "TrampaPremium True 8");
+		c.Check("T12 Pine en contra: el estado lo decide el Order Flow (sigue PREMIUM) y se marca CONFLICTO PINE", $"{t12.E.Estado} {t12.E.ConflictoPine} {F(t12.E.ScoreE)}", "Premium True 8");
 
 		var t13 = new Escenario(+1, new DateTime(2026, 11, 2, 9, 47, 0));
 		t13.Trampa();
@@ -248,12 +248,12 @@ internal static class PruebasV2Clasificador
 		t15.Trampa();
 		t15.SuiteBasica();
 		t15.Evaluar();
-		c.Check("T15 primero TRAMPA A", t15.E.Estado.ToString(), "TrampaA");
+		c.Check("T15 primero TRAMPA A", t15.E.Estado.ToString(), "Real");
 		t15.Iceberg(mbo: true);
 		var n15 = t15.M.Barras.Count;
 		t15.Barra(20, Enumerable.Range(-14, 4).Select(k => (k, 12.5m, 12.5m)).ToArray());
 		var tr15 = t15.Evaluar(n15 + 1);
-		c.Check("T15 llega el iceberg: UPGRADE PREMIUM (sin repetir la confirmación)", $"{string.Join(",", tr15)} {t15.E.Estado} {t15.E.UpgradePremium}", "UPGRADE PREMIUM TrampaPremium True");
+		c.Check("T15 llega el iceberg: UPGRADE PREMIUM (sin repetir la confirmación)", $"{string.Join(",", tr15)} {t15.E.Estado} {t15.E.UpgradePremium}", "UPGRADE PREMIUM Premium True");
 
 		var t18 = new Escenario(+1, new DateTime(2026, 11, 2, 9, 31, 0));
 		t18.Trampa();

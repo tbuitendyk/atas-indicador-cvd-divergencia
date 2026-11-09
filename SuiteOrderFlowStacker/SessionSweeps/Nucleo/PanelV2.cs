@@ -159,7 +159,7 @@ public sealed partial class MotorSweeps
 
 	private void Barrido(List<LineaPanel> L, EvaluacionBarrido e, OpcionesPanel o)
 	{
-		var trampa = e.Estado.EsTrampa() || e.Estado is EstadoBarrido.Pendiente;
+		var trampa = e.Estado.EsReal() || e.Estado is EstadoBarrido.Pendiente;
 		var dir = e.Estado is EstadoBarrido.Ruptura or EstadoBarrido.Fallido ? e.Signo : e.SignoGiro;
 		L.Add(LineaPanel.Seccion($"2. BARRIDO DE LIQUIDEZ EXTERNA ({TiempoV2.HoraCdmx(e.T0Utc)})"));
 		L.Add(LineaPanel.De(new Segmento($"{e.Nombre} {Precio(e.L)} · Nueva dirección: "), new Segmento(dir > 0 ? "ALCISTA" : "BAJISTA", ColorSigno(dir), true)));
@@ -167,7 +167,7 @@ public sealed partial class MotorSweeps
 		var estado = e.Provisional ? $"PROVISIONAL {e.Total:0}/100" : $"{e.Estado.Texto()} {e.Total:0}/100{(e.UpgradePremium ? " · UPGRADE PREMIUM" : "")}";
 		var color = e.Provisional ? ColorPanel.Naranja : e.Estado switch
 		{
-			EstadoBarrido.TrampaB or EstadoBarrido.TrampaA or EstadoBarrido.TrampaPremium => ColorSigno(e.SignoGiro),
+			EstadoBarrido.Real or EstadoBarrido.Premium => ColorSigno(e.SignoGiro),
 			EstadoBarrido.Ruptura => ColorPanel.Azul,
 			EstadoBarrido.Fallido or EstadoBarrido.RupturaFallida => ColorPanel.Morado,
 			_ => ColorPanel.Gris

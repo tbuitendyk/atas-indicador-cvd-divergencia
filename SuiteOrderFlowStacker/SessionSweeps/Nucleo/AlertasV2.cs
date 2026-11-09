@@ -59,7 +59,7 @@ public static class PoliticaAlertasV2
 
 		switch (n.Tipo)
 		{
-			case "CONFIRMADO" when e is not null && e.Estado.EsTrampa() && e.Estado.Rango() >= (int)p.AlertMinState + 1:
+			case "CONFIRMADO" when e is not null && e.Estado.EsReal() && e.Estado.Rango() >= (int)p.AlertMinState + 1:
 				return new AlertaV2(clave, Clasificacion, $"{simbolo} {hora} · {n.Texto}", false, null, null);
 
 			case "UPGRADE PREMIUM":

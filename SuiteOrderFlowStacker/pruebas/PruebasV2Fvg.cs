@@ -62,7 +62,7 @@ internal static class PruebasV2Fvg
 		var trampa = new EvaluacionBarrido
 		{
 			Id = 5, Nivel = nivel, Signo = 1, L = 21420, Extremo = 21422, T0Utc = Utc(new DateTime(2026, 11, 2, 9, 44, 30)), ExtremoUtc = Utc(new DateTime(2026, 11, 2, 9, 44, 40)),
-			Estado = EstadoBarrido.TrampaA, Congelada = true
+			Estado = EstadoBarrido.Real, Congelada = true
 		};
 
 		motor.Leer(mm => { mm.Evaluaciones.Add(trampa); return 0; });

@@ -90,7 +90,7 @@ public partial class SessionSweepsPro
 	{
 		_ when provisional && e is EstadoBarrido.Pendiente or EstadoBarrido.Indeterminado => ColorPanel.Naranja,
 		EstadoBarrido.SinLiquidez => ColorPanel.Gris,
-		EstadoBarrido.TrampaB or EstadoBarrido.TrampaA or EstadoBarrido.TrampaPremium => signoGiro > 0 ? ColorPanel.Verde : ColorPanel.Rojo,
+		EstadoBarrido.Real or EstadoBarrido.Premium => signoGiro > 0 ? ColorPanel.Verde : ColorPanel.Rojo,
 		EstadoBarrido.Ruptura => ColorPanel.Azul,
 		EstadoBarrido.Fallido or EstadoBarrido.RupturaFallida => ColorPanel.Morado,
 		_ => provisional ? ColorPanel.Naranja : ColorPanel.Gris
@@ -171,9 +171,9 @@ public partial class SessionSweepsPro
 				var color = ColorDe(colorPanel);
 				var (arriba, abajo) = (Math.Max(b.L, b.Extremo), Math.Min(b.L, b.Extremo));
 				var caja = new Rectangle(X(desde), Y(arriba), Math.Max(2, X(hasta) + AnchoVela - X(desde)), Math.Max(2, Y(abajo) - Y(arriba)));
-				var alfa = b.Estado switch { EstadoBarrido.TrampaPremium => 110, EstadoBarrido.TrampaA => 85, EstadoBarrido.TrampaB => 60, _ => 45 };
+				var alfa = b.Estado switch { EstadoBarrido.Premium => 110, EstadoBarrido.Real => 85, _ => 45 };
 				context.FillRectangle(Color.FromArgb(alfa, color), caja);
-				context.DrawRectangle(new RenderPen(b.Estado == EstadoBarrido.TrampaPremium ? ColorDe(ColorPanel.Dorado) : color, b.Estado == EstadoBarrido.TrampaPremium ? 2 : 1), caja);
+				context.DrawRectangle(new RenderPen(b.Estado == EstadoBarrido.Premium ? ColorDe(ColorPanel.Dorado) : color, b.Estado == EstadoBarrido.Premium ? 2 : 1), caja);
 				var texto = $"{(b.Provisional ? "PROVISIONAL · " : "")}{b.Estado.Texto()} {b.Total:0} · {b.Nombre}";
 				var yTexto = b.SignoGiro < 0 ? caja.Top - 14 : caja.Bottom + 1;
 				context.DrawString(texto, _fuente!, color, new Rectangle(caja.X, yTexto, 320, 13), _izquierda);

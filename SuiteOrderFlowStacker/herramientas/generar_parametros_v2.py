@@ -102,9 +102,8 @@ GRUPOS = [
         ("StopBufferTicks", "int", P + "StopBufferTicks", "Margen del stop (ticks)", "Más allá de la zona, estructura o POC; también para FALLIDO.", 0, 40, True),
     ]),
     ("22. Estados y alertas", [
-        ("ScoreTrapB", "int", P + "ScoreTrapB", "Puntos TRAMPA B", "Puntuación (no probabilidad).", 0, 100, True),
-        ("ScoreTrapA", "int", P + "ScoreTrapA", "Puntos TRAMPA A", "", 0, 100, True),
-        ("ScorePremium", "int", P + "ScorePremium", "Puntos TRAMPA PREMIUM", "Además de las 7 puertas.", 0, 100, True),
+        ("ScoreRealMin", "int", P + "ScoreRealMin", "Puntos BARRIDO REAL", "Mínimo para BARRIDO DE LIQUIDEZ REAL (con toma de stops, absorción y recuperación). Puntuación, no probabilidad.", 0, 100, True),
+        ("ScorePremiumMin", "int", P + "ScorePremiumMin", "Puntos BARRIDO REAL PREMIUM", "Además de todas las puertas premium.", 0, 100, True),
         ("PremiumMinLevelScore", "int", P + "PremiumMinLevelScore", "PREMIUM: bloque A mínimo", "", 0, 20, True),
         ("PremiumMaxReclaimBars", "int", P + "PremiumMaxReclaimBars", "PREMIUM: recuperación máxima (barras)", "", 1, 20, True),
         ("PremiumUpgradeMaxBars", "int", P + "PremiumUpgradeMaxBars", "UPGRADE PREMIUM: barras máximas", "", 1, 60, True),
@@ -116,7 +115,7 @@ GRUPOS = [
         ("MaxEvaluationBars", "int", P + "MaxEvaluationBars", "Evaluación: barras máximas", "", 3, 100, True),
         ("MaxEvaluationSec", "int", P + "MaxEvaluationSec", "Evaluación: segundos máximos", "", 30, 3600, True),
         ("AlertMinState", "enum:EstadoMinimoAlerta", P + "AlertMinState", "Estado mínimo para alertar",
-         "Las trampas por debajo se ven en el panel pero no suenan.", None, None, False),
+         "REAL: suenan REAL y PREMIUM; PREMIUM: solo PREMIUM (el resto se ve en el panel).", None, None, False),
     ]),
     ("23. FVG / LVN", [
         ("FvgMinTicks", "int", P + "FvgMinTicks", "FVG: tamaño mínimo (ticks)", "", 1, 100, True),

@@ -63,24 +63,27 @@ internal static class PruebasV2Alertas
 		NovedadV2 N(string tipo, EvaluacionBarrido e, SetupModelo? s = null) => new() { Tipo = tipo, Evaluacion = e, Setup = s, Utc = Utc(new DateTime(2026, 10, 30, 9, 55, 0)), Texto = tipo };
 		AlertaV2? Al(NovedadV2 n) => PoliticaAlertasV2.Evaluar(n, p, "NQ", x => x.ToString("#,##0.00", System.Globalization.CultureInfo.InvariantCulture), RaizInstrumento.NQ);
 
-		c.Check("TRAMPA B con mínimo TRAMPA A: no suena", Al(N("CONFIRMADO", Ev(EstadoBarrido.TrampaB))) is null ? "no" : "sí", "no");
-		c.Check("TRAMPA A: suena (clasificación)", Al(N("CONFIRMADO", Ev(EstadoBarrido.TrampaA)))?.Categoria ?? "no", "Clasificacion");
+		c.Check("INDETERMINADO (antes TRAMPA B): no suena", Al(N("CONFIRMADO", Ev(EstadoBarrido.Indeterminado))) is null ? "no" : "sí", "no");
+		c.Check("BARRIDO REAL: suena (clasificación)", Al(N("CONFIRMADO", Ev(EstadoBarrido.Real)))?.Categoria ?? "no", "Clasificacion");
+		var soloPremium = new ParametrosV2 { NewsTimes = "", AlertMinState = EstadoMinimoAlerta.Premium };
+		c.Check("con mínimo PREMIUM, un REAL no suena y un PREMIUM sí",
+			$"{PoliticaAlertasV2.Evaluar(N("CONFIRMADO", Ev(EstadoBarrido.Real)), soloPremium, "NQ", x => "", RaizInstrumento.NQ) is null} {PoliticaAlertasV2.Evaluar(N("CONFIRMADO", Ev(EstadoBarrido.Premium)), soloPremium, "NQ", x => "", RaizInstrumento.NQ) is null}", "True False");
 		c.Check("RUPTURA confirmada sola no suena (suena 'RUPTURA (arma MOD4)')", $"{Al(N("CONFIRMADO", Ev(EstadoBarrido.Ruptura))) is null} {Al(N("RUPTURA (arma MOD4)", Ev(EstadoBarrido.Ruptura)))?.Categoria}", "True Modelos");
 		c.Check("UPGRADE PREMIUM, MOD3, FALLIDO y RUPTURA FALLIDA suenan",
-			string.Join(" ", new[] { "UPGRADE PREMIUM", "MOD3 ACTIVADO", "FALLIDO", "RUPTURA FALLIDA" }.Select(t => Al(N(t, Ev(EstadoBarrido.TrampaA)))?.Categoria ?? "-")),
+			string.Join(" ", new[] { "UPGRADE PREMIUM", "MOD3 ACTIVADO", "FALLIDO", "RUPTURA FALLIDA" }.Select(t => Al(N(t, Ev(EstadoBarrido.Real)))?.Categoria ?? "-")),
 			"Clasificacion Modelos Fallidos Fallidos");
-		c.Check("con NOTICIA nunca", Al(N("CONFIRMADO", Ev(EstadoBarrido.TrampaPremium, noticia: true))) is null ? "nada" : "suena", "nada");
+		c.Check("con NOTICIA nunca", Al(N("CONFIRMADO", Ev(EstadoBarrido.Premium, noticia: true))) is null ? "nada" : "suena", "nada");
 		var pn = new ParametrosV2 { NewsTimes = "09:55", NewsBlockMin = 5 };
-		c.Check("dentro del bloqueo de una hora de noticia tampoco", PoliticaAlertasV2.Evaluar(N("CONFIRMADO", Ev(EstadoBarrido.TrampaPremium)), pn, "NQ", x => "", RaizInstrumento.NQ) is null ? "nada" : "suena", "nada");
+		c.Check("dentro del bloqueo de una hora de noticia tampoco", PoliticaAlertasV2.Evaluar(N("CONFIRMADO", Ev(EstadoBarrido.Premium)), pn, "NQ", x => "", RaizInstrumento.NQ) is null ? "nada" : "suena", "nada");
 		c.Check("la clave es la misma para el mismo evento (una vez por evento)", Al(N("FALLIDO", Ev(EstadoBarrido.Fallido)))?.Clave == Al(N("FALLIDO", Ev(EstadoBarrido.Fallido)))?.Clave ? "sí" : "no", "sí");
-		c.Check("modelos invalidados o cerrados: solo panel y CSV", $"{Al(N("MODELO CERRADO", Ev(EstadoBarrido.TrampaA))) is null} {Al(N("MODELO INVALIDADO", Ev(EstadoBarrido.TrampaA))) is null}", "True True");
+		c.Check("modelos invalidados o cerrados: solo panel y CSV", $"{Al(N("MODELO CERRADO", Ev(EstadoBarrido.Real))) is null} {Al(N("MODELO INVALIDADO", Ev(EstadoBarrido.Real))) is null}", "True True");
 
 		c.Seccion("S10 Correo: cada toma de liquidez EXTERNA válida con entrada, SL y TP");
 		var gatillo = new AnalisisGatillo { Resultado = ResultadoGatillo.Valido, Tipo = TipoGatillo.Arranque, Score = 81, Direccion = 1 };
 		gatillo.Razones.Add("F2 absorción en la zona");
 		var setup = new SetupModelo
 		{
-			Id = 7, Modelo = "MOD1", Etiqueta = "MOD1", Signo = 1, Barrido = Ev(EstadoBarrido.TrampaA), Zona = new ZonaOperable { Tipo = "FVG+LVN", Bajo = 21381, Alto = 21384, Signo = 1 },
+			Id = 7, Modelo = "MOD1", Etiqueta = "MOD1", Signo = 1, Barrido = Ev(EstadoBarrido.Real), Zona = new ZonaOperable { Tipo = "FVG+LVN", Bajo = 21381, Alto = 21384, Signo = 1 },
 			Estado = EstadoModelo.Entrada, Gatillo = gatillo, Entrada = 21385.25m, Stop = 21379.75m, Tp1 = 21393.50m, Tp2 = 21420m, Riesgo = new PlanRiesgo(200, 7, 22, 5, false)
 		};
 		var correo = Al(N("GATILLO VÁLIDO", setup.Barrido!, setup));
@@ -91,7 +94,7 @@ internal static class PruebasV2Alertas
 			new[] { "ENTRADA 21,385.25", "STOP    21,379.75", "TP1     21,393.50  (R:R 1.5)", "TP2     21,420.00", "7 NQ", "Estadística simulada; no es un registro de operaciones reales." }
 				.All(cuerpo.Contains) ? "sí" : cuerpo, "sí");
 		var interna = new NivelLiquidez { Id = 2, Precio = 21390, Lado = Lado.Sellside, Origen = "Londres", Grupo = "sesion:Londres" };
-		setup.Barrido = new EvaluacionBarrido { Id = 98, Nivel = interna, Signo = -1, L = 21390, Estado = EstadoBarrido.TrampaA };
+		setup.Barrido = new EvaluacionBarrido { Id = 98, Nivel = interna, Signo = -1, L = 21390, Estado = EstadoBarrido.Real };
 		var sinCorreo = Al(N("GATILLO VÁLIDO", setup.Barrido, setup));
 		c.Check("sobre liquidez interna: alerta sin correo", sinCorreo is null ? "nada" : $"{sinCorreo.Categoria} {sinCorreo.Correo}", "Entrada False");
 

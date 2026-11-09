@@ -12,9 +12,11 @@ public enum EstadoBarrido
 {
 	Pendiente,
 	SinLiquidez,
-	TrampaB,
-	TrampaA,
-	TrampaPremium,
+	/// <summary>BARRIDO DE LIQUIDEZ REAL (v3): toma de liquidez y recuperación confirmadas, >= ScoreRealMin.</summary>
+	Real,
+
+	/// <summary>BARRIDO DE LIQUIDEZ REAL PREMIUM: >= ScorePremiumMin y todas las puertas.</summary>
+	Premium,
 	Ruptura,
 	RupturaFallida,
 	Fallido,
@@ -34,18 +36,27 @@ public static class TextosV2
 	{
 		EstadoBarrido.Pendiente => "PENDIENTE",
 		EstadoBarrido.SinLiquidez => "SIN LIQ",
-		EstadoBarrido.TrampaB => "TRAMPA B",
-		EstadoBarrido.TrampaA => "TRAMPA A",
-		EstadoBarrido.TrampaPremium => "TRAMPA PREMIUM",
-		EstadoBarrido.Ruptura => "RUPTURA",
+		EstadoBarrido.Real => "BARRIDO REAL",
+		EstadoBarrido.Premium => "BARRIDO REAL PREMIUM",
+		EstadoBarrido.Ruptura => "RUPTURA / ACEPTACIÓN",
 		EstadoBarrido.RupturaFallida => "RUPTURA FALLIDA",
 		EstadoBarrido.Fallido => "FALLIDO",
 		_ => "INDETERMINADO"
 	};
 
-	public static bool EsTrampa(this EstadoBarrido e) => e is EstadoBarrido.TrampaB or EstadoBarrido.TrampaA or EstadoBarrido.TrampaPremium;
+	/// <summary>Barrido de liquidez real (REAL o PREMIUM): el que arma el Modelo A.</summary>
+	public static bool EsReal(this EstadoBarrido e) => e is EstadoBarrido.Real or EstadoBarrido.Premium;
 
-	public static int Rango(this EstadoBarrido e) => e switch { EstadoBarrido.TrampaB => 1, EstadoBarrido.TrampaA => 2, EstadoBarrido.TrampaPremium => 3, _ => 0 };
+	public static int Rango(this EstadoBarrido e) => e switch { EstadoBarrido.Real => 1, EstadoBarrido.Premium => 2, _ => 0 };
+
+	/// <summary>Estados guardados por la v2 en el CSV (TRAMPA B/A/PREMIUM) → v3.</summary>
+	public static EstadoBarrido? DesdeTexto(string s) => s switch
+	{
+		"TrampaPremium" => EstadoBarrido.Premium,
+		"TrampaA" => EstadoBarrido.Real,
+		"TrampaB" => EstadoBarrido.Indeterminado,
+		_ => Enum.TryParse<EstadoBarrido>(s, out var e) ? e : null
+	};
 
 	public static string Texto(this Tendencia t) => t switch { Tendencia.Alcista => "ALCISTA", Tendencia.Bajista => "BAJISTA", _ => "RANGO" };
 
@@ -225,11 +236,9 @@ public static class Clasificador
 		{
 			nuevo = EstadoBarrido.SinLiquidez;
 		}
-		else if (reclaim && absorcion && arranque && tomaStops && e.Total >= c.P.ScoreTrapB)
+		else if (reclaim && absorcion && arranque && tomaStops && e.Total >= c.P.ScoreRealMin)
 		{
-			nuevo = e.Total >= c.P.ScorePremium && e.PremiumGates.All(x => x == '1') ? EstadoBarrido.TrampaPremium
-				: e.Total >= c.P.ScoreTrapA ? EstadoBarrido.TrampaA
-				: EstadoBarrido.TrampaB;
+			nuevo = e.Total >= c.P.ScorePremiumMin && e.PremiumGates.All(x => x == '1') ? EstadoBarrido.Premium : EstadoBarrido.Real;
 		}
 		else if (!reclaim && CondicionesRuptura(e, c) >= c.P.RuptureMinConditions)
 		{
@@ -266,7 +275,7 @@ public static class Clasificador
 		var desde = b.Count - 1 - e.BarraConfirmacion;
 		var tick = c.Tick;
 
-		if (e.Estado.EsTrampa())
+		if (e.Estado.EsReal())
 		{
 			// FALLIDO: cierre más allá del extremo + StopBufferTicks.
 			if (e.Signo * (u.Close - (e.Extremo + e.Signo * c.P.StopBufferTicks * tick)) > 0)
@@ -277,14 +286,14 @@ public static class Clasificador
 			}
 
 			// UPGRADE PREMIUM dentro de PremiumUpgradeMaxBars barras.
-			if (e.Estado != EstadoBarrido.TrampaPremium && desde <= c.P.PremiumUpgradeMaxBars)
+			if (e.Estado != EstadoBarrido.Premium && desde <= c.P.PremiumUpgradeMaxBars)
 			{
 				var congelado = (e.Total, e.Desglose, e.PremiumGates);
 				Medir(e, c);
 
-				if (e.Total >= c.P.ScorePremium && e.PremiumGates.All(x => x == '1'))
+				if (e.Total >= c.P.ScorePremiumMin && e.PremiumGates.All(x => x == '1'))
 				{
-					e.Estado = EstadoBarrido.TrampaPremium;
+					e.Estado = EstadoBarrido.Premium;
 					e.UpgradePremium = true;
 					e.Transiciones.Add($"{TiempoV2.HoraEt(u.FinUtc)} UPGRADE PREMIUM ({e.Total:0}/100)");
 					return "UPGRADE PREMIUM";
@@ -707,8 +716,8 @@ public static class Clasificador
 		if (!arranque)
 			e.Faltan.Add("falta F3 o giro de delta");
 
-		if (e.Total < c.P.ScoreTrapB)
-			e.Faltan.Add($"puntuación {e.Total:0} < {c.P.ScoreTrapB}");
+		if (e.Total < c.P.ScoreRealMin)
+			e.Faltan.Add($"puntuación {e.Total:0} < {c.P.ScoreRealMin}");
 	}
 
 	private static bool Dentro(decimal precio, decimal min, decimal max) => precio >= min && precio <= max;

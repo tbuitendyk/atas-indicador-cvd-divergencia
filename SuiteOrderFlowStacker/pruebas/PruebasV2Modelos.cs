@@ -188,7 +188,7 @@ internal static class PruebasV2Modelos
 		c.Seccion("S7 T27 y T20: MOD1 no acepta continuidad; un LVN MANUAL del botón LVN arma MOD2");
 		var s27 = new SimMotor();
 		var nivel = new NivelLiquidez { Id = 77, Precio = 21420, Lado = Lado.Buyside, Grupo = "dia", Origen = "Dia anterior" };
-		var trampa = new EvaluacionBarrido { Id = 70, Nivel = nivel, Signo = 1, L = 21420, Extremo = 21422, Estado = EstadoBarrido.TrampaA, Congelada = true, BarraT0 = 0 };
+		var trampa = new EvaluacionBarrido { Id = 70, Nivel = nivel, Signo = 1, L = 21420, Extremo = 21422, Estado = EstadoBarrido.Real, Congelada = true, BarraT0 = 0 };
 		s27.M.Leer(m => { m.ModelosAlEstado(trampa, "CONFIRMADO", Utc(new DateTime(2026, 10, 30, 9, 41, 0))); return 0; });
 		var mod1 = s27.Setups.Single(x => x.Modelo == "MOD1");
 		c.Check("T27 la TRAMPA arma MOD1 corto que exige ARRANQUE (sin continuidad)", $"{mod1.Signo} {mod1.PermiteContinuidad} {mod1.TextoEstado}", "-1 False ARMADO");
