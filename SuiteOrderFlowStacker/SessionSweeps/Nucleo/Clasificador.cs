@@ -87,7 +87,12 @@ public sealed class FuentesBus : IFuentesSuite
 
 	public EstadoFuente Estado(FuenteSuite fuente) => _canal.Estado(fuente, _ahora());
 
-	public List<T> Consultar<T>(DateTime desde, DateTime hasta, Func<T, bool>? filtro = null) where T : EventoSuite => _canal.Consultar(desde, hasta, filtro);
+	/// <summary>Eventos deduplicados (3.2) y sin los de fuentes con otra versión del bus.</summary>
+	public List<T> Consultar<T>(DateTime desde, DateTime hasta, Func<T, bool>? filtro = null) where T : EventoSuite
+	{
+		var ahora = _ahora();
+		return SuiteEventBus.Deduplicar(_canal.Consultar(desde, hasta, filtro).Where(e => _canal.Estado(e.Fuente, ahora) != EstadoFuente.VersionDistinta));
+	}
 }
 
 /// <summary>Evaluación de un barrido de un nivel (7): datos medidos, bloques A-E, puertas, estado y transiciones.</summary>

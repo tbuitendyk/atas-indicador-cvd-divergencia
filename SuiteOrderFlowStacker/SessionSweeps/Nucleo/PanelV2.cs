@@ -148,7 +148,13 @@ public sealed partial class MotorSweeps
 		if (peso is { Enabled: false })
 			return "APAGADO";
 
-		return Fuentes.Estado(f) switch { EstadoFuente.Cargado => "CARGADO", EstadoFuente.SinDatos => "SIN DATOS", _ => "NO CARGADO" };
+		return Fuentes.Estado(f) switch
+		{
+			EstadoFuente.Cargado => "CARGADO",
+			EstadoFuente.SinDatos => "SIN DATOS",
+			EstadoFuente.VersionDistinta => "VERSIÓN DISTINTA",
+			_ => "NO CARGADO"
+		};
 	}
 
 	private void Barrido(List<LineaPanel> L, EvaluacionBarrido e, OpcionesPanel o)

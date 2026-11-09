@@ -357,6 +357,7 @@ public partial class ThermalVolumeProfileLVN
 		{
 			EstadoFuente.Cargado => new Segmento("CONECTADO", ColorPanel.Verde, true),
 			EstadoFuente.SinDatos => new Segmento("SIN DATOS", ColorPanel.Naranja),
+			EstadoFuente.VersionDistinta => new Segmento("VERSIÓN DISTINTA", ColorPanel.Rojo, true),
 			_ => new Segmento("NO CARGADO (añádalo a un gráfico de 1 minuto)", ColorPanel.Amarillo)
 		}));
 

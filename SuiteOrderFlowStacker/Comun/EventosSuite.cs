@@ -28,7 +28,10 @@ public enum EstadoFuente
 {
 	NoCargado,
 	SinDatos,
-	Cargado
+	Cargado,
+
+	/// <summary>Late con otra versión del bus (otra DLL o una versión vieja): sus eventos no se usan.</summary>
+	VersionDistinta
 }
 
 /// <summary>Base de todo lo que viaja por el bus. Id estable: el mismo hecho se actualiza (Version sube).</summary>
@@ -42,6 +45,9 @@ public abstract class EventoSuite
 
 	/// <summary>Precio de referencia para las consultas por rango de precio.</summary>
 	public abstract decimal PrecioReferencia { get; }
+
+	/// <summary>Dirección del hecho (true compra / false venta; null sin dirección), para deduplicar.</summary>
+	public virtual bool? LadoCompra => null;
 }
 
 public sealed class IcebergEvent : EventoSuite
@@ -63,6 +69,8 @@ public sealed class IcebergEvent : EventoSuite
 	public bool AltaProbabilidad { get; init; }
 
 	public override decimal PrecioReferencia => Precio;
+
+	public override bool? LadoCompra => Compra;
 }
 
 public sealed class StopsEvent : EventoSuite
@@ -80,6 +88,8 @@ public sealed class StopsEvent : EventoSuite
 	public string Zona { get; init; } = "";
 
 	public override decimal PrecioReferencia => Extremo;
+
+	public override bool? LadoCompra => Compra;
 }
 
 public sealed class SweepTrackerEvent : EventoSuite
@@ -97,6 +107,8 @@ public sealed class SweepTrackerEvent : EventoSuite
 	public string Tipo { get; init; } = "";
 
 	public override decimal PrecioReferencia => Hasta;
+
+	public override bool? LadoCompra => Compra;
 }
 
 public sealed class StackedEvent : EventoSuite
@@ -108,6 +120,8 @@ public sealed class StackedEvent : EventoSuite
 	public string Estado { get; init; } = "";
 
 	public override decimal PrecioReferencia => (Bajo + Alto) / 2;
+
+	public override bool? LadoCompra => Compra;
 }
 
 /// <summary>Imbalances diagonales de una vela cerrada (los precios de cada nivel con imbalance).</summary>
@@ -117,6 +131,8 @@ public sealed class ImbalanceEvent : EventoSuite
 	public bool Compra { get; init; }
 
 	public override decimal PrecioReferencia => Precios.Count == 0 ? 0 : Precios.Average();
+
+	public override bool? LadoCompra => Compra;
 }
 
 public sealed class AbsorptionEvent : EventoSuite
@@ -127,6 +143,8 @@ public sealed class AbsorptionEvent : EventoSuite
 	public string Setup { get; init; } = "";
 
 	public override decimal PrecioReferencia => Precio;
+
+	public override bool? LadoCompra => Compra;
 }
 
 /// <summary>LVN publicado por el Thermal Volume Profile + LVN (Suite): automático o trazado con el botón LVN.</summary>
@@ -138,10 +156,62 @@ public sealed class LvnZone : EventoSuite
 	public decimal Centro { get; init; }
 	public bool Manual { get; init; }
 
-	/// <summary>ACTIVO, MITIGADO o BORRADO.</summary>
+	/// <summary>ACTIVO, PROBADO, ATRAVESADO o BORRADO (v3, 7.7). MITIGADO = el nombre de la v2 para ATRAVESADO.</summary>
 	public string Estado { get; init; } = "ACTIVO";
 
+	/// <summary>Puntuación 0-100 (solo ranking, nunca probabilidad) sin la parte de FVG, que añade Sessions Sweeps.</summary>
+	public int Score { get; init; }
+
+	/// <summary>Profundidad del valle respecto al pico menor que lo enmarca (0-1).</summary>
+	public decimal Depth { get; init; }
+
+	public int WidthTicks { get; init; }
+	public bool WasTouched { get; init; }
+
+	/// <summary>Calculado sobre una vela aún abierta (sin confirmar).</summary>
+	public bool Provisional { get; init; }
+
+	public DateTime? ConfirmedUtc { get; init; }
+
+	/// <summary>Precio original de un LVN manual antes de ajustarlo al valle (null si no se ajustó).</summary>
+	public decimal? PrecioOriginal { get; init; }
+
 	public override decimal PrecioReferencia => Centro;
+}
+
+/// <summary>EDGE publicado por el Thermal (8): frontera donde el volumen alto cae hacia una zona de menor aceptación.</summary>
+public sealed class EdgeZone : EventoSuite
+{
+	public const string TechoHvn = "TECHO_HVN", PisoHvn = "PISO_HVN";
+
+	public long RangoId { get; init; }
+	public decimal Precio { get; init; }
+
+	/// <summary>Franja de dibujo y de zona (EdgeBandTicks alrededor del precio).</summary>
+	public decimal Bajo { get; init; }
+	public decimal Alto { get; init; }
+
+	/// <summary>TECHO_HVN: el HVN está debajo y el bajo volumen arriba. PISO_HVN: el HVN encima y el bajo volumen abajo.</summary>
+	public string Lado { get; init; } = TechoHvn;
+
+	/// <summary>ACTIVO, PROBADO, ATRAVESADO o BORRADO.</summary>
+	public string Estado { get; init; } = "ACTIVO";
+
+	public int Score { get; init; }
+	public bool Manual { get; init; }
+
+	public override decimal PrecioReferencia => Precio;
+}
+
+/// <summary>El perfil del instrumento cambió (calibración, modo): para el panel y la trazabilidad.</summary>
+public sealed class InstrumentProfileUpdated : EventoSuite
+{
+	public string Raiz { get; init; } = "";
+	public string Contrato { get; init; } = "";
+	public string Calibracion { get; init; } = "";
+	public int VolumePerBar { get; init; }
+
+	public override decimal PrecioReferencia => 0;
 }
 
 /// <summary>El Thermal eligió un rango nuevo: las zonas LVN del rango anterior dejan de valer.</summary>
@@ -245,7 +315,17 @@ public sealed class VisualSuite : EventoSuite
 public static class SuiteEventBus
 {
 	/// <summary>Versión del contrato de eventos. Si un indicador publica con otra: "VERSION SUITE DISTINTA".</summary>
-	public const string Version = "2.0.0";
+	public const string Version = "3.0.0";
+
+	/// <summary>
+	/// Deduplicación (3.2): el mismo hecho de mercado (tipo, precio, dirección y segundo) contado una sola vez aunque lo
+	/// publiquen dos fuentes o dos gráficos. Se queda la versión más reciente.
+	/// </summary>
+	public static List<T> Deduplicar<T>(IEnumerable<T> eventos) where T : EventoSuite =>
+		eventos.GroupBy(e => (e.GetType(), Math.Round(e.PrecioReferencia, 6), e.LadoCompra, e.Utc.Ticks / TimeSpan.TicksPerSecond))
+			.Select(g => g.OrderByDescending(e => e.CambioUtc).ThenByDescending(e => e.Version).First())
+			.OrderBy(e => e.Utc)
+			.ToList();
 
 	private static readonly Dictionary<string, CanalSuite> Canales = new(StringComparer.OrdinalIgnoreCase);
 
@@ -371,6 +451,9 @@ public sealed class CanalSuite
 		{
 			if (!_latidos.TryGetValue(fuente, out var l) || ahoraUtc - l.Utc > LatidoMaximo)
 				return EstadoFuente.NoCargado;
+
+			if (l.Version != SuiteEventBus.Version)
+				return EstadoFuente.VersionDistinta;
 
 			return l.ConDatos ? EstadoFuente.Cargado : EstadoFuente.SinDatos;
 		}

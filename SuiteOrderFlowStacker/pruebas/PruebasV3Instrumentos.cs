@@ -4,6 +4,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 
+using OrderFlowSuite.Comun;
+
 using SessionSweeps.Nucleo;
 
 using static DatosV2;
@@ -139,5 +141,41 @@ internal static class PruebasV3Instrumentos
 
 		c.Check("los 6 perfiles × 23 valores coinciden con PARAMETROS.md (si falla: generar_parametros_v2.py)",
 			distintos.Count == 0 ? $"{revisados} iguales" : string.Join("; ", distintos.Take(5)), "138 iguales");
+	}
+}
+
+/// <summary>v3 S5: bus por instrumento y contrato, latido con versión, deduplicación (prueba 27).</summary>
+internal static class PruebasV3Bus
+{
+	public static void Ejecutar(Comprobador c)
+	{
+		c.Seccion("v3 S5 Bus: aislado por contrato, VERSIÓN DISTINTA, deduplicación (prueba 27)");
+		SuiteEventBus.Reiniciar();
+		var t = new DateTime(2026, 11, 9, 15, 0, 0, DateTimeKind.Utc);
+		var nq = SuiteEventBus.Para("NQZ6");
+		var es = SuiteEventBus.Para("ESZ6");
+		nq.Publicar(new IcebergEvent { Id = 1, Fuente = FuenteSuite.Iceberg, Utc = t, CambioUtc = t, Version = 1, Precio = 21400, Compra = true, Estado = "AGUANTANDO" });
+		c.Check("un evento de NQZ6 no aparece en ESZ6", $"{nq.Todos<IcebergEvent>().Count} {es.Todos<IcebergEvent>().Count}", "1 0");
+
+		nq.Latido(FuenteSuite.Iceberg, true, t);
+		nq.Latido(FuenteSuite.Stops, true, t, "1.9.0");
+		c.Check("latido con la versión del bus: CARGADO; con otra: VERSIÓN DISTINTA",
+			$"{nq.Estado(FuenteSuite.Iceberg, t.AddSeconds(1))} {nq.Estado(FuenteSuite.Stops, t.AddSeconds(1))}", "Cargado VersionDistinta");
+
+		// El mismo iceberg publicado por dos gráficos (Id distinto): cuenta una vez.
+		nq.Publicar(new IcebergEvent { Id = 2, Fuente = FuenteSuite.Iceberg, Utc = t.AddMilliseconds(300), CambioUtc = t.AddSeconds(2), Version = 3, Precio = 21400, Compra = true, Estado = "ROTO" });
+		nq.Publicar(new IcebergEvent { Id = 3, Fuente = FuenteSuite.Iceberg, Utc = t.AddSeconds(5), CambioUtc = t.AddSeconds(5), Version = 1, Precio = 21400, Compra = true, Estado = "ACTIVO" });
+		nq.Publicar(new IcebergEvent { Id = 4, Fuente = FuenteSuite.Iceberg, Utc = t, CambioUtc = t, Version = 1, Precio = 21400, Compra = false, Estado = "ACTIVO" });
+		var fuentes = new FuentesBus("NQZ6", () => t.AddSeconds(3));
+		var vistos = fuentes.Consultar<IcebergEvent>(t.AddMinutes(-1), t.AddMinutes(1));
+		c.Check("prueba 27: mismo precio, dirección y segundo = uno (el más reciente); otro segundo u otra dirección = distintos",
+			string.Join(" ", vistos.Select(e => $"{e.Id}:{e.Estado}")), "4:ACTIVO 2:ROTO 3:ACTIVO");
+		nq.Publicar(new StopsEvent { Id = 9, Fuente = FuenteSuite.Stops, Utc = t, CambioUtc = t, Version = 1, Extremo = 21410, Compra = true });
+		c.Check("los eventos de una fuente con otra versión no se usan", fuentes.Consultar<StopsEvent>(t.AddMinutes(-1), t.AddMinutes(1)).Count.ToString(), "0");
+
+		var edge = new EdgeZone { Id = 5, Fuente = FuenteSuite.Thermal, Utc = t, CambioUtc = t, Version = 1, RangoId = 1, Precio = 21450, Bajo = 21449.5m, Alto = 21450.5m, Lado = EdgeZone.TechoHvn };
+		nq.Publicar(edge);
+		c.Check("EdgeZone viaja por el bus", $"{nq.Todos<EdgeZone>().Single().Lado} {nq.Todos<EdgeZone>().Single().Estado}", "TECHO_HVN ACTIVO");
+		SuiteEventBus.Reiniciar();
 	}
 }
