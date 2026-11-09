@@ -23,6 +23,9 @@ public sealed class ParametrosGenerales
 	public int EventLifetimeMin { get; set; } = 30;
 	public PerfilInstrumento InstrumentProfile { get; set; } = PerfilInstrumento.Auto;
 	public bool EnableAlerts { get; set; } = true;
+
+	/// <summary>Panel de texto propio. v3: los trackers lo traen apagado (su último evento se ve en Sessions Sweeps Pro).</summary>
+	public bool ShowInfoPanel { get; set; } = true;
 	public string AlertSoundFile { get; set; } = "alert1";
 	public bool EnableRecording { get; set; } = true;
 	public bool RealTimeOnly { get; set; }
@@ -193,7 +196,26 @@ public sealed class CarcasaSuite : IDisposable
 
 	public bool EnVivo => _enVivo;
 
-	public bool Mnq { get; private set; }
+	/// <summary>Familia del instrumento (Auto: por el símbolo de ATAS, como Sessions Sweeps Pro; sin reconocer: NQ).</summary>
+	public PerfilInstrumento Raiz { get; private set; } = PerfilInstrumento.NQ;
+
+	public bool Mnq => Raiz == PerfilInstrumento.MNQ;
+
+	private PerfilInstrumento RaizDe(string simbolo)
+	{
+		if (General.InstrumentProfile != PerfilInstrumento.Auto)
+			return General.InstrumentProfile;
+
+		return SessionSweeps.Nucleo.Instrumentos.Detectar(simbolo).Raiz switch
+		{
+			SessionSweeps.Nucleo.RaizInstrumento.MNQ => PerfilInstrumento.MNQ,
+			SessionSweeps.Nucleo.RaizInstrumento.ES => PerfilInstrumento.ES,
+			SessionSweeps.Nucleo.RaizInstrumento.MES => PerfilInstrumento.MES,
+			SessionSweeps.Nucleo.RaizInstrumento.YM => PerfilInstrumento.YM,
+			SessionSweeps.Nucleo.RaizInstrumento.MYM => PerfilInstrumento.MYM,
+			_ => PerfilInstrumento.NQ
+		};
+	}
 
 	public string Instrumento => _instrumento ?? "";
 
@@ -258,11 +280,9 @@ public sealed class CarcasaSuite : IDisposable
 			Suite.ReiniciarVelas();
 		}
 
-		Mnq = General.InstrumentProfile == PerfilInstrumento.MNQ ||
-			General.InstrumentProfile == PerfilInstrumento.Auto && nuevo.TrimStart().StartsWith("MNQ", StringComparison.OrdinalIgnoreCase);
-
+		Raiz = RaizDe(nuevo);
 		Suite.SoloTiempoReal = General.RealTimeOnly;
-		Suite.Configurar(tick, Mnq);
+		Suite.Configurar(tick, Raiz);
 		_tiempos.Clear();
 		_ultimaBarra = -1;
 		_enVivo = false;
@@ -274,10 +294,8 @@ public sealed class CarcasaSuite : IDisposable
 	{
 		lock (Suite.Cerrojo)
 		{
-			Mnq = General.InstrumentProfile == PerfilInstrumento.MNQ ||
-				General.InstrumentProfile == PerfilInstrumento.Auto && Instrumento.TrimStart().StartsWith("MNQ", StringComparison.OrdinalIgnoreCase);
-
-			Suite.Configurar(_tick > 0 ? _tick : Suite.Tick, Mnq);
+			Raiz = RaizDe(Instrumento);
+			Suite.Configurar(_tick > 0 ? _tick : Suite.Tick, Raiz);
 		}
 
 		Redibujar?.Invoke();
@@ -518,6 +536,9 @@ public sealed class CarcasaSuite : IDisposable
 	/// <summary>Panel de texto en la esquina elegida (con desplazamiento): título, líneas y la línea de estado.</summary>
 	public void DibujarPanel(RenderContext context, Rectangle area, string titulo, IReadOnlyList<(string Texto, Color Color)> lineas)
 	{
+		if (!General.ShowInfoPanel)
+			return;
+
 		var todas = new List<(string Texto, Color Color)> { (titulo, Color.Gainsboro) };
 		todas.AddRange(lineas.Count > 0 ? lineas : new[] { ("(sin eventos recientes)", Gris) });
 

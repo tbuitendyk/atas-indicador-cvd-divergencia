@@ -45,6 +45,7 @@ public partial class StackedImbalancePro
 		};
 		_c.General.InfoPanelPosition = EsquinaPanel.TopRight;
 		_c.General.InfoPanelOffsetY = 150;
+		_c.General.ShowInfoPanel = false;
 	}
 
 	/// <summary>Cambio de un parámetro: recalcula las velas solo si hace falta (los eventos en vivo se conservan).</summary>
@@ -84,26 +85,29 @@ public partial class StackedImbalancePro
 	[Range(1, 1440)]
 	public int EventLifetimeMin { get => _c.General.EventLifetimeMin; set { _c.General.EventLifetimeMin = Math.Clamp(value, 1, 1440); Cambio(false); } }
 
-	[Display(Name = "Perfil de instrumento", GroupName = "0. General", Order = 80, Description = "Auto = MNQ si el instrumento empieza por MNQ, si no NQ. Elige la tabla de umbrales por sesión.")]
+	[Display(Name = "Perfil de instrumento", GroupName = "0. General", Order = 80, Description = "Auto = por el símbolo de ATAS (NQ, MNQ, ES, MES, YM, MYM; sin reconocer: NQ). Elige la tabla de umbrales por sesión y los umbrales en contratos de esa familia.")]
 	public PerfilInstrumento InstrumentProfile { get => _c.General.InstrumentProfile; set { _c.General.InstrumentProfile = value; Cambio(false); } }
 
 	[Display(Name = "Alertas", GroupName = "0. General", Order = 90, Description = "Una alerta por evento y por cambio de estado, solo en vivo (nunca al recalcular el historial).")]
 	public bool EnableAlerts { get => _c.General.EnableAlerts; set { _c.General.EnableAlerts = value; Cambio(false); } }
 
-	[Display(Name = "Sonido de la alerta", GroupName = "0. General", Order = 100, Description = "Sonido de ATAS para las alertas. Por defecto: alert1.")]
+	[Display(Name = "Panel propio en el gráfico", GroupName = "0. General", Order = 100, Description = "v3: los trackers lo traen apagado; su último evento se ve en el panel de Sessions Sweeps Pro. Su dibujo en el gráfico no cambia.")]
+	public bool ShowInfoPanel { get => _c.General.ShowInfoPanel; set { _c.General.ShowInfoPanel = value; Cambio(false); } }
+
+	[Display(Name = "Sonido de la alerta", GroupName = "0. General", Order = 110, Description = "Sonido de ATAS para las alertas. Por defecto: alert1.")]
 	[SoundComboBoxEditor]
 	public string AlertSoundFile { get => _c.General.AlertSoundFile; set { _c.General.AlertSoundFile = string.IsNullOrWhiteSpace(value) ? "alert1" : value; Cambio(false); } }
 
-	[Display(Name = "Grabar en CSV", GroupName = "0. General", Order = 110, Description = "Graba cada evento en %APPDATA%\\ATAS\\OrderFlowSuite\\{Instrumento}\\yyyy-MM-dd.csv (para calibrar).")]
+	[Display(Name = "Grabar en CSV", GroupName = "0. General", Order = 120, Description = "Graba cada evento en %APPDATA%\\ATAS\\OrderFlowSuite\\{Instrumento}\\yyyy-MM-dd.csv (para calibrar).")]
 	public bool EnableRecording { get => _c.General.EnableRecording; set { _c.General.EnableRecording = value; Cambio(false); } }
 
-	[Display(Name = "Solo tiempo real", GroupName = "0. General", Order = 120, Description = "Si se activa, no se reconstruyen eventos con las velas del historial (solo los de ahora en adelante).")]
+	[Display(Name = "Solo tiempo real", GroupName = "0. General", Order = 130, Description = "Si se activa, no se reconstruyen eventos con las velas del historial (solo los de ahora en adelante).")]
 	public bool RealTimeOnly { get => _c.General.RealTimeOnly; set { _c.General.RealTimeOnly = value; Cambio(true); } }
 
-	[Display(Name = "Cargar eventos grabados", GroupName = "0. General", Order = 130, Description = "Al cargar, lee los CSV de los últimos días y vuelve a dibujar sus eventos (en gris, sin sonar).")]
+	[Display(Name = "Cargar eventos grabados", GroupName = "0. General", Order = 140, Description = "Al cargar, lee los CSV de los últimos días y vuelve a dibujar sus eventos (en gris, sin sonar).")]
 	public bool LoadRecordedEvents { get => _c.General.LoadRecordedEvents; set { _c.General.LoadRecordedEvents = value; Cambio(true); } }
 
-	[Display(Name = "Días grabados a cargar", GroupName = "0. General", Order = 140, Description = "Días de CSV que se cargan (hoy incluido). Recomendado: 5.")]
+	[Display(Name = "Días grabados a cargar", GroupName = "0. General", Order = 150, Description = "Días de CSV que se cargan (hoy incluido). Recomendado: 5.")]
 	[Range(1, 60)]
 	public int RecordedDaysToLoad { get => _c.General.RecordedDaysToLoad; set { _c.General.RecordedDaysToLoad = Math.Clamp(value, 1, 60); Cambio(true); } }
 
@@ -119,26 +123,46 @@ public partial class StackedImbalancePro
 	[Range(2, 10)]
 	public int MinStackedLevels { get => _c.Cfg.Imbalance.MinStackedLevels; set { _c.Cfg.Imbalance.MinStackedLevels = Math.Clamp(value, 2, 10); Cambio(true); } }
 
-	[Display(Name = "Volumen mínimo por nivel (contratos)", GroupName = "1. Imbalance", Order = 30, Description = "Volumen mínimo del lado dominante por nivel en RTH. NQ: 15; MNQ: 30-50.")]
+	[Display(Name = "NQ: volumen mínimo por nivel (contratos)", GroupName = "1. Imbalance", Order = 30, Description = "Volumen mínimo del lado dominante por nivel en RTH.")]
 	[Range(1, 100000)]
-	public int MinLevelVolumeContracts { get => _c.Cfg.Imbalance.MinLevelVolumeContracts; set { _c.Cfg.Imbalance.MinLevelVolumeContracts = Math.Clamp(value, 1, 100000); Cambio(true); } }
+	public int MinLevelVolumeContracts { get => _c.Cfg.Contratos.NQ.MinLevelVolumeContracts; set { _c.Cfg.Contratos.NQ.MinLevelVolumeContracts = Math.Clamp(value, 1, 100000); Cambio(true); } }
 
-	[Display(Name = "Factor fuera de RTH", GroupName = "1. Imbalance", Order = 40, Description = "Multiplicador del volumen mínimo fuera de 09:30-16:00 ET. Recomendado: 0,5.")]
+	[Display(Name = "MNQ: volumen mínimo por nivel (contratos)", GroupName = "1. Imbalance", Order = 40, Description = "Volumen mínimo del lado dominante por nivel en RTH. PROVISIONAL: calibrar con el CSV de MNQ.")]
+	[Range(1, 100000)]
+	public int MnqMinLevelVolumeContracts { get => _c.Cfg.Contratos.MNQ.MinLevelVolumeContracts; set { _c.Cfg.Contratos.MNQ.MinLevelVolumeContracts = Math.Clamp(value, 1, 100000); Cambio(true); } }
+
+	[Display(Name = "ES: volumen mínimo por nivel (contratos)", GroupName = "1. Imbalance", Order = 50, Description = "Volumen mínimo del lado dominante por nivel en RTH. PROVISIONAL: calibrar con el CSV de ES.")]
+	[Range(1, 100000)]
+	public int EsMinLevelVolumeContracts { get => _c.Cfg.Contratos.ES.MinLevelVolumeContracts; set { _c.Cfg.Contratos.ES.MinLevelVolumeContracts = Math.Clamp(value, 1, 100000); Cambio(true); } }
+
+	[Display(Name = "MES: volumen mínimo por nivel (contratos)", GroupName = "1. Imbalance", Order = 60, Description = "Volumen mínimo del lado dominante por nivel en RTH. PROVISIONAL: calibrar con el CSV de MES.")]
+	[Range(1, 100000)]
+	public int MesMinLevelVolumeContracts { get => _c.Cfg.Contratos.MES.MinLevelVolumeContracts; set { _c.Cfg.Contratos.MES.MinLevelVolumeContracts = Math.Clamp(value, 1, 100000); Cambio(true); } }
+
+	[Display(Name = "YM: volumen mínimo por nivel (contratos)", GroupName = "1. Imbalance", Order = 70, Description = "Volumen mínimo del lado dominante por nivel en RTH. PROVISIONAL: calibrar con el CSV de YM.")]
+	[Range(1, 100000)]
+	public int YmMinLevelVolumeContracts { get => _c.Cfg.Contratos.YM.MinLevelVolumeContracts; set { _c.Cfg.Contratos.YM.MinLevelVolumeContracts = Math.Clamp(value, 1, 100000); Cambio(true); } }
+
+	[Display(Name = "MYM: volumen mínimo por nivel (contratos)", GroupName = "1. Imbalance", Order = 80, Description = "Volumen mínimo del lado dominante por nivel en RTH. PROVISIONAL: calibrar con el CSV de MYM.")]
+	[Range(1, 100000)]
+	public int MymMinLevelVolumeContracts { get => _c.Cfg.Contratos.MYM.MinLevelVolumeContracts; set { _c.Cfg.Contratos.MYM.MinLevelVolumeContracts = Math.Clamp(value, 1, 100000); Cambio(true); } }
+
+	[Display(Name = "Factor fuera de RTH", GroupName = "1. Imbalance", Order = 90, Description = "Multiplicador del volumen mínimo fuera de 09:30-16:00 ET. Recomendado: 0,5.")]
 	[Range(0.1, 2)]
 	public decimal OffHoursFactor { get => _c.Cfg.Imbalance.OffHoursFactor; set { _c.Cfg.Imbalance.OffHoursFactor = Math.Clamp(value, 0.1m, 2m); Cambio(true); } }
 
-	[Display(Name = "Lado débil a cero: exigir el mínimo", GroupName = "1. Imbalance", Order = 50, Description = "Activado: un lado débil a 0 cuenta como 1 contrato y exige el volumen mínimo (sin 'infinitos'). Desactivado: ese nivel no cuenta.")]
+	[Display(Name = "Lado débil a cero: exigir el mínimo", GroupName = "1. Imbalance", Order = 100, Description = "Activado: un lado débil a 0 cuenta como 1 contrato y exige el volumen mínimo (sin 'infinitos'). Desactivado: ese nivel no cuenta.")]
 	public bool IgnoreZeroSide { get => _c.Cfg.Imbalance.IgnoreZeroSide; set { _c.Cfg.Imbalance.IgnoreZeroSide = value; Cambio(true); } }
 
-	[Display(Name = "Velas que se extiende la zona", GroupName = "1. Imbalance", Order = 60, Description = "Velas que la zona sigue viva y dibujada. Recomendado: 50.")]
+	[Display(Name = "Velas que se extiende la zona", GroupName = "1. Imbalance", Order = 110, Description = "Velas que la zona sigue viva y dibujada. Recomendado: 50.")]
 	[Range(1, 2000)]
 	public int ZoneExtendBars { get => _c.Cfg.Imbalance.ZoneExtendBars; set { _c.Cfg.Imbalance.ZoneExtendBars = Math.Clamp(value, 1, 2000); Cambio(true); } }
 
-	[Display(Name = "Ticks de cierre más allá -> ROTA", GroupName = "1. Imbalance", Order = 70, Description = "Cierre de vela a estos ticks (o más) fuera de la zona = ROTA. Recomendado: 2.")]
+	[Display(Name = "Ticks de cierre más allá -> ROTA", GroupName = "1. Imbalance", Order = 120, Description = "Cierre de vela a estos ticks (o más) fuera de la zona = ROTA. Recomendado: 2.")]
 	[Range(1, 50)]
 	public int MinBreakTicks { get => _c.Cfg.Imbalance.MinBreakTicks; set { _c.Cfg.Imbalance.MinBreakTicks = Math.Clamp(value, 1, 50); Cambio(true); } }
 
-	[Display(Name = "Zonas vivas máximas", GroupName = "1. Imbalance", Order = 80, Description = "Las más antiguas dejan de extenderse. Recomendado: 20.")]
+	[Display(Name = "Zonas vivas máximas", GroupName = "1. Imbalance", Order = 130, Description = "Las más antiguas dejan de extenderse. Recomendado: 20.")]
 	[Range(1, 200)]
 	public int MaxActiveZones { get => _c.Cfg.Imbalance.MaxActiveZones; set { _c.Cfg.Imbalance.MaxActiveZones = Math.Clamp(value, 1, 200); Cambio(true); } }
 

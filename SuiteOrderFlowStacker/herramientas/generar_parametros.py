@@ -12,6 +12,18 @@ SALIDA = os.path.join(RAIZ, "Atas", "Generado")
 
 # (propiedad, tipo, destino, nombre en español, descripción, mínimo, máximo, recalcular)
 # tipo: int | decimal | bool | string | sonido | enum:<Tipo>
+FAMILIAS = [("", "NQ", "NQ"), ("Mnq", "MNQ", "MNQ"), ("Es", "ES", "ES"), ("Mes", "MES", "MES"), ("Ym", "YM", "YM"), ("Mym", "MYM", "MYM")]
+
+
+def por_familia(nombre, campo, titulo, desc, mn, mx, recalc):
+    """Un umbral en contratos para cada familia (v3, 2.4). NQ conserva el nombre de siempre (plantillas guardadas)."""
+    filas = []
+    for prefijo, raiz, etiqueta in FAMILIAS:
+        nota = "" if raiz == "NQ" else " PROVISIONAL: calibrar con el CSV de " + raiz + "."
+        filas.append((f"{prefijo}{nombre}", "int", f"_c.Cfg.Contratos.{raiz}.{campo}", f"{etiqueta}: {titulo}", desc + nota, mn, mx, recalc))
+    return filas
+
+
 GENERAL = ("General", [
     ("DisplayMode", "enum:ModoVisual", "_c.General.DisplayMode", "Modo visual",
      "Minimal = solo el dato en texto (recomendado); Markers = dato + marcador pequeño; Full = todo dibujado.", None, None, False),
@@ -28,9 +40,11 @@ GENERAL = ("General", [
     ("EventLifetimeMin", "int", "_c.General.EventLifetimeMin", "Vida de un evento (min)",
      "Minutos que un evento sigue visible y 'reciente'. Recomendado: 30.", 1, 1440, False),
     ("InstrumentProfile", "enum:PerfilInstrumento", "_c.General.InstrumentProfile", "Perfil de instrumento",
-     "Auto = MNQ si el instrumento empieza por MNQ, si no NQ. Elige la tabla de umbrales por sesión.", None, None, False),
+     "Auto = por el símbolo de ATAS (NQ, MNQ, ES, MES, YM, MYM; sin reconocer: NQ). Elige la tabla de umbrales por sesión y los umbrales en contratos de esa familia.", None, None, False),
     ("EnableAlerts", "bool", "_c.General.EnableAlerts", "Alertas",
      "Una alerta por evento y por cambio de estado, solo en vivo (nunca al recalcular el historial).", None, None, False),
+    ("ShowInfoPanel", "bool", "_c.General.ShowInfoPanel", "Panel propio en el gráfico",
+     "v3: los trackers lo traen apagado; su último evento se ve en el panel de Sessions Sweeps Pro. Su dibujo en el gráfico no cambia.", None, None, False),
     ("AlertSoundFile", "sonido", "_c.General.AlertSoundFile", "Sonido de la alerta",
      "Sonido de ATAS para las alertas. Por defecto: alert1.", None, None, False),
     ("EnableRecording", "bool", "_c.General.EnableRecording", "Grabar en CSV",
@@ -48,8 +62,8 @@ IMBALANCE = ("Imbalance", [
      "Ask del nivel N contra Bid del nivel N-1 (compra) o Bid de N contra Ask de N+1 (venta). 150-1000 %. Recomendado: 300.", 150, 1000, True),
     ("MinStackedLevels", "int", "_c.Cfg.Imbalance.MinStackedLevels", "Niveles consecutivos mínimos",
      "Niveles seguidos con imbalance del mismo lado para formar la zona (2-10). Recomendado: 3.", 2, 10, True),
-    ("MinLevelVolumeContracts", "int", "_c.Cfg.Imbalance.MinLevelVolumeContracts", "Volumen mínimo por nivel (contratos)",
-     "Volumen mínimo del lado dominante por nivel en RTH. NQ: 15; MNQ: 30-50.", 1, 100000, True),
+    *por_familia("MinLevelVolumeContracts", "MinLevelVolumeContracts", "volumen mínimo por nivel (contratos)",
+                 "Volumen mínimo del lado dominante por nivel en RTH.", 1, 100000, True),
     ("OffHoursFactor", "decimal", "_c.Cfg.Imbalance.OffHoursFactor", "Factor fuera de RTH",
      "Multiplicador del volumen mínimo fuera de 09:30-16:00 ET. Recomendado: 0,5.", 0.1, 2, True),
     ("IgnoreZeroSide", "bool", "_c.Cfg.Imbalance.IgnoreZeroSide", "Lado débil a cero: exigir el mínimo",
@@ -73,10 +87,10 @@ ICEBERG = ("Filtros Iceberg", [
      "Ticks que el precio puede atravesar el nivel mientras se ejecuta (1-10). Recomendado: 2.", 1, 10, False),
     ("DetectionWindowSeconds", "int", "_c.Cfg.Iceberg.DetectionWindowSeconds", "Ventana del evento (s)",
      "Sin actividad durante estos segundos, un candidato vuelve a empezar (5-600). Recomendado: 60.", 5, 600, False),
-    ("MinVisibleClipContracts", "int", "_c.Cfg.Iceberg.MinVisibleClipContracts", "Clip mínimo (informativo)",
-     "Informativo, NO es filtro: en NQ los clips suelen ser de 1-10 contratos.", 1, 1000, False),
-    ("MaxVisibleClipContracts", "int", "_c.Cfg.Iceberg.MaxVisibleClipContracts", "Clip máximo considerado",
-     "Un tamaño visible mayor no se considera iceberg. Recomendado: 50.", 1, 10000, False),
+    *por_familia("MinVisibleClipContracts", "MinVisibleClipContracts", "clip mínimo (informativo)",
+                 "Informativo, NO es filtro.", 1, 1000, False),
+    *por_familia("MaxVisibleClipContracts", "MaxVisibleClipContracts", "clip máximo considerado",
+                 "Un tamaño visible mayor no se considera iceberg.", 1, 10000, False),
     ("SyntheticRefillMaxMs", "int", "_c.Cfg.Iceberg.SyntheticRefillMaxMs", "Sintético: tiempo máximo (ms)",
      "Tiempo entre el llenado y la orden nueva parecida. Recomendado: 50.", 1, 2000, False),
     ("SyntheticSizeTolerancePercent", "int", "_c.Cfg.Iceberg.SyntheticSizeTolerancePercent", "Sintético: tolerancia de tamaño (%)",
@@ -120,6 +134,10 @@ def umbrales(prefijo, tabla, etiqueta):
 
 UMBRALES_NQ = ("Umbrales por sesión (NQ)", umbrales("", "Nq", "NQ,"))
 UMBRALES_MNQ = ("Umbrales por sesión (MNQ)", umbrales("Mnq", "Mnq", "MNQ (punto de partida: NQ x 0,5),"))
+UMBRALES_ES = ("Umbrales por sesión (ES)", umbrales("Es", "Es", "ES PROVISIONAL (punto de partida: NQ x 2,5),"))
+UMBRALES_MES = ("Umbrales por sesión (MES)", umbrales("Mes", "Mes", "MES PROVISIONAL (punto de partida: NQ x 1,25),"))
+UMBRALES_YM = ("Umbrales por sesión (YM)", umbrales("Ym", "Ym", "YM PROVISIONAL (punto de partida: NQ x 0,4),"))
+UMBRALES_MYM = ("Umbrales por sesión (MYM)", umbrales("Mym", "Mym", "MYM PROVISIONAL (punto de partida: NQ x 0,2),"))
 
 SESGO = ("Sesgo", [
     ("EventContextSeconds", "int", "_c.Cfg.Iceberg.EventContextSeconds", "Ventana con barrido / stops (s)",
@@ -133,10 +151,10 @@ SESGO = ("Sesgo", [
 ])
 
 STOPS = ("Stops", [
-    ("MinCascadeContractsRth", "int", "_c.Cfg.Stops.MinCascadeContractsRth", "Cascada mínima en RTH (contratos)",
-     "Volumen mínimo de la ráfaga en 09:30-16:00 ET. NQ: 100; MNQ: 200.", 1, 100000, False),
-    ("MinCascadeContractsEth", "int", "_c.Cfg.Stops.MinCascadeContractsEth", "Cascada mínima fuera de RTH (contratos)",
-     "Volumen mínimo fuera de RTH. NQ: 50; MNQ: 100.", 1, 100000, False),
+    *por_familia("MinCascadeContractsRth", "MinCascadeContractsRth", "cascada mínima en RTH (contratos)",
+                 "Volumen mínimo de la ráfaga en 09:30-16:00 ET.", 1, 100000, False),
+    *por_familia("MinCascadeContractsEth", "MinCascadeContractsEth", "cascada mínima fuera de RTH (contratos)",
+                 "Volumen mínimo fuera de RTH.", 1, 100000, False),
     ("CascadeMaxMs", "int", "_c.Cfg.Stops.CascadeMaxMs", "Duración máxima de la ráfaga (ms)",
      "Ráfaga de órdenes a mercado en la misma dirección. Recomendado: 300.", 10, 10000, False),
     ("MinCascadeLevels", "int", "_c.Cfg.Stops.MinCascadeLevels", "Niveles mínimos atravesados",
@@ -160,8 +178,8 @@ STOPS = ("Stops", [
 BARRIDOS = ("Sweeps", [
     ("MinSweepLevels", "int", "_c.Cfg.Barridos.MinSweepLevels", "Niveles mínimos",
      "Niveles barridos por una sola orden agresiva (4 ticks = 1 punto en NQ). Recomendado: 4.", 2, 200, False),
-    ("MinSweepContracts", "int", "_c.Cfg.Barridos.MinSweepContracts", "Volumen mínimo de la orden (contratos)",
-     "Volumen de la orden reconstruida. NQ: 50; MNQ: 100.", 1, 100000, False),
+    *por_familia("MinSweepContracts", "MinSweepContracts", "volumen mínimo de la orden (contratos)",
+                 "Volumen de la orden reconstruida.", 1, 100000, False),
     ("SweepReclaimSeconds", "int", "_c.Cfg.Barridos.SweepReclaimSeconds", "Vuelve dentro en (s) -> LIQUIDEZ",
      "Si vuelve dentro del rango en este tiempo: LIQUIDEZ (trampa); si no: RUPTURA. Recomendado: 30.", 1, 3600, False),
     ("LevelToleranceTicks", "int", "_c.Cfg.Barridos.LevelToleranceTicks", "Distancia al nivel de referencia (ticks)",
@@ -217,11 +235,12 @@ FILTROS = ("Filtros", [
 INDICADORES = [
     # clase, indicador (eventos), con Master, esquina, desplazamiento Y, bloques
     ("StackedImbalancePro", "Imbalance", False, "TopRight", 150, [GENERAL, IMBALANCE]),
-    ("IcebergTrackerPro", "Iceberg", False, "TopRight", 0, [GENERAL, ICEBERG, UMBRALES_NQ, UMBRALES_MNQ, SESGO]),
+    ("IcebergTrackerPro", "Iceberg", False, "TopRight", 0, [GENERAL, ICEBERG, UMBRALES_NQ, UMBRALES_MNQ, UMBRALES_ES, UMBRALES_MES, UMBRALES_YM, UMBRALES_MYM, SESGO]),
     ("StopsTrackerPro", "Stops", False, "BottomRight", 0, [GENERAL, STOPS]),
     ("SweepsTrackerPro", "Sweeps", False, "BottomRight", 150, [GENERAL, BARRIDOS]),
     ("AbsorptionMaster", "Master", True, "TopLeft", 0,
-     [GENERAL, PUNTUACION, SETUPS, GESTION, FILTROS, ICEBERG, UMBRALES_NQ, UMBRALES_MNQ, SESGO, IMBALANCE, STOPS, BARRIDOS]),
+     [GENERAL, PUNTUACION, SETUPS, GESTION, FILTROS, ICEBERG, UMBRALES_NQ, UMBRALES_MNQ, UMBRALES_ES, UMBRALES_MES, UMBRALES_YM,
+      UMBRALES_MYM, SESGO, IMBALANCE, STOPS, BARRIDOS]),
 ]
 
 
@@ -325,6 +344,7 @@ public partial class {clase}
 		}};
 		_c.General.InfoPanelPosition = EsquinaPanel.{esquina};
 		_c.General.InfoPanelOffsetY = {offy};
+		_c.General.ShowInfoPanel = {"true" if master else "false"};
 	}}
 
 	/// <summary>Cambio de un parámetro: recalcula las velas solo si hace falta (los eventos en vivo se conservan).</summary>

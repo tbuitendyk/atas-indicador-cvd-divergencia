@@ -179,6 +179,8 @@ GRUPOS = [
         ("ShowManualTriggerBoxes", "bool", "_v.ShowManualTriggerBoxes", "Cajas del gatillo manual",
          "Las dibuja el Thermal que las pidió; actívelo solo si el Thermal está en otro gráfico.", None, None, False),
         ("ShowCvdDivergences", "bool", "_v.ShowCvdDivergences", "Divergencias del CVD en el precio", "Tramos entre pivotes, sin líneas verticales.", None, None, False),
+        ("ShowTrackerDiagnostics", "bool", "_v.ShowTrackerDiagnostics", "Diagnóstico de trackers",
+         "Marca hueca fucsia (SSP ICE, STOP, SWEEP, STK, IMB) en cada evento que Sessions Sweeps recibe del bus, para compararlo con el dibujo original del tracker.", None, None, False),
     ]),
 ]
 

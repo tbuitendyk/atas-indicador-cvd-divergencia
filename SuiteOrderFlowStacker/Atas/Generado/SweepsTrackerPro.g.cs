@@ -45,6 +45,7 @@ public partial class SweepsTrackerPro
 		};
 		_c.General.InfoPanelPosition = EsquinaPanel.BottomRight;
 		_c.General.InfoPanelOffsetY = 150;
+		_c.General.ShowInfoPanel = false;
 	}
 
 	/// <summary>Cambio de un parámetro: recalcula las velas solo si hace falta (los eventos en vivo se conservan).</summary>
@@ -84,26 +85,29 @@ public partial class SweepsTrackerPro
 	[Range(1, 1440)]
 	public int EventLifetimeMin { get => _c.General.EventLifetimeMin; set { _c.General.EventLifetimeMin = Math.Clamp(value, 1, 1440); Cambio(false); } }
 
-	[Display(Name = "Perfil de instrumento", GroupName = "0. General", Order = 80, Description = "Auto = MNQ si el instrumento empieza por MNQ, si no NQ. Elige la tabla de umbrales por sesión.")]
+	[Display(Name = "Perfil de instrumento", GroupName = "0. General", Order = 80, Description = "Auto = por el símbolo de ATAS (NQ, MNQ, ES, MES, YM, MYM; sin reconocer: NQ). Elige la tabla de umbrales por sesión y los umbrales en contratos de esa familia.")]
 	public PerfilInstrumento InstrumentProfile { get => _c.General.InstrumentProfile; set { _c.General.InstrumentProfile = value; Cambio(false); } }
 
 	[Display(Name = "Alertas", GroupName = "0. General", Order = 90, Description = "Una alerta por evento y por cambio de estado, solo en vivo (nunca al recalcular el historial).")]
 	public bool EnableAlerts { get => _c.General.EnableAlerts; set { _c.General.EnableAlerts = value; Cambio(false); } }
 
-	[Display(Name = "Sonido de la alerta", GroupName = "0. General", Order = 100, Description = "Sonido de ATAS para las alertas. Por defecto: alert1.")]
+	[Display(Name = "Panel propio en el gráfico", GroupName = "0. General", Order = 100, Description = "v3: los trackers lo traen apagado; su último evento se ve en el panel de Sessions Sweeps Pro. Su dibujo en el gráfico no cambia.")]
+	public bool ShowInfoPanel { get => _c.General.ShowInfoPanel; set { _c.General.ShowInfoPanel = value; Cambio(false); } }
+
+	[Display(Name = "Sonido de la alerta", GroupName = "0. General", Order = 110, Description = "Sonido de ATAS para las alertas. Por defecto: alert1.")]
 	[SoundComboBoxEditor]
 	public string AlertSoundFile { get => _c.General.AlertSoundFile; set { _c.General.AlertSoundFile = string.IsNullOrWhiteSpace(value) ? "alert1" : value; Cambio(false); } }
 
-	[Display(Name = "Grabar en CSV", GroupName = "0. General", Order = 110, Description = "Graba cada evento en %APPDATA%\\ATAS\\OrderFlowSuite\\{Instrumento}\\yyyy-MM-dd.csv (para calibrar).")]
+	[Display(Name = "Grabar en CSV", GroupName = "0. General", Order = 120, Description = "Graba cada evento en %APPDATA%\\ATAS\\OrderFlowSuite\\{Instrumento}\\yyyy-MM-dd.csv (para calibrar).")]
 	public bool EnableRecording { get => _c.General.EnableRecording; set { _c.General.EnableRecording = value; Cambio(false); } }
 
-	[Display(Name = "Solo tiempo real", GroupName = "0. General", Order = 120, Description = "Si se activa, no se reconstruyen eventos con las velas del historial (solo los de ahora en adelante).")]
+	[Display(Name = "Solo tiempo real", GroupName = "0. General", Order = 130, Description = "Si se activa, no se reconstruyen eventos con las velas del historial (solo los de ahora en adelante).")]
 	public bool RealTimeOnly { get => _c.General.RealTimeOnly; set { _c.General.RealTimeOnly = value; Cambio(true); } }
 
-	[Display(Name = "Cargar eventos grabados", GroupName = "0. General", Order = 130, Description = "Al cargar, lee los CSV de los últimos días y vuelve a dibujar sus eventos (en gris, sin sonar).")]
+	[Display(Name = "Cargar eventos grabados", GroupName = "0. General", Order = 140, Description = "Al cargar, lee los CSV de los últimos días y vuelve a dibujar sus eventos (en gris, sin sonar).")]
 	public bool LoadRecordedEvents { get => _c.General.LoadRecordedEvents; set { _c.General.LoadRecordedEvents = value; Cambio(true); } }
 
-	[Display(Name = "Días grabados a cargar", GroupName = "0. General", Order = 140, Description = "Días de CSV que se cargan (hoy incluido). Recomendado: 5.")]
+	[Display(Name = "Días grabados a cargar", GroupName = "0. General", Order = 150, Description = "Días de CSV que se cargan (hoy incluido). Recomendado: 5.")]
 	[Range(1, 60)]
 	public int RecordedDaysToLoad { get => _c.General.RecordedDaysToLoad; set { _c.General.RecordedDaysToLoad = Math.Clamp(value, 1, 60); Cambio(true); } }
 
@@ -115,34 +119,54 @@ public partial class SweepsTrackerPro
 	[Range(2, 200)]
 	public int MinSweepLevels { get => _c.Cfg.Barridos.MinSweepLevels; set { _c.Cfg.Barridos.MinSweepLevels = Math.Clamp(value, 2, 200); Cambio(false); } }
 
-	[Display(Name = "Volumen mínimo de la orden (contratos)", GroupName = "1. Sweeps", Order = 20, Description = "Volumen de la orden reconstruida. NQ: 50; MNQ: 100.")]
+	[Display(Name = "NQ: volumen mínimo de la orden (contratos)", GroupName = "1. Sweeps", Order = 20, Description = "Volumen de la orden reconstruida.")]
 	[Range(1, 100000)]
-	public int MinSweepContracts { get => _c.Cfg.Barridos.MinSweepContracts; set { _c.Cfg.Barridos.MinSweepContracts = Math.Clamp(value, 1, 100000); Cambio(false); } }
+	public int MinSweepContracts { get => _c.Cfg.Contratos.NQ.MinSweepContracts; set { _c.Cfg.Contratos.NQ.MinSweepContracts = Math.Clamp(value, 1, 100000); Cambio(false); } }
 
-	[Display(Name = "Vuelve dentro en (s) -> LIQUIDEZ", GroupName = "1. Sweeps", Order = 30, Description = "Si vuelve dentro del rango en este tiempo: LIQUIDEZ (trampa); si no: RUPTURA. Recomendado: 30.")]
+	[Display(Name = "MNQ: volumen mínimo de la orden (contratos)", GroupName = "1. Sweeps", Order = 30, Description = "Volumen de la orden reconstruida. PROVISIONAL: calibrar con el CSV de MNQ.")]
+	[Range(1, 100000)]
+	public int MnqMinSweepContracts { get => _c.Cfg.Contratos.MNQ.MinSweepContracts; set { _c.Cfg.Contratos.MNQ.MinSweepContracts = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "ES: volumen mínimo de la orden (contratos)", GroupName = "1. Sweeps", Order = 40, Description = "Volumen de la orden reconstruida. PROVISIONAL: calibrar con el CSV de ES.")]
+	[Range(1, 100000)]
+	public int EsMinSweepContracts { get => _c.Cfg.Contratos.ES.MinSweepContracts; set { _c.Cfg.Contratos.ES.MinSweepContracts = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "MES: volumen mínimo de la orden (contratos)", GroupName = "1. Sweeps", Order = 50, Description = "Volumen de la orden reconstruida. PROVISIONAL: calibrar con el CSV de MES.")]
+	[Range(1, 100000)]
+	public int MesMinSweepContracts { get => _c.Cfg.Contratos.MES.MinSweepContracts; set { _c.Cfg.Contratos.MES.MinSweepContracts = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "YM: volumen mínimo de la orden (contratos)", GroupName = "1. Sweeps", Order = 60, Description = "Volumen de la orden reconstruida. PROVISIONAL: calibrar con el CSV de YM.")]
+	[Range(1, 100000)]
+	public int YmMinSweepContracts { get => _c.Cfg.Contratos.YM.MinSweepContracts; set { _c.Cfg.Contratos.YM.MinSweepContracts = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "MYM: volumen mínimo de la orden (contratos)", GroupName = "1. Sweeps", Order = 70, Description = "Volumen de la orden reconstruida. PROVISIONAL: calibrar con el CSV de MYM.")]
+	[Range(1, 100000)]
+	public int MymMinSweepContracts { get => _c.Cfg.Contratos.MYM.MinSweepContracts; set { _c.Cfg.Contratos.MYM.MinSweepContracts = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Vuelve dentro en (s) -> LIQUIDEZ", GroupName = "1. Sweeps", Order = 80, Description = "Si vuelve dentro del rango en este tiempo: LIQUIDEZ (trampa); si no: RUPTURA. Recomendado: 30.")]
 	[Range(1, 3600)]
 	public int SweepReclaimSeconds { get => _c.Cfg.Barridos.SweepReclaimSeconds; set { _c.Cfg.Barridos.SweepReclaimSeconds = Math.Clamp(value, 1, 3600); Cambio(false); } }
 
-	[Display(Name = "Distancia al nivel de referencia (ticks)", GroupName = "1. Sweeps", Order = 40, Description = "El barrido debe empezar a esta distancia del nivel (o antes) y cruzarlo. Recomendado: 4.")]
+	[Display(Name = "Distancia al nivel de referencia (ticks)", GroupName = "1. Sweeps", Order = 90, Description = "El barrido debe empezar a esta distancia del nivel (o antes) y cruzarlo. Recomendado: 4.")]
 	[Range(0, 100)]
 	public int LevelToleranceTicks { get => _c.Cfg.Barridos.LevelToleranceTicks; set { _c.Cfg.Barridos.LevelToleranceTicks = Math.Clamp(value, 0, 100); Cambio(false); } }
 
-	[Display(Name = "Niveles: PDH / PDL", GroupName = "1. Sweeps", Order = 50, Description = "Máximo y mínimo del día anterior.")]
+	[Display(Name = "Niveles: PDH / PDL", GroupName = "1. Sweeps", Order = 100, Description = "Máximo y mínimo del día anterior.")]
 	public bool RefPdhPdl { get => _c.Cfg.Barridos.RefPdhPdl; set { _c.Cfg.Barridos.RefPdhPdl = value; Cambio(false); } }
 
-	[Display(Name = "Niveles: IBH / IBL", GroupName = "1. Sweeps", Order = 60, Description = "Initial Balance (cuando termina).")]
+	[Display(Name = "Niveles: IBH / IBL", GroupName = "1. Sweeps", Order = 110, Description = "Initial Balance (cuando termina).")]
 	public bool RefIbhIbl { get => _c.Cfg.Barridos.RefIbhIbl; set { _c.Cfg.Barridos.RefIbhIbl = value; Cambio(false); } }
 
-	[Display(Name = "Niveles: ONH / ONL", GroupName = "1. Sweeps", Order = 70, Description = "Máximo y mínimo overnight.")]
+	[Display(Name = "Niveles: ONH / ONL", GroupName = "1. Sweeps", Order = 120, Description = "Máximo y mínimo overnight.")]
 	public bool RefOnhOnl { get => _c.Cfg.Barridos.RefOnhOnl; set { _c.Cfg.Barridos.RefOnhOnl = value; Cambio(false); } }
 
-	[Display(Name = "Niveles: swings", GroupName = "1. Sweeps", Order = 80, Description = "Swings sin superar.")]
+	[Display(Name = "Niveles: swings", GroupName = "1. Sweeps", Order = 130, Description = "Swings sin superar.")]
 	public bool RefSwings { get => _c.Cfg.Barridos.RefSwings; set { _c.Cfg.Barridos.RefSwings = value; Cambio(false); } }
 
-	[Display(Name = "Niveles: VAH / VAL", GroupName = "1. Sweeps", Order = 90, Description = "Área de valor de la sesión RTH.")]
+	[Display(Name = "Niveles: VAH / VAL", GroupName = "1. Sweeps", Order = 140, Description = "Área de valor de la sesión RTH.")]
 	public bool RefVahVal { get => _c.Cfg.Barridos.RefVahVal; set { _c.Cfg.Barridos.RefVahVal = value; Cambio(false); } }
 
-	[Display(Name = "Solo barridos en un nivel", GroupName = "1. Sweeps", Order = 100, Description = "Activado: solo barridos en un nivel de referencia o contra un iceberg. Desactivado: también 'sin nivel'.")]
+	[Display(Name = "Solo barridos en un nivel", GroupName = "1. Sweeps", Order = 150, Description = "Activado: solo barridos en un nivel de referencia o contra un iceberg. Desactivado: también 'sin nivel'.")]
 	public bool OnlyAtReferenceLevels { get => _c.Cfg.Barridos.OnlyAtReferenceLevels; set { _c.Cfg.Barridos.OnlyAtReferenceLevels = value; Cambio(false); } }
 
 	#endregion

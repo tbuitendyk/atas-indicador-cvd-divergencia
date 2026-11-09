@@ -13,10 +13,10 @@ con 1-2 semanas de CSV ([OPERATIVA.md](OPERATIVA.md#8-calibración-con-los-csv))
 | Indicador | Grupos |
 |---|---|
 | **Stacked Imbalance Pro (Suite)** (`StackedImbalancePro`) | 0. General · 1. Imbalance |
-| **Iceberg Tracker Pro (Suite)** (`IcebergTrackerPro`) | 0. General · 1. Filtros Iceberg · 2. Umbrales por sesión (NQ) · 3. Umbrales por sesión (MNQ) · 4. Sesgo |
+| **Iceberg Tracker Pro (Suite)** (`IcebergTrackerPro`) | 0. General · 1. Filtros Iceberg · 2. Umbrales por sesión (NQ) · 3. Umbrales por sesión (MNQ) · 4. Umbrales por sesión (ES) · 5. Umbrales por sesión (MES) · 6. Umbrales por sesión (YM) · 7. Umbrales por sesión (MYM) · 8. Sesgo |
 | **Stops Tracker Pro (Suite)** (`StopsTrackerPro`) | 0. General · 1. Stops |
 | **Sweeps Tracker Pro (Suite)** (`SweepsTrackerPro`) | 0. General · 1. Sweeps |
-| **Absorption Master (Suite)** (`AbsorptionMaster`) | 0. General · 1. Puntuación · 2. Setups · 3. Gestión · 4. Filtros · 5. Filtros Iceberg · 6. Umbrales por sesión (NQ) · 7. Umbrales por sesión (MNQ) · 8. Sesgo · 9. Imbalance · 10. Stops · 11. Sweeps |
+| **Absorption Master (Suite)** (`AbsorptionMaster`) | 0. General · 1. Puntuación · 2. Setups · 3. Gestión · 4. Filtros · 5. Filtros Iceberg · 6. Umbrales por sesión (NQ) · 7. Umbrales por sesión (MNQ) · 8. Umbrales por sesión (ES) · 9. Umbrales por sesión (MES) · 10. Umbrales por sesión (YM) · 11. Umbrales por sesión (MYM) · 12. Sesgo · 13. Imbalance · 14. Stops · 15. Sweeps |
 
 ## General
 
@@ -29,8 +29,9 @@ con 1-2 semanas de CSV ([OPERATIVA.md](OPERATIVA.md#8-calibración-con-los-csv))
 | `InfoPanelMaxLines` | Líneas del panel | entero | 5 | 1-20 | Últimos N eventos mostrados (1-20). Recomendado: 5. |
 | `FontSize` | Tamaño de letra | entero | 11 | 6-30 | Tamaño de fuente de etiquetas y panel. Recomendado: 11. |
 | `EventLifetimeMin` | Vida de un evento (min) | entero | 30 | 1-1440 | Minutos que un evento sigue visible y 'reciente'. Recomendado: 30. |
-| `InstrumentProfile` | Perfil de instrumento | lista | Automático (por el nombre) |  | Auto = MNQ si el instrumento empieza por MNQ, si no NQ. Elige la tabla de umbrales por sesión. |
+| `InstrumentProfile` | Perfil de instrumento | lista | Automático (por el nombre) |  | Auto = por el símbolo de ATAS (NQ, MNQ, ES, MES, YM, MYM; sin reconocer: NQ). Elige la tabla de umbrales por sesión y los umbrales en contratos de esa familia. |
 | `EnableAlerts` | Alertas | sí/no | Sí |  | Una alerta por evento y por cambio de estado, solo en vivo (nunca al recalcular el historial). |
+| `ShowInfoPanel` | Panel propio en el gráfico | sí/no | Sí |  | v3: los trackers lo traen apagado; su último evento se ve en el panel de Sessions Sweeps Pro. Su dibujo en el gráfico no cambia. |
 | `AlertSoundFile` | Sonido de la alerta | texto | alert1 |  | Sonido de ATAS para las alertas. Por defecto: alert1. |
 | `EnableRecording` | Grabar en CSV | sí/no | Sí |  | Graba cada evento en %APPDATA%\ATAS\OrderFlowSuite\{Instrumento}\yyyy-MM-dd.csv (para calibrar). |
 | `RealTimeOnly` | Solo tiempo real | sí/no | No |  | Si se activa, no se reconstruyen eventos con las velas del historial (solo los de ahora en adelante). |
@@ -88,8 +89,18 @@ con 1-2 semanas de CSV ([OPERATIVA.md](OPERATIVA.md#8-calibración-con-los-csv))
 | `HighProbExecVisibleRatio` | Ratio de alta probabilidad | decimal | 5 | 1-100 | Ratio para la marca * (junto con el volumen de alta probabilidad de la sesión). Recomendado: 5. |
 | `MaxDisplacementTicks` | Desplazamiento máximo (ticks) | entero | 2 | 1-10 | Ticks que el precio puede atravesar el nivel mientras se ejecuta (1-10). Recomendado: 2. |
 | `DetectionWindowSeconds` | Ventana del evento (s) | entero | 60 | 5-600 | Sin actividad durante estos segundos, un candidato vuelve a empezar (5-600). Recomendado: 60. |
-| `MinVisibleClipContracts` | Clip mínimo (informativo) | entero | 1 | 1-1000 | Informativo, NO es filtro: en NQ los clips suelen ser de 1-10 contratos. |
-| `MaxVisibleClipContracts` | Clip máximo considerado | entero | 50 | 1-10000 | Un tamaño visible mayor no se considera iceberg. Recomendado: 50. |
+| `MinVisibleClipContracts` | NQ: clip mínimo (informativo) | entero | 1 | 1-1000 | Informativo, NO es filtro. |
+| `MnqMinVisibleClipContracts` | MNQ: clip mínimo (informativo) | entero | 1 | 1-1000 | Informativo, NO es filtro. PROVISIONAL: calibrar con el CSV de MNQ. |
+| `EsMinVisibleClipContracts` | ES: clip mínimo (informativo) | entero | 1 | 1-1000 | Informativo, NO es filtro. PROVISIONAL: calibrar con el CSV de ES. |
+| `MesMinVisibleClipContracts` | MES: clip mínimo (informativo) | entero | 1 | 1-1000 | Informativo, NO es filtro. PROVISIONAL: calibrar con el CSV de MES. |
+| `YmMinVisibleClipContracts` | YM: clip mínimo (informativo) | entero | 1 | 1-1000 | Informativo, NO es filtro. PROVISIONAL: calibrar con el CSV de YM. |
+| `MymMinVisibleClipContracts` | MYM: clip mínimo (informativo) | entero | 1 | 1-1000 | Informativo, NO es filtro. PROVISIONAL: calibrar con el CSV de MYM. |
+| `MaxVisibleClipContracts` | NQ: clip máximo considerado | entero | 50 | 1-10000 | Un tamaño visible mayor no se considera iceberg. |
+| `MnqMaxVisibleClipContracts` | MNQ: clip máximo considerado | entero | 100 | 1-10000 | Un tamaño visible mayor no se considera iceberg. PROVISIONAL: calibrar con el CSV de MNQ. |
+| `EsMaxVisibleClipContracts` | ES: clip máximo considerado | entero | 125 | 1-10000 | Un tamaño visible mayor no se considera iceberg. PROVISIONAL: calibrar con el CSV de ES. |
+| `MesMaxVisibleClipContracts` | MES: clip máximo considerado | entero | 62 | 1-10000 | Un tamaño visible mayor no se considera iceberg. PROVISIONAL: calibrar con el CSV de MES. |
+| `YmMaxVisibleClipContracts` | YM: clip máximo considerado | entero | 20 | 1-10000 | Un tamaño visible mayor no se considera iceberg. PROVISIONAL: calibrar con el CSV de YM. |
+| `MymMaxVisibleClipContracts` | MYM: clip máximo considerado | entero | 10 | 1-10000 | Un tamaño visible mayor no se considera iceberg. PROVISIONAL: calibrar con el CSV de MYM. |
 | `SyntheticRefillMaxMs` | Sintético: tiempo máximo (ms) | entero | 50 | 1-2000 | Tiempo entre el llenado y la orden nueva parecida. Recomendado: 50. |
 | `SyntheticSizeTolerancePercent` | Sintético: tolerancia de tamaño (%) | entero | 20 | 0-100 | Diferencia de tamaño aceptada entre la orden llenada y la nueva. Recomendado: 20. |
 | `DetectSynthetic` | Detectar sintéticos | sí/no | Sí |  | Icebergs gestionados por software (orden nueva tras cada llenado). Necesita MBO. |
@@ -151,6 +162,110 @@ con 1-2 semanas de CSV ([OPERATIVA.md](OPERATIVA.md#8-calibración-con-los-csv))
 | `MnqOffHoursHighProbContracts` | Fuera de horario: alta probabilidad | entero | 60 | 1-100000 | MNQ (punto de partida: NQ x 0,5), 16:00-18:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
 | `MnqOffHoursMinRefills` | Fuera de horario: recargas mínimas | entero | 3 | 1-1000 | MNQ (punto de partida: NQ x 0,5), 16:00-18:00 ET. Recargas vistas (nativo y sintético). |
 
+## Umbrales por sesión (ES)
+
+| Parámetro | En ATAS | Tipo | Defecto | Rango | Descripción y recomendación |
+|---|---|---|---|---|---|
+| `EsAsiaMinExecutedContracts` | Asia: ejecutado mínimo (ruido) | entero | 100 | 1-100000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 18:00-02:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `EsAsiaHighProbContracts` | Asia: alta probabilidad | entero | 300 | 1-100000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 18:00-02:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `EsAsiaMinRefills` | Asia: recargas mínimas | entero | 3 | 1-1000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 18:00-02:00 ET. Recargas vistas (nativo y sintético). |
+| `EsLondonMinExecutedContracts` | Londres: ejecutado mínimo (ruido) | entero | 200 | 1-100000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 02:00-premercado ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `EsLondonHighProbContracts` | Londres: alta probabilidad | entero | 625 | 1-100000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 02:00-premercado ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `EsLondonMinRefills` | Londres: recargas mínimas | entero | 4 | 1-1000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 02:00-premercado ET. Recargas vistas (nativo y sintético). |
+| `EsPremarketMinExecutedContracts` | Premercado NY: ejecutado mínimo (ruido) | entero | 250 | 1-100000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 1 h antes de las 09:30 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `EsPremarketHighProbContracts` | Premercado NY: alta probabilidad | entero | 750 | 1-100000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 1 h antes de las 09:30 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `EsPremarketMinRefills` | Premercado NY: recargas mínimas | entero | 4 | 1-1000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 1 h antes de las 09:30 ET. Recargas vistas (nativo y sintético). |
+| `EsNyOpenMinExecutedContracts` | Apertura NY: ejecutado mínimo (ruido) | entero | 375 | 1-100000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 09:30-11:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `EsNyOpenHighProbContracts` | Apertura NY: alta probabilidad | entero | 1000 | 1-100000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 09:30-11:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `EsNyOpenMinRefills` | Apertura NY: recargas mínimas | entero | 5 | 1-1000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 09:30-11:00 ET. Recargas vistas (nativo y sintético). |
+| `EsMiddayMinExecutedContracts` | Mediodía: ejecutado mínimo (ruido) | entero | 250 | 1-100000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 11:00-14:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `EsMiddayHighProbContracts` | Mediodía: alta probabilidad | entero | 750 | 1-100000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 11:00-14:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `EsMiddayMinRefills` | Mediodía: recargas mínimas | entero | 4 | 1-1000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 11:00-14:00 ET. Recargas vistas (nativo y sintético). |
+| `EsCloseMinExecutedContracts` | Cierre: ejecutado mínimo (ruido) | entero | 375 | 1-100000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 14:00-16:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `EsCloseHighProbContracts` | Cierre: alta probabilidad | entero | 1000 | 1-100000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 14:00-16:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `EsCloseMinRefills` | Cierre: recargas mínimas | entero | 5 | 1-1000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 14:00-16:00 ET. Recargas vistas (nativo y sintético). |
+| `EsOffHoursMinExecutedContracts` | Fuera de horario: ejecutado mínimo (ruido) | entero | 100 | 1-100000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 16:00-18:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `EsOffHoursHighProbContracts` | Fuera de horario: alta probabilidad | entero | 300 | 1-100000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 16:00-18:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `EsOffHoursMinRefills` | Fuera de horario: recargas mínimas | entero | 3 | 1-1000 | ES PROVISIONAL (punto de partida: NQ x 2,5), 16:00-18:00 ET. Recargas vistas (nativo y sintético). |
+
+## Umbrales por sesión (MES)
+
+| Parámetro | En ATAS | Tipo | Defecto | Rango | Descripción y recomendación |
+|---|---|---|---|---|---|
+| `MesAsiaMinExecutedContracts` | Asia: ejecutado mínimo (ruido) | entero | 50 | 1-100000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 18:00-02:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `MesAsiaHighProbContracts` | Asia: alta probabilidad | entero | 150 | 1-100000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 18:00-02:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `MesAsiaMinRefills` | Asia: recargas mínimas | entero | 3 | 1-1000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 18:00-02:00 ET. Recargas vistas (nativo y sintético). |
+| `MesLondonMinExecutedContracts` | Londres: ejecutado mínimo (ruido) | entero | 100 | 1-100000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 02:00-premercado ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `MesLondonHighProbContracts` | Londres: alta probabilidad | entero | 312 | 1-100000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 02:00-premercado ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `MesLondonMinRefills` | Londres: recargas mínimas | entero | 4 | 1-1000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 02:00-premercado ET. Recargas vistas (nativo y sintético). |
+| `MesPremarketMinExecutedContracts` | Premercado NY: ejecutado mínimo (ruido) | entero | 125 | 1-100000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 1 h antes de las 09:30 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `MesPremarketHighProbContracts` | Premercado NY: alta probabilidad | entero | 375 | 1-100000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 1 h antes de las 09:30 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `MesPremarketMinRefills` | Premercado NY: recargas mínimas | entero | 4 | 1-1000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 1 h antes de las 09:30 ET. Recargas vistas (nativo y sintético). |
+| `MesNyOpenMinExecutedContracts` | Apertura NY: ejecutado mínimo (ruido) | entero | 188 | 1-100000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 09:30-11:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `MesNyOpenHighProbContracts` | Apertura NY: alta probabilidad | entero | 500 | 1-100000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 09:30-11:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `MesNyOpenMinRefills` | Apertura NY: recargas mínimas | entero | 5 | 1-1000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 09:30-11:00 ET. Recargas vistas (nativo y sintético). |
+| `MesMiddayMinExecutedContracts` | Mediodía: ejecutado mínimo (ruido) | entero | 125 | 1-100000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 11:00-14:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `MesMiddayHighProbContracts` | Mediodía: alta probabilidad | entero | 375 | 1-100000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 11:00-14:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `MesMiddayMinRefills` | Mediodía: recargas mínimas | entero | 4 | 1-1000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 11:00-14:00 ET. Recargas vistas (nativo y sintético). |
+| `MesCloseMinExecutedContracts` | Cierre: ejecutado mínimo (ruido) | entero | 188 | 1-100000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 14:00-16:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `MesCloseHighProbContracts` | Cierre: alta probabilidad | entero | 500 | 1-100000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 14:00-16:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `MesCloseMinRefills` | Cierre: recargas mínimas | entero | 5 | 1-1000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 14:00-16:00 ET. Recargas vistas (nativo y sintético). |
+| `MesOffHoursMinExecutedContracts` | Fuera de horario: ejecutado mínimo (ruido) | entero | 50 | 1-100000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 16:00-18:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `MesOffHoursHighProbContracts` | Fuera de horario: alta probabilidad | entero | 150 | 1-100000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 16:00-18:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `MesOffHoursMinRefills` | Fuera de horario: recargas mínimas | entero | 3 | 1-1000 | MES PROVISIONAL (punto de partida: NQ x 1,25), 16:00-18:00 ET. Recargas vistas (nativo y sintético). |
+
+## Umbrales por sesión (YM)
+
+| Parámetro | En ATAS | Tipo | Defecto | Rango | Descripción y recomendación |
+|---|---|---|---|---|---|
+| `YmAsiaMinExecutedContracts` | Asia: ejecutado mínimo (ruido) | entero | 16 | 1-100000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 18:00-02:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `YmAsiaHighProbContracts` | Asia: alta probabilidad | entero | 48 | 1-100000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 18:00-02:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `YmAsiaMinRefills` | Asia: recargas mínimas | entero | 3 | 1-1000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 18:00-02:00 ET. Recargas vistas (nativo y sintético). |
+| `YmLondonMinExecutedContracts` | Londres: ejecutado mínimo (ruido) | entero | 32 | 1-100000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 02:00-premercado ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `YmLondonHighProbContracts` | Londres: alta probabilidad | entero | 100 | 1-100000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 02:00-premercado ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `YmLondonMinRefills` | Londres: recargas mínimas | entero | 4 | 1-1000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 02:00-premercado ET. Recargas vistas (nativo y sintético). |
+| `YmPremarketMinExecutedContracts` | Premercado NY: ejecutado mínimo (ruido) | entero | 40 | 1-100000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 1 h antes de las 09:30 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `YmPremarketHighProbContracts` | Premercado NY: alta probabilidad | entero | 120 | 1-100000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 1 h antes de las 09:30 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `YmPremarketMinRefills` | Premercado NY: recargas mínimas | entero | 4 | 1-1000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 1 h antes de las 09:30 ET. Recargas vistas (nativo y sintético). |
+| `YmNyOpenMinExecutedContracts` | Apertura NY: ejecutado mínimo (ruido) | entero | 60 | 1-100000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 09:30-11:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `YmNyOpenHighProbContracts` | Apertura NY: alta probabilidad | entero | 160 | 1-100000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 09:30-11:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `YmNyOpenMinRefills` | Apertura NY: recargas mínimas | entero | 5 | 1-1000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 09:30-11:00 ET. Recargas vistas (nativo y sintético). |
+| `YmMiddayMinExecutedContracts` | Mediodía: ejecutado mínimo (ruido) | entero | 40 | 1-100000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 11:00-14:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `YmMiddayHighProbContracts` | Mediodía: alta probabilidad | entero | 120 | 1-100000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 11:00-14:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `YmMiddayMinRefills` | Mediodía: recargas mínimas | entero | 4 | 1-1000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 11:00-14:00 ET. Recargas vistas (nativo y sintético). |
+| `YmCloseMinExecutedContracts` | Cierre: ejecutado mínimo (ruido) | entero | 60 | 1-100000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 14:00-16:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `YmCloseHighProbContracts` | Cierre: alta probabilidad | entero | 160 | 1-100000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 14:00-16:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `YmCloseMinRefills` | Cierre: recargas mínimas | entero | 5 | 1-1000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 14:00-16:00 ET. Recargas vistas (nativo y sintético). |
+| `YmOffHoursMinExecutedContracts` | Fuera de horario: ejecutado mínimo (ruido) | entero | 16 | 1-100000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 16:00-18:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `YmOffHoursHighProbContracts` | Fuera de horario: alta probabilidad | entero | 48 | 1-100000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 16:00-18:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `YmOffHoursMinRefills` | Fuera de horario: recargas mínimas | entero | 3 | 1-1000 | YM PROVISIONAL (punto de partida: NQ x 0,4), 16:00-18:00 ET. Recargas vistas (nativo y sintético). |
+
+## Umbrales por sesión (MYM)
+
+| Parámetro | En ATAS | Tipo | Defecto | Rango | Descripción y recomendación |
+|---|---|---|---|---|---|
+| `MymAsiaMinExecutedContracts` | Asia: ejecutado mínimo (ruido) | entero | 8 | 1-100000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 18:00-02:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `MymAsiaHighProbContracts` | Asia: alta probabilidad | entero | 24 | 1-100000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 18:00-02:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `MymAsiaMinRefills` | Asia: recargas mínimas | entero | 3 | 1-1000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 18:00-02:00 ET. Recargas vistas (nativo y sintético). |
+| `MymLondonMinExecutedContracts` | Londres: ejecutado mínimo (ruido) | entero | 16 | 1-100000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 02:00-premercado ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `MymLondonHighProbContracts` | Londres: alta probabilidad | entero | 50 | 1-100000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 02:00-premercado ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `MymLondonMinRefills` | Londres: recargas mínimas | entero | 4 | 1-1000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 02:00-premercado ET. Recargas vistas (nativo y sintético). |
+| `MymPremarketMinExecutedContracts` | Premercado NY: ejecutado mínimo (ruido) | entero | 20 | 1-100000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 1 h antes de las 09:30 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `MymPremarketHighProbContracts` | Premercado NY: alta probabilidad | entero | 60 | 1-100000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 1 h antes de las 09:30 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `MymPremarketMinRefills` | Premercado NY: recargas mínimas | entero | 4 | 1-1000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 1 h antes de las 09:30 ET. Recargas vistas (nativo y sintético). |
+| `MymNyOpenMinExecutedContracts` | Apertura NY: ejecutado mínimo (ruido) | entero | 30 | 1-100000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 09:30-11:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `MymNyOpenHighProbContracts` | Apertura NY: alta probabilidad | entero | 80 | 1-100000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 09:30-11:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `MymNyOpenMinRefills` | Apertura NY: recargas mínimas | entero | 5 | 1-1000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 09:30-11:00 ET. Recargas vistas (nativo y sintético). |
+| `MymMiddayMinExecutedContracts` | Mediodía: ejecutado mínimo (ruido) | entero | 20 | 1-100000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 11:00-14:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `MymMiddayHighProbContracts` | Mediodía: alta probabilidad | entero | 60 | 1-100000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 11:00-14:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `MymMiddayMinRefills` | Mediodía: recargas mínimas | entero | 4 | 1-1000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 11:00-14:00 ET. Recargas vistas (nativo y sintético). |
+| `MymCloseMinExecutedContracts` | Cierre: ejecutado mínimo (ruido) | entero | 30 | 1-100000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 14:00-16:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `MymCloseHighProbContracts` | Cierre: alta probabilidad | entero | 80 | 1-100000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 14:00-16:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `MymCloseMinRefills` | Cierre: recargas mínimas | entero | 5 | 1-1000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 14:00-16:00 ET. Recargas vistas (nativo y sintético). |
+| `MymOffHoursMinExecutedContracts` | Fuera de horario: ejecutado mínimo (ruido) | entero | 8 | 1-100000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 16:00-18:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR. |
+| `MymOffHoursHighProbContracts` | Fuera de horario: alta probabilidad | entero | 24 | 1-100000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 16:00-18:00 ET. Contratos para la marca * (con el ratio de alta probabilidad). |
+| `MymOffHoursMinRefills` | Fuera de horario: recargas mínimas | entero | 3 | 1-1000 | MYM PROVISIONAL (punto de partida: NQ x 0,2), 16:00-18:00 ET. Recargas vistas (nativo y sintético). |
+
 ## Sesgo
 
 | Parámetro | En ATAS | Tipo | Defecto | Rango | Descripción y recomendación |
@@ -166,7 +281,12 @@ con 1-2 semanas de CSV ([OPERATIVA.md](OPERATIVA.md#8-calibración-con-los-csv))
 |---|---|---|---|---|---|
 | `ImbalanceRatioPercent` | Ratio diagonal mínimo (%) | decimal | 300 | 150-1000 | Ask del nivel N contra Bid del nivel N-1 (compra) o Bid de N contra Ask de N+1 (venta). 150-1000 %. Recomendado: 300. |
 | `MinStackedLevels` | Niveles consecutivos mínimos | entero | 3 | 2-10 | Niveles seguidos con imbalance del mismo lado para formar la zona (2-10). Recomendado: 3. |
-| `MinLevelVolumeContracts` | Volumen mínimo por nivel (contratos) | entero | 15 | 1-100000 | Volumen mínimo del lado dominante por nivel en RTH. NQ: 15; MNQ: 30-50. |
+| `MinLevelVolumeContracts` | NQ: volumen mínimo por nivel (contratos) | entero | 15 | 1-100000 | Volumen mínimo del lado dominante por nivel en RTH. |
+| `MnqMinLevelVolumeContracts` | MNQ: volumen mínimo por nivel (contratos) | entero | 30 | 1-100000 | Volumen mínimo del lado dominante por nivel en RTH. PROVISIONAL: calibrar con el CSV de MNQ. |
+| `EsMinLevelVolumeContracts` | ES: volumen mínimo por nivel (contratos) | entero | 38 | 1-100000 | Volumen mínimo del lado dominante por nivel en RTH. PROVISIONAL: calibrar con el CSV de ES. |
+| `MesMinLevelVolumeContracts` | MES: volumen mínimo por nivel (contratos) | entero | 19 | 1-100000 | Volumen mínimo del lado dominante por nivel en RTH. PROVISIONAL: calibrar con el CSV de MES. |
+| `YmMinLevelVolumeContracts` | YM: volumen mínimo por nivel (contratos) | entero | 6 | 1-100000 | Volumen mínimo del lado dominante por nivel en RTH. PROVISIONAL: calibrar con el CSV de YM. |
+| `MymMinLevelVolumeContracts` | MYM: volumen mínimo por nivel (contratos) | entero | 3 | 1-100000 | Volumen mínimo del lado dominante por nivel en RTH. PROVISIONAL: calibrar con el CSV de MYM. |
 | `OffHoursFactor` | Factor fuera de RTH | decimal | 0.5 | 0.1-2 | Multiplicador del volumen mínimo fuera de 09:30-16:00 ET. Recomendado: 0,5. |
 | `IgnoreZeroSide` | Lado débil a cero: exigir el mínimo | sí/no | Sí |  | Activado: un lado débil a 0 cuenta como 1 contrato y exige el volumen mínimo (sin 'infinitos'). Desactivado: ese nivel no cuenta. |
 | `ZoneExtendBars` | Velas que se extiende la zona | entero | 50 | 1-2000 | Velas que la zona sigue viva y dibujada. Recomendado: 50. |
@@ -177,8 +297,18 @@ con 1-2 semanas de CSV ([OPERATIVA.md](OPERATIVA.md#8-calibración-con-los-csv))
 
 | Parámetro | En ATAS | Tipo | Defecto | Rango | Descripción y recomendación |
 |---|---|---|---|---|---|
-| `MinCascadeContractsRth` | Cascada mínima en RTH (contratos) | entero | 100 | 1-100000 | Volumen mínimo de la ráfaga en 09:30-16:00 ET. NQ: 100; MNQ: 200. |
-| `MinCascadeContractsEth` | Cascada mínima fuera de RTH (contratos) | entero | 50 | 1-100000 | Volumen mínimo fuera de RTH. NQ: 50; MNQ: 100. |
+| `MinCascadeContractsRth` | NQ: cascada mínima en RTH (contratos) | entero | 100 | 1-100000 | Volumen mínimo de la ráfaga en 09:30-16:00 ET. |
+| `MnqMinCascadeContractsRth` | MNQ: cascada mínima en RTH (contratos) | entero | 200 | 1-100000 | Volumen mínimo de la ráfaga en 09:30-16:00 ET. PROVISIONAL: calibrar con el CSV de MNQ. |
+| `EsMinCascadeContractsRth` | ES: cascada mínima en RTH (contratos) | entero | 250 | 1-100000 | Volumen mínimo de la ráfaga en 09:30-16:00 ET. PROVISIONAL: calibrar con el CSV de ES. |
+| `MesMinCascadeContractsRth` | MES: cascada mínima en RTH (contratos) | entero | 125 | 1-100000 | Volumen mínimo de la ráfaga en 09:30-16:00 ET. PROVISIONAL: calibrar con el CSV de MES. |
+| `YmMinCascadeContractsRth` | YM: cascada mínima en RTH (contratos) | entero | 40 | 1-100000 | Volumen mínimo de la ráfaga en 09:30-16:00 ET. PROVISIONAL: calibrar con el CSV de YM. |
+| `MymMinCascadeContractsRth` | MYM: cascada mínima en RTH (contratos) | entero | 20 | 1-100000 | Volumen mínimo de la ráfaga en 09:30-16:00 ET. PROVISIONAL: calibrar con el CSV de MYM. |
+| `MinCascadeContractsEth` | NQ: cascada mínima fuera de RTH (contratos) | entero | 50 | 1-100000 | Volumen mínimo fuera de RTH. |
+| `MnqMinCascadeContractsEth` | MNQ: cascada mínima fuera de RTH (contratos) | entero | 100 | 1-100000 | Volumen mínimo fuera de RTH. PROVISIONAL: calibrar con el CSV de MNQ. |
+| `EsMinCascadeContractsEth` | ES: cascada mínima fuera de RTH (contratos) | entero | 125 | 1-100000 | Volumen mínimo fuera de RTH. PROVISIONAL: calibrar con el CSV de ES. |
+| `MesMinCascadeContractsEth` | MES: cascada mínima fuera de RTH (contratos) | entero | 62 | 1-100000 | Volumen mínimo fuera de RTH. PROVISIONAL: calibrar con el CSV de MES. |
+| `YmMinCascadeContractsEth` | YM: cascada mínima fuera de RTH (contratos) | entero | 20 | 1-100000 | Volumen mínimo fuera de RTH. PROVISIONAL: calibrar con el CSV de YM. |
+| `MymMinCascadeContractsEth` | MYM: cascada mínima fuera de RTH (contratos) | entero | 10 | 1-100000 | Volumen mínimo fuera de RTH. PROVISIONAL: calibrar con el CSV de MYM. |
 | `CascadeMaxMs` | Duración máxima de la ráfaga (ms) | entero | 300 | 10-10000 | Ráfaga de órdenes a mercado en la misma dirección. Recomendado: 300. |
 | `MinCascadeLevels` | Niveles mínimos atravesados | entero | 3 | 2-100 | Ticks que debe atravesar la ráfaga. Recomendado: 3. |
 | `SwingLengthBars` | Velas a cada lado de un swing | entero | 20 | 2-500 | Un swing es el máximo/mínimo de 2N+1 velas. Recomendado: 20. |
@@ -194,7 +324,12 @@ con 1-2 semanas de CSV ([OPERATIVA.md](OPERATIVA.md#8-calibración-con-los-csv))
 | Parámetro | En ATAS | Tipo | Defecto | Rango | Descripción y recomendación |
 |---|---|---|---|---|---|
 | `MinSweepLevels` | Niveles mínimos | entero | 4 | 2-200 | Niveles barridos por una sola orden agresiva (4 ticks = 1 punto en NQ). Recomendado: 4. |
-| `MinSweepContracts` | Volumen mínimo de la orden (contratos) | entero | 50 | 1-100000 | Volumen de la orden reconstruida. NQ: 50; MNQ: 100. |
+| `MinSweepContracts` | NQ: volumen mínimo de la orden (contratos) | entero | 50 | 1-100000 | Volumen de la orden reconstruida. |
+| `MnqMinSweepContracts` | MNQ: volumen mínimo de la orden (contratos) | entero | 100 | 1-100000 | Volumen de la orden reconstruida. PROVISIONAL: calibrar con el CSV de MNQ. |
+| `EsMinSweepContracts` | ES: volumen mínimo de la orden (contratos) | entero | 125 | 1-100000 | Volumen de la orden reconstruida. PROVISIONAL: calibrar con el CSV de ES. |
+| `MesMinSweepContracts` | MES: volumen mínimo de la orden (contratos) | entero | 62 | 1-100000 | Volumen de la orden reconstruida. PROVISIONAL: calibrar con el CSV de MES. |
+| `YmMinSweepContracts` | YM: volumen mínimo de la orden (contratos) | entero | 20 | 1-100000 | Volumen de la orden reconstruida. PROVISIONAL: calibrar con el CSV de YM. |
+| `MymMinSweepContracts` | MYM: volumen mínimo de la orden (contratos) | entero | 10 | 1-100000 | Volumen de la orden reconstruida. PROVISIONAL: calibrar con el CSV de MYM. |
 | `SweepReclaimSeconds` | Vuelve dentro en (s) -> LIQUIDEZ | entero | 30 | 1-3600 | Si vuelve dentro del rango en este tiempo: LIQUIDEZ (trampa); si no: RUPTURA. Recomendado: 30. |
 | `LevelToleranceTicks` | Distancia al nivel de referencia (ticks) | entero | 4 | 0-100 | El barrido debe empezar a esta distancia del nivel (o antes) y cruzarlo. Recomendado: 4. |
 | `RefPdhPdl` | Niveles: PDH / PDL | sí/no | Sí |  | Máximo y mínimo del día anterior. |

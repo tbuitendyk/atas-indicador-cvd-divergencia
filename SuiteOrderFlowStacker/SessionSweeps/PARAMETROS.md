@@ -166,6 +166,7 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `ShowLvnLines` | LVN del Thermal | Sí |  | Las zonas que llegan del Thermal (activas y mitigadas). |
 | `ShowManualTriggerBoxes` | Cajas del gatillo manual | No |  | Las dibuja el Thermal que las pidió; actívelo solo si el Thermal está en otro gráfico. |
 | `ShowCvdDivergences` | Divergencias del CVD en el precio | Sí |  | Tramos entre pivotes, sin líneas verticales. |
+| `ShowTrackerDiagnostics` | Diagnóstico de trackers | No |  | Marca hueca fucsia (SSP ICE, STOP, SWEEP, STK, IMB) en cada evento que Sessions Sweeps recibe del bus, para compararlo con el dibujo original del tracker. |
 
 ## 30. Instrumentos
 

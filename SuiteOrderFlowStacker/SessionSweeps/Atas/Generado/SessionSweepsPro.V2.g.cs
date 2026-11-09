@@ -405,6 +405,9 @@ public partial class SessionSweepsPro
 	[Display(Name = "Divergencias del CVD en el precio", GroupName = "28. Panel y dibujo", Order = 120, Description = "Tramos entre pivotes, sin líneas verticales.")]
 	public bool ShowCvdDivergences { get => _v.ShowCvdDivergences; set { _v.ShowCvdDivergences = value; RedrawChart(); } }
 
+	[Display(Name = "Diagnóstico de trackers", GroupName = "28. Panel y dibujo", Order = 130, Description = "Marca hueca fucsia (SSP ICE, STOP, SWEEP, STK, IMB) en cada evento que Sessions Sweeps recibe del bus, para compararlo con el dibujo original del tracker.")]
+	public bool ShowTrackerDiagnostics { get => _v.ShowTrackerDiagnostics; set { _v.ShowTrackerDiagnostics = value; RedrawChart(); } }
+
 	// --- 30. Instrumentos ------------------------------------------------------------------------------------
 
 	[Display(Name = "Alias de símbolos", GroupName = "30. Instrumentos", Order = 10, Description = "Si el proveedor usa otro nombre: ENQ=NQ;EP=ES. Sin reconocer: INSTRUMENTO NO SOPORTADO (sin señales).")]

@@ -45,6 +45,7 @@ public partial class StopsTrackerPro
 		};
 		_c.General.InfoPanelPosition = EsquinaPanel.BottomRight;
 		_c.General.InfoPanelOffsetY = 0;
+		_c.General.ShowInfoPanel = false;
 	}
 
 	/// <summary>Cambio de un parámetro: recalcula las velas solo si hace falta (los eventos en vivo se conservan).</summary>
@@ -84,26 +85,29 @@ public partial class StopsTrackerPro
 	[Range(1, 1440)]
 	public int EventLifetimeMin { get => _c.General.EventLifetimeMin; set { _c.General.EventLifetimeMin = Math.Clamp(value, 1, 1440); Cambio(false); } }
 
-	[Display(Name = "Perfil de instrumento", GroupName = "0. General", Order = 80, Description = "Auto = MNQ si el instrumento empieza por MNQ, si no NQ. Elige la tabla de umbrales por sesión.")]
+	[Display(Name = "Perfil de instrumento", GroupName = "0. General", Order = 80, Description = "Auto = por el símbolo de ATAS (NQ, MNQ, ES, MES, YM, MYM; sin reconocer: NQ). Elige la tabla de umbrales por sesión y los umbrales en contratos de esa familia.")]
 	public PerfilInstrumento InstrumentProfile { get => _c.General.InstrumentProfile; set { _c.General.InstrumentProfile = value; Cambio(false); } }
 
 	[Display(Name = "Alertas", GroupName = "0. General", Order = 90, Description = "Una alerta por evento y por cambio de estado, solo en vivo (nunca al recalcular el historial).")]
 	public bool EnableAlerts { get => _c.General.EnableAlerts; set { _c.General.EnableAlerts = value; Cambio(false); } }
 
-	[Display(Name = "Sonido de la alerta", GroupName = "0. General", Order = 100, Description = "Sonido de ATAS para las alertas. Por defecto: alert1.")]
+	[Display(Name = "Panel propio en el gráfico", GroupName = "0. General", Order = 100, Description = "v3: los trackers lo traen apagado; su último evento se ve en el panel de Sessions Sweeps Pro. Su dibujo en el gráfico no cambia.")]
+	public bool ShowInfoPanel { get => _c.General.ShowInfoPanel; set { _c.General.ShowInfoPanel = value; Cambio(false); } }
+
+	[Display(Name = "Sonido de la alerta", GroupName = "0. General", Order = 110, Description = "Sonido de ATAS para las alertas. Por defecto: alert1.")]
 	[SoundComboBoxEditor]
 	public string AlertSoundFile { get => _c.General.AlertSoundFile; set { _c.General.AlertSoundFile = string.IsNullOrWhiteSpace(value) ? "alert1" : value; Cambio(false); } }
 
-	[Display(Name = "Grabar en CSV", GroupName = "0. General", Order = 110, Description = "Graba cada evento en %APPDATA%\\ATAS\\OrderFlowSuite\\{Instrumento}\\yyyy-MM-dd.csv (para calibrar).")]
+	[Display(Name = "Grabar en CSV", GroupName = "0. General", Order = 120, Description = "Graba cada evento en %APPDATA%\\ATAS\\OrderFlowSuite\\{Instrumento}\\yyyy-MM-dd.csv (para calibrar).")]
 	public bool EnableRecording { get => _c.General.EnableRecording; set { _c.General.EnableRecording = value; Cambio(false); } }
 
-	[Display(Name = "Solo tiempo real", GroupName = "0. General", Order = 120, Description = "Si se activa, no se reconstruyen eventos con las velas del historial (solo los de ahora en adelante).")]
+	[Display(Name = "Solo tiempo real", GroupName = "0. General", Order = 130, Description = "Si se activa, no se reconstruyen eventos con las velas del historial (solo los de ahora en adelante).")]
 	public bool RealTimeOnly { get => _c.General.RealTimeOnly; set { _c.General.RealTimeOnly = value; Cambio(true); } }
 
-	[Display(Name = "Cargar eventos grabados", GroupName = "0. General", Order = 130, Description = "Al cargar, lee los CSV de los últimos días y vuelve a dibujar sus eventos (en gris, sin sonar).")]
+	[Display(Name = "Cargar eventos grabados", GroupName = "0. General", Order = 140, Description = "Al cargar, lee los CSV de los últimos días y vuelve a dibujar sus eventos (en gris, sin sonar).")]
 	public bool LoadRecordedEvents { get => _c.General.LoadRecordedEvents; set { _c.General.LoadRecordedEvents = value; Cambio(true); } }
 
-	[Display(Name = "Días grabados a cargar", GroupName = "0. General", Order = 140, Description = "Días de CSV que se cargan (hoy incluido). Recomendado: 5.")]
+	[Display(Name = "Días grabados a cargar", GroupName = "0. General", Order = 150, Description = "Días de CSV que se cargan (hoy incluido). Recomendado: 5.")]
 	[Range(1, 60)]
 	public int RecordedDaysToLoad { get => _c.General.RecordedDaysToLoad; set { _c.General.RecordedDaysToLoad = Math.Clamp(value, 1, 60); Cambio(true); } }
 
@@ -111,46 +115,86 @@ public partial class StopsTrackerPro
 
 	#region 1. Stops
 
-	[Display(Name = "Cascada mínima en RTH (contratos)", GroupName = "1. Stops", Order = 10, Description = "Volumen mínimo de la ráfaga en 09:30-16:00 ET. NQ: 100; MNQ: 200.")]
+	[Display(Name = "NQ: cascada mínima en RTH (contratos)", GroupName = "1. Stops", Order = 10, Description = "Volumen mínimo de la ráfaga en 09:30-16:00 ET.")]
 	[Range(1, 100000)]
-	public int MinCascadeContractsRth { get => _c.Cfg.Stops.MinCascadeContractsRth; set { _c.Cfg.Stops.MinCascadeContractsRth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+	public int MinCascadeContractsRth { get => _c.Cfg.Contratos.NQ.MinCascadeContractsRth; set { _c.Cfg.Contratos.NQ.MinCascadeContractsRth = Math.Clamp(value, 1, 100000); Cambio(false); } }
 
-	[Display(Name = "Cascada mínima fuera de RTH (contratos)", GroupName = "1. Stops", Order = 20, Description = "Volumen mínimo fuera de RTH. NQ: 50; MNQ: 100.")]
+	[Display(Name = "MNQ: cascada mínima en RTH (contratos)", GroupName = "1. Stops", Order = 20, Description = "Volumen mínimo de la ráfaga en 09:30-16:00 ET. PROVISIONAL: calibrar con el CSV de MNQ.")]
 	[Range(1, 100000)]
-	public int MinCascadeContractsEth { get => _c.Cfg.Stops.MinCascadeContractsEth; set { _c.Cfg.Stops.MinCascadeContractsEth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+	public int MnqMinCascadeContractsRth { get => _c.Cfg.Contratos.MNQ.MinCascadeContractsRth; set { _c.Cfg.Contratos.MNQ.MinCascadeContractsRth = Math.Clamp(value, 1, 100000); Cambio(false); } }
 
-	[Display(Name = "Duración máxima de la ráfaga (ms)", GroupName = "1. Stops", Order = 30, Description = "Ráfaga de órdenes a mercado en la misma dirección. Recomendado: 300.")]
+	[Display(Name = "ES: cascada mínima en RTH (contratos)", GroupName = "1. Stops", Order = 30, Description = "Volumen mínimo de la ráfaga en 09:30-16:00 ET. PROVISIONAL: calibrar con el CSV de ES.")]
+	[Range(1, 100000)]
+	public int EsMinCascadeContractsRth { get => _c.Cfg.Contratos.ES.MinCascadeContractsRth; set { _c.Cfg.Contratos.ES.MinCascadeContractsRth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "MES: cascada mínima en RTH (contratos)", GroupName = "1. Stops", Order = 40, Description = "Volumen mínimo de la ráfaga en 09:30-16:00 ET. PROVISIONAL: calibrar con el CSV de MES.")]
+	[Range(1, 100000)]
+	public int MesMinCascadeContractsRth { get => _c.Cfg.Contratos.MES.MinCascadeContractsRth; set { _c.Cfg.Contratos.MES.MinCascadeContractsRth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "YM: cascada mínima en RTH (contratos)", GroupName = "1. Stops", Order = 50, Description = "Volumen mínimo de la ráfaga en 09:30-16:00 ET. PROVISIONAL: calibrar con el CSV de YM.")]
+	[Range(1, 100000)]
+	public int YmMinCascadeContractsRth { get => _c.Cfg.Contratos.YM.MinCascadeContractsRth; set { _c.Cfg.Contratos.YM.MinCascadeContractsRth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "MYM: cascada mínima en RTH (contratos)", GroupName = "1. Stops", Order = 60, Description = "Volumen mínimo de la ráfaga en 09:30-16:00 ET. PROVISIONAL: calibrar con el CSV de MYM.")]
+	[Range(1, 100000)]
+	public int MymMinCascadeContractsRth { get => _c.Cfg.Contratos.MYM.MinCascadeContractsRth; set { _c.Cfg.Contratos.MYM.MinCascadeContractsRth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "NQ: cascada mínima fuera de RTH (contratos)", GroupName = "1. Stops", Order = 70, Description = "Volumen mínimo fuera de RTH.")]
+	[Range(1, 100000)]
+	public int MinCascadeContractsEth { get => _c.Cfg.Contratos.NQ.MinCascadeContractsEth; set { _c.Cfg.Contratos.NQ.MinCascadeContractsEth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "MNQ: cascada mínima fuera de RTH (contratos)", GroupName = "1. Stops", Order = 80, Description = "Volumen mínimo fuera de RTH. PROVISIONAL: calibrar con el CSV de MNQ.")]
+	[Range(1, 100000)]
+	public int MnqMinCascadeContractsEth { get => _c.Cfg.Contratos.MNQ.MinCascadeContractsEth; set { _c.Cfg.Contratos.MNQ.MinCascadeContractsEth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "ES: cascada mínima fuera de RTH (contratos)", GroupName = "1. Stops", Order = 90, Description = "Volumen mínimo fuera de RTH. PROVISIONAL: calibrar con el CSV de ES.")]
+	[Range(1, 100000)]
+	public int EsMinCascadeContractsEth { get => _c.Cfg.Contratos.ES.MinCascadeContractsEth; set { _c.Cfg.Contratos.ES.MinCascadeContractsEth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "MES: cascada mínima fuera de RTH (contratos)", GroupName = "1. Stops", Order = 100, Description = "Volumen mínimo fuera de RTH. PROVISIONAL: calibrar con el CSV de MES.")]
+	[Range(1, 100000)]
+	public int MesMinCascadeContractsEth { get => _c.Cfg.Contratos.MES.MinCascadeContractsEth; set { _c.Cfg.Contratos.MES.MinCascadeContractsEth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "YM: cascada mínima fuera de RTH (contratos)", GroupName = "1. Stops", Order = 110, Description = "Volumen mínimo fuera de RTH. PROVISIONAL: calibrar con el CSV de YM.")]
+	[Range(1, 100000)]
+	public int YmMinCascadeContractsEth { get => _c.Cfg.Contratos.YM.MinCascadeContractsEth; set { _c.Cfg.Contratos.YM.MinCascadeContractsEth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "MYM: cascada mínima fuera de RTH (contratos)", GroupName = "1. Stops", Order = 120, Description = "Volumen mínimo fuera de RTH. PROVISIONAL: calibrar con el CSV de MYM.")]
+	[Range(1, 100000)]
+	public int MymMinCascadeContractsEth { get => _c.Cfg.Contratos.MYM.MinCascadeContractsEth; set { _c.Cfg.Contratos.MYM.MinCascadeContractsEth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Duración máxima de la ráfaga (ms)", GroupName = "1. Stops", Order = 130, Description = "Ráfaga de órdenes a mercado en la misma dirección. Recomendado: 300.")]
 	[Range(10, 10000)]
 	public int CascadeMaxMs { get => _c.Cfg.Stops.CascadeMaxMs; set { _c.Cfg.Stops.CascadeMaxMs = Math.Clamp(value, 10, 10000); Cambio(false); } }
 
-	[Display(Name = "Niveles mínimos atravesados", GroupName = "1. Stops", Order = 40, Description = "Ticks que debe atravesar la ráfaga. Recomendado: 3.")]
+	[Display(Name = "Niveles mínimos atravesados", GroupName = "1. Stops", Order = 140, Description = "Ticks que debe atravesar la ráfaga. Recomendado: 3.")]
 	[Range(2, 100)]
 	public int MinCascadeLevels { get => _c.Cfg.Stops.MinCascadeLevels; set { _c.Cfg.Stops.MinCascadeLevels = Math.Clamp(value, 2, 100); Cambio(false); } }
 
-	[Display(Name = "Velas a cada lado de un swing", GroupName = "1. Stops", Order = 50, Description = "Un swing es el máximo/mínimo de 2N+1 velas. Recomendado: 20.")]
+	[Display(Name = "Velas a cada lado de un swing", GroupName = "1. Stops", Order = 150, Description = "Un swing es el máximo/mínimo de 2N+1 velas. Recomendado: 20.")]
 	[Range(2, 500)]
 	public int SwingLengthBars { get => _c.Cfg.SwingLengthBars; set { _c.Cfg.SwingLengthBars = Math.Clamp(value, 2, 500); Cambio(true); } }
 
-	[Display(Name = "Paso de números redondos (puntos)", GroupName = "1. Stops", Order = 60, Description = "Zonas en múltiplos de este paso. NQ: 50. 0 = sin números redondos.")]
+	[Display(Name = "Paso de números redondos (puntos)", GroupName = "1. Stops", Order = 160, Description = "Zonas en múltiplos de este paso. NQ: 50. 0 = sin números redondos.")]
 	[Range(0, 100000)]
 	public int RoundNumberStep { get => _c.Cfg.RoundNumberStep; set { _c.Cfg.RoundNumberStep = Math.Clamp(value, 0, 100000); Cambio(true); } }
 
-	[Display(Name = "Mostrar zonas probables", GroupName = "1. Stops", Order = 70, Description = "Dibuja las zonas probables (modo Full) y avisa en el panel al acercarse el precio.")]
+	[Display(Name = "Mostrar zonas probables", GroupName = "1. Stops", Order = 170, Description = "Dibuja las zonas probables (modo Full) y avisa en el panel al acercarse el precio.")]
 	public bool ShowProbableZones { get => _c.Cfg.Stops.ShowProbableZones; set { _c.Cfg.Stops.ShowProbableZones = value; Cambio(false); } }
 
-	[Display(Name = "Distancia a la zona (ticks)", GroupName = "1. Stops", Order = 80, Description = "Distancia para asociar una cascada a una zona. Recomendado: 4.")]
+	[Display(Name = "Distancia a la zona (ticks)", GroupName = "1. Stops", Order = 180, Description = "Distancia para asociar una cascada a una zona. Recomendado: 4.")]
 	[Range(0, 100)]
 	public int ZoneToleranceTicks { get => _c.Cfg.Stops.ZoneToleranceTicks; set { _c.Cfg.Stops.ZoneToleranceTicks = Math.Clamp(value, 0, 100); Cambio(false); } }
 
-	[Display(Name = "Vuelve dentro en (s) -> TRAMPA", GroupName = "1. Stops", Order = 90, Description = "Si el precio vuelve dentro en este tiempo: TRAMPA; si no: CONTINUACIÓN. Recomendado: 60.")]
+	[Display(Name = "Vuelve dentro en (s) -> TRAMPA", GroupName = "1. Stops", Order = 190, Description = "Si el precio vuelve dentro en este tiempo: TRAMPA; si no: CONTINUACIÓN. Recomendado: 60.")]
 	[Range(1, 3600)]
 	public int StopReclaimSeconds { get => _c.Cfg.Stops.StopReclaimSeconds; set { _c.Cfg.Stops.StopReclaimSeconds = Math.Clamp(value, 1, 3600); Cambio(false); } }
 
-	[Display(Name = "Duración del Initial Balance (min)", GroupName = "1. Stops", Order = 100, Description = "IBH/IBL desde las 09:30 ET. Recomendado: 60.")]
+	[Display(Name = "Duración del Initial Balance (min)", GroupName = "1. Stops", Order = 200, Description = "IBH/IBL desde las 09:30 ET. Recomendado: 60.")]
 	[Range(5, 390)]
 	public int IbMinutes { get => _c.Cfg.IbMinutes; set { _c.Cfg.IbMinutes = Math.Clamp(value, 5, 390); Cambio(true); } }
 
-	[Display(Name = "Solo cascadas en una zona", GroupName = "1. Stops", Order = 110, Description = "Activado: solo cascadas junto a una zona probable. Desactivado: también 'sin zona'.")]
+	[Display(Name = "Solo cascadas en una zona", GroupName = "1. Stops", Order = 210, Description = "Activado: solo cascadas junto a una zona probable. Desactivado: también 'sin zona'.")]
 	public bool RequireZone { get => _c.Cfg.Stops.RequireZone; set { _c.Cfg.Stops.RequireZone = value; Cambio(false); } }
 
 	#endregion

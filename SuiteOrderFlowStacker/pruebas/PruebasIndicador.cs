@@ -51,6 +51,8 @@ internal static class PruebasIndicador
 			LastVisibleBarNumber = velas.Count - 1
 		};
 
+		// Estas pruebas leen el panel propio de cada indicador: v3 lo trae apagado en los trackers (se enciende aquí).
+		typeof(T).GetProperty("ShowInfoPanel")?.SetValue(ind, true);
 		ajustes?.Invoke(ind);
 		ind.TestInitialize();
 		ind.TestCalcAll();
@@ -234,6 +236,14 @@ internal static class PruebasIndicador
 		ind.DisplayMode = ModoVisual.Full;
 		c.Check("recálculo: el iceberg en vivo sigue", Textos(ind.TestRender()).Contains("ICEBERG 160c").ToString(), "True");
 		ind.TestDispose();
+
+		c.Seccion("v3 S6: el panel propio de los trackers viene apagado (el del Absorption Master no); su dibujo no cambia");
+		c.Check("ShowInfoPanel por defecto: Stacked, Iceberg, Stops, Sweeps, Master",
+			string.Join(" ", new object[] { new StackedImbalancePro(), new IcebergTrackerPro(), new StopsTrackerPro(), new SweepsTrackerPro(), new AbsorptionMaster() }
+				.Select(x => x.GetType().GetProperty("ShowInfoPanel")!.GetValue(x))), "False False False False True");
+		var sinPanel = Crear<SweepsTrackerPro>(ajustes: i => i.ShowInfoPanel = false);
+		c.Check("apagado: no dibuja el panel", Textos(sinPanel.TestRender()).Contains("SWEEPS TRACKER").ToString(), "False");
+		sinPanel.TestDispose();
 
 		var nombres = typeof(AbsorptionMaster).GetProperties().Select(p => p.Name).ToHashSet();
 

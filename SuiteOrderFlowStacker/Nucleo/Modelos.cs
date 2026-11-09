@@ -49,7 +49,19 @@ public enum PerfilInstrumento
 	NQ,
 
 	[Display(Name = "MNQ")]
-	MNQ
+	MNQ,
+
+	[Display(Name = "ES")]
+	ES,
+
+	[Display(Name = "MES")]
+	MES,
+
+	[Display(Name = "YM")]
+	YM,
+
+	[Display(Name = "MYM")]
+	MYM
 }
 
 public enum ModoMbo
@@ -322,7 +334,89 @@ public sealed class TablaUmbrales
 		[Sesion.FueraDeHorario] = new(20, 60, 3)
 	};
 
+	// PROVISIONAL (v3, 2.4): cada familia tiene su tabla; punto de partida = NQ × su factor (ES 2,5; MES 1,25; YM 0,4;
+	// MYM 0,2), igual que la de MNQ (NQ × 0,5). CALIBRAR con los CSV del propio instrumento.
+	public Dictionary<Sesion, UmbralSesion> Es { get; } = Escalada(2.5m);
+	public Dictionary<Sesion, UmbralSesion> Mes { get; } = Escalada(1.25m);
+	public Dictionary<Sesion, UmbralSesion> Ym { get; } = Escalada(0.4m);
+	public Dictionary<Sesion, UmbralSesion> Mym { get; } = Escalada(0.2m);
+
+	private static Dictionary<Sesion, UmbralSesion> Escalada(decimal factor) => new TablaUmbralesBase().Nq.ToDictionary(
+		kv => kv.Key, kv => new UmbralSesion(Math.Max(1, Math.Round(kv.Value.MinEjecutado * factor)), Math.Max(1, Math.Round(kv.Value.AltaProbabilidad * factor)), kv.Value.MinRecargas));
+
 	public UmbralSesion De(Sesion s, bool mnq) => (mnq ? Mnq : Nq)[s];
+
+	/// <summary>La tabla de la familia del instrumento (Auto/desconocido = NQ).</summary>
+	public UmbralSesion De(Sesion s, PerfilInstrumento r) => (r switch
+	{
+		PerfilInstrumento.MNQ => Mnq,
+		PerfilInstrumento.ES => Es,
+		PerfilInstrumento.MES => Mes,
+		PerfilInstrumento.YM => Ym,
+		PerfilInstrumento.MYM => Mym,
+		_ => Nq
+	})[s];
+
+	/// <summary>Solo para escalar las tablas provisionales desde los valores iniciales de NQ.</summary>
+	private sealed class TablaUmbralesBase
+	{
+		public Dictionary<Sesion, UmbralSesion> Nq { get; } = new()
+		{
+			[Sesion.Asia] = new(40, 120, 3),
+			[Sesion.Londres] = new(80, 250, 4),
+			[Sesion.Premercado] = new(100, 300, 4),
+			[Sesion.AperturaNY] = new(150, 400, 5),
+			[Sesion.Mediodia] = new(100, 300, 4),
+			[Sesion.Cierre] = new(150, 400, 5),
+			[Sesion.FueraDeHorario] = new(40, 120, 3)
+		};
+	}
+}
+
+/// <summary>Umbrales en contratos de los trackers que dependen del instrumento (v3, 2.4): uno por familia.</summary>
+public sealed class ContratosTracker
+{
+	public int MinLevelVolumeContracts { get; set; } = 15;
+	public int MinVisibleClipContracts { get; set; } = 1;
+	public int MaxVisibleClipContracts { get; set; } = 50;
+	public int MinCascadeContractsRth { get; set; } = 100;
+	public int MinCascadeContractsEth { get; set; } = 50;
+	public int MinSweepContracts { get; set; } = 50;
+
+	/// <summary>NQ = los valores de siempre; el resto PROVISIONAL (NQ × el factor de su familia; MNQ con su recomendación previa).</summary>
+	public static ContratosTracker PorDefecto(PerfilInstrumento r)
+	{
+		var factor = r switch { PerfilInstrumento.MNQ => 2m, PerfilInstrumento.ES => 2.5m, PerfilInstrumento.MES => 1.25m, PerfilInstrumento.YM => 0.4m, PerfilInstrumento.MYM => 0.2m, _ => 1m };
+		int E(int v) => Math.Max(1, (int)Math.Round(v * factor));
+		return r is PerfilInstrumento.NQ or PerfilInstrumento.Auto
+			? new ContratosTracker()
+			: new ContratosTracker
+			{
+				MinLevelVolumeContracts = E(15), MinVisibleClipContracts = 1, MaxVisibleClipContracts = E(50), MinCascadeContractsRth = E(100),
+				MinCascadeContractsEth = E(50), MinSweepContracts = E(50)
+			};
+	}
+}
+
+/// <summary>Los umbrales en contratos de cada familia (nunca se comparten).</summary>
+public sealed class ContratosPorInstrumento
+{
+	public ContratosTracker NQ { get; } = ContratosTracker.PorDefecto(PerfilInstrumento.NQ);
+	public ContratosTracker MNQ { get; } = ContratosTracker.PorDefecto(PerfilInstrumento.MNQ);
+	public ContratosTracker ES { get; } = ContratosTracker.PorDefecto(PerfilInstrumento.ES);
+	public ContratosTracker MES { get; } = ContratosTracker.PorDefecto(PerfilInstrumento.MES);
+	public ContratosTracker YM { get; } = ContratosTracker.PorDefecto(PerfilInstrumento.YM);
+	public ContratosTracker MYM { get; } = ContratosTracker.PorDefecto(PerfilInstrumento.MYM);
+
+	public ContratosTracker De(PerfilInstrumento r) => r switch
+	{
+		PerfilInstrumento.MNQ => MNQ,
+		PerfilInstrumento.ES => ES,
+		PerfilInstrumento.MES => MES,
+		PerfilInstrumento.YM => YM,
+		PerfilInstrumento.MYM => MYM,
+		_ => NQ
+	};
 }
 
 #endregion

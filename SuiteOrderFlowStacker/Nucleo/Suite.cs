@@ -13,6 +13,9 @@ public sealed class ConfiguracionSuite
 	public ParametrosBarridos Barridos { get; } = new();
 	public ParametrosMaster Master { get; } = new();
 	public TablaUmbrales Umbrales { get; } = new();
+
+	/// <summary>Umbrales en contratos por familia (v3): Configurar copia los del instrumento a los parámetros efectivos.</summary>
+	public ContratosPorInstrumento Contratos { get; } = new();
 	public ClasificadorSesion Sesiones { get; } = new();
 
 	// Contexto (swings, números redondos, Initial Balance, tendencia y área de valor).
@@ -80,16 +83,26 @@ public sealed class MotorSuite : IContextoIceberg
 
 	public decimal Tick { get; private set; } = 0.25m;
 
-	public bool Mnq { get; private set; }
+	public PerfilInstrumento Raiz { get; private set; } = PerfilInstrumento.NQ;
+
+	public bool Mnq => Raiz == PerfilInstrumento.MNQ;
 
 	/// <summary>RealTimeOnly: no se reconstruyen eventos con las velas del historial (el contexto sí).</summary>
 	public bool SoloTiempoReal { get; set; }
 
 	/// <summary>Pasa los parámetros y el tick a los motores (se llama al empezar cada cálculo).</summary>
-	public void Configurar(decimal tick, bool mnq)
+	public void Configurar(decimal tick, bool mnq) => Configurar(tick, mnq ? PerfilInstrumento.MNQ : PerfilInstrumento.NQ);
+
+	/// <summary>Pasa los parámetros, el tick y los umbrales en contratos de la familia del instrumento a los motores.</summary>
+	public void Configurar(decimal tick, PerfilInstrumento raiz)
 	{
 		Tick = tick > 0 ? tick : 0.25m;
-		Mnq = mnq;
+		Raiz = raiz is PerfilInstrumento.Auto ? PerfilInstrumento.NQ : raiz;
+		var k = Cfg.Contratos.De(Raiz);
+		Cfg.Imbalance.MinLevelVolumeContracts = k.MinLevelVolumeContracts;
+		(Cfg.Iceberg.MinVisibleClipContracts, Cfg.Iceberg.MaxVisibleClipContracts) = (k.MinVisibleClipContracts, k.MaxVisibleClipContracts);
+		(Cfg.Stops.MinCascadeContractsRth, Cfg.Stops.MinCascadeContractsEth) = (k.MinCascadeContractsRth, k.MinCascadeContractsEth);
+		Cfg.Barridos.MinSweepContracts = k.MinSweepContracts;
 
 		Contexto.Tick = Tick;
 		Contexto.IbMinutes = Cfg.IbMinutes;
@@ -105,7 +118,7 @@ public sealed class MotorSuite : IContextoIceberg
 		Icebergs.P = Cfg.Iceberg;
 		Icebergs.Umbrales = Cfg.Umbrales;
 		Icebergs.Sesiones = Cfg.Sesiones;
-		Icebergs.Mnq = mnq;
+		Icebergs.Raiz = Raiz;
 		Icebergs.Tick = Tick;
 
 		Stops.P = Cfg.Stops;

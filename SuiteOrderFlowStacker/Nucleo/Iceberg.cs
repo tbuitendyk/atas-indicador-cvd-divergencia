@@ -146,7 +146,8 @@ public sealed class MotorIceberg
 
 	public ClasificadorSesion Sesiones { get; set; } = new();
 
-	public bool Mnq { get; set; }
+	/// <summary>Familia del instrumento: elige su tabla de umbrales por sesión.</summary>
+	public PerfilInstrumento Raiz { get; set; } = PerfilInstrumento.NQ;
 
 	public decimal Tick { get; set; } = 0.25m;
 
@@ -523,7 +524,7 @@ public sealed class MotorIceberg
 	private void Evaluar(Candidato c, DateTime utc)
 	{
 		var sesion = Sesiones.De(utc);
-		var u = Umbrales.De(sesion, Mnq);
+		var u = Umbrales.De(sesion, Raiz);
 		var (clip, ratio, recargas) = Medidas(c);
 
 		if (clip <= 0 || clip > Math.Max(1, P.MaxVisibleClipContracts) || c.Ejecutado < u.MinEjecutado || ratio < P.MinExecVisibleRatio ||
@@ -591,7 +592,7 @@ public sealed class MotorIceberg
 		Medir(i, c);
 		i.UltimaActividadUtc = utc;
 
-		if (!i.AltaProbabilidad && EsAltaProbabilidad(i, Umbrales.De(i.Evento.Sesion, Mnq)))
+		if (!i.AltaProbabilidad && EsAltaProbabilidad(i, Umbrales.De(i.Evento.Sesion, Raiz)))
 		{
 			i.AltaProbabilidad = true;
 			Texto(i);

@@ -45,6 +45,7 @@ public partial class AbsorptionMaster
 		};
 		_c.General.InfoPanelPosition = EsquinaPanel.TopLeft;
 		_c.General.InfoPanelOffsetY = 0;
+		_c.General.ShowInfoPanel = true;
 	}
 
 	/// <summary>Cambio de un parámetro: recalcula las velas solo si hace falta (los eventos en vivo se conservan).</summary>
@@ -84,26 +85,29 @@ public partial class AbsorptionMaster
 	[Range(1, 1440)]
 	public int EventLifetimeMin { get => _c.General.EventLifetimeMin; set { _c.General.EventLifetimeMin = Math.Clamp(value, 1, 1440); Cambio(false); } }
 
-	[Display(Name = "Perfil de instrumento", GroupName = "0. General", Order = 80, Description = "Auto = MNQ si el instrumento empieza por MNQ, si no NQ. Elige la tabla de umbrales por sesión.")]
+	[Display(Name = "Perfil de instrumento", GroupName = "0. General", Order = 80, Description = "Auto = por el símbolo de ATAS (NQ, MNQ, ES, MES, YM, MYM; sin reconocer: NQ). Elige la tabla de umbrales por sesión y los umbrales en contratos de esa familia.")]
 	public PerfilInstrumento InstrumentProfile { get => _c.General.InstrumentProfile; set { _c.General.InstrumentProfile = value; Cambio(false); } }
 
 	[Display(Name = "Alertas", GroupName = "0. General", Order = 90, Description = "Una alerta por evento y por cambio de estado, solo en vivo (nunca al recalcular el historial).")]
 	public bool EnableAlerts { get => _c.General.EnableAlerts; set { _c.General.EnableAlerts = value; Cambio(false); } }
 
-	[Display(Name = "Sonido de la alerta", GroupName = "0. General", Order = 100, Description = "Sonido de ATAS para las alertas. Por defecto: alert1.")]
+	[Display(Name = "Panel propio en el gráfico", GroupName = "0. General", Order = 100, Description = "v3: los trackers lo traen apagado; su último evento se ve en el panel de Sessions Sweeps Pro. Su dibujo en el gráfico no cambia.")]
+	public bool ShowInfoPanel { get => _c.General.ShowInfoPanel; set { _c.General.ShowInfoPanel = value; Cambio(false); } }
+
+	[Display(Name = "Sonido de la alerta", GroupName = "0. General", Order = 110, Description = "Sonido de ATAS para las alertas. Por defecto: alert1.")]
 	[SoundComboBoxEditor]
 	public string AlertSoundFile { get => _c.General.AlertSoundFile; set { _c.General.AlertSoundFile = string.IsNullOrWhiteSpace(value) ? "alert1" : value; Cambio(false); } }
 
-	[Display(Name = "Grabar en CSV", GroupName = "0. General", Order = 110, Description = "Graba cada evento en %APPDATA%\\ATAS\\OrderFlowSuite\\{Instrumento}\\yyyy-MM-dd.csv (para calibrar).")]
+	[Display(Name = "Grabar en CSV", GroupName = "0. General", Order = 120, Description = "Graba cada evento en %APPDATA%\\ATAS\\OrderFlowSuite\\{Instrumento}\\yyyy-MM-dd.csv (para calibrar).")]
 	public bool EnableRecording { get => _c.General.EnableRecording; set { _c.General.EnableRecording = value; Cambio(false); } }
 
-	[Display(Name = "Solo tiempo real", GroupName = "0. General", Order = 120, Description = "Si se activa, no se reconstruyen eventos con las velas del historial (solo los de ahora en adelante).")]
+	[Display(Name = "Solo tiempo real", GroupName = "0. General", Order = 130, Description = "Si se activa, no se reconstruyen eventos con las velas del historial (solo los de ahora en adelante).")]
 	public bool RealTimeOnly { get => _c.General.RealTimeOnly; set { _c.General.RealTimeOnly = value; Cambio(true); } }
 
-	[Display(Name = "Cargar eventos grabados", GroupName = "0. General", Order = 130, Description = "Al cargar, lee los CSV de los últimos días y vuelve a dibujar sus eventos (en gris, sin sonar).")]
+	[Display(Name = "Cargar eventos grabados", GroupName = "0. General", Order = 140, Description = "Al cargar, lee los CSV de los últimos días y vuelve a dibujar sus eventos (en gris, sin sonar).")]
 	public bool LoadRecordedEvents { get => _c.General.LoadRecordedEvents; set { _c.General.LoadRecordedEvents = value; Cambio(true); } }
 
-	[Display(Name = "Días grabados a cargar", GroupName = "0. General", Order = 140, Description = "Días de CSV que se cargan (hoy incluido). Recomendado: 5.")]
+	[Display(Name = "Días grabados a cargar", GroupName = "0. General", Order = 150, Description = "Días de CSV que se cargan (hoy incluido). Recomendado: 5.")]
 	[Range(1, 60)]
 	public int RecordedDaysToLoad { get => _c.General.RecordedDaysToLoad; set { _c.General.RecordedDaysToLoad = Math.Clamp(value, 1, 60); Cambio(true); } }
 
@@ -227,38 +231,78 @@ public partial class AbsorptionMaster
 	[Range(5, 600)]
 	public int DetectionWindowSeconds { get => _c.Cfg.Iceberg.DetectionWindowSeconds; set { _c.Cfg.Iceberg.DetectionWindowSeconds = Math.Clamp(value, 5, 600); Cambio(false); } }
 
-	[Display(Name = "Clip mínimo (informativo)", GroupName = "5. Filtros Iceberg", Order = 60, Description = "Informativo, NO es filtro: en NQ los clips suelen ser de 1-10 contratos.")]
+	[Display(Name = "NQ: clip mínimo (informativo)", GroupName = "5. Filtros Iceberg", Order = 60, Description = "Informativo, NO es filtro.")]
 	[Range(1, 1000)]
-	public int MinVisibleClipContracts { get => _c.Cfg.Iceberg.MinVisibleClipContracts; set { _c.Cfg.Iceberg.MinVisibleClipContracts = Math.Clamp(value, 1, 1000); Cambio(false); } }
+	public int MinVisibleClipContracts { get => _c.Cfg.Contratos.NQ.MinVisibleClipContracts; set { _c.Cfg.Contratos.NQ.MinVisibleClipContracts = Math.Clamp(value, 1, 1000); Cambio(false); } }
 
-	[Display(Name = "Clip máximo considerado", GroupName = "5. Filtros Iceberg", Order = 70, Description = "Un tamaño visible mayor no se considera iceberg. Recomendado: 50.")]
+	[Display(Name = "MNQ: clip mínimo (informativo)", GroupName = "5. Filtros Iceberg", Order = 70, Description = "Informativo, NO es filtro. PROVISIONAL: calibrar con el CSV de MNQ.")]
+	[Range(1, 1000)]
+	public int MnqMinVisibleClipContracts { get => _c.Cfg.Contratos.MNQ.MinVisibleClipContracts; set { _c.Cfg.Contratos.MNQ.MinVisibleClipContracts = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "ES: clip mínimo (informativo)", GroupName = "5. Filtros Iceberg", Order = 80, Description = "Informativo, NO es filtro. PROVISIONAL: calibrar con el CSV de ES.")]
+	[Range(1, 1000)]
+	public int EsMinVisibleClipContracts { get => _c.Cfg.Contratos.ES.MinVisibleClipContracts; set { _c.Cfg.Contratos.ES.MinVisibleClipContracts = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "MES: clip mínimo (informativo)", GroupName = "5. Filtros Iceberg", Order = 90, Description = "Informativo, NO es filtro. PROVISIONAL: calibrar con el CSV de MES.")]
+	[Range(1, 1000)]
+	public int MesMinVisibleClipContracts { get => _c.Cfg.Contratos.MES.MinVisibleClipContracts; set { _c.Cfg.Contratos.MES.MinVisibleClipContracts = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "YM: clip mínimo (informativo)", GroupName = "5. Filtros Iceberg", Order = 100, Description = "Informativo, NO es filtro. PROVISIONAL: calibrar con el CSV de YM.")]
+	[Range(1, 1000)]
+	public int YmMinVisibleClipContracts { get => _c.Cfg.Contratos.YM.MinVisibleClipContracts; set { _c.Cfg.Contratos.YM.MinVisibleClipContracts = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "MYM: clip mínimo (informativo)", GroupName = "5. Filtros Iceberg", Order = 110, Description = "Informativo, NO es filtro. PROVISIONAL: calibrar con el CSV de MYM.")]
+	[Range(1, 1000)]
+	public int MymMinVisibleClipContracts { get => _c.Cfg.Contratos.MYM.MinVisibleClipContracts; set { _c.Cfg.Contratos.MYM.MinVisibleClipContracts = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "NQ: clip máximo considerado", GroupName = "5. Filtros Iceberg", Order = 120, Description = "Un tamaño visible mayor no se considera iceberg.")]
 	[Range(1, 10000)]
-	public int MaxVisibleClipContracts { get => _c.Cfg.Iceberg.MaxVisibleClipContracts; set { _c.Cfg.Iceberg.MaxVisibleClipContracts = Math.Clamp(value, 1, 10000); Cambio(false); } }
+	public int MaxVisibleClipContracts { get => _c.Cfg.Contratos.NQ.MaxVisibleClipContracts; set { _c.Cfg.Contratos.NQ.MaxVisibleClipContracts = Math.Clamp(value, 1, 10000); Cambio(false); } }
 
-	[Display(Name = "Sintético: tiempo máximo (ms)", GroupName = "5. Filtros Iceberg", Order = 80, Description = "Tiempo entre el llenado y la orden nueva parecida. Recomendado: 50.")]
+	[Display(Name = "MNQ: clip máximo considerado", GroupName = "5. Filtros Iceberg", Order = 130, Description = "Un tamaño visible mayor no se considera iceberg. PROVISIONAL: calibrar con el CSV de MNQ.")]
+	[Range(1, 10000)]
+	public int MnqMaxVisibleClipContracts { get => _c.Cfg.Contratos.MNQ.MaxVisibleClipContracts; set { _c.Cfg.Contratos.MNQ.MaxVisibleClipContracts = Math.Clamp(value, 1, 10000); Cambio(false); } }
+
+	[Display(Name = "ES: clip máximo considerado", GroupName = "5. Filtros Iceberg", Order = 140, Description = "Un tamaño visible mayor no se considera iceberg. PROVISIONAL: calibrar con el CSV de ES.")]
+	[Range(1, 10000)]
+	public int EsMaxVisibleClipContracts { get => _c.Cfg.Contratos.ES.MaxVisibleClipContracts; set { _c.Cfg.Contratos.ES.MaxVisibleClipContracts = Math.Clamp(value, 1, 10000); Cambio(false); } }
+
+	[Display(Name = "MES: clip máximo considerado", GroupName = "5. Filtros Iceberg", Order = 150, Description = "Un tamaño visible mayor no se considera iceberg. PROVISIONAL: calibrar con el CSV de MES.")]
+	[Range(1, 10000)]
+	public int MesMaxVisibleClipContracts { get => _c.Cfg.Contratos.MES.MaxVisibleClipContracts; set { _c.Cfg.Contratos.MES.MaxVisibleClipContracts = Math.Clamp(value, 1, 10000); Cambio(false); } }
+
+	[Display(Name = "YM: clip máximo considerado", GroupName = "5. Filtros Iceberg", Order = 160, Description = "Un tamaño visible mayor no se considera iceberg. PROVISIONAL: calibrar con el CSV de YM.")]
+	[Range(1, 10000)]
+	public int YmMaxVisibleClipContracts { get => _c.Cfg.Contratos.YM.MaxVisibleClipContracts; set { _c.Cfg.Contratos.YM.MaxVisibleClipContracts = Math.Clamp(value, 1, 10000); Cambio(false); } }
+
+	[Display(Name = "MYM: clip máximo considerado", GroupName = "5. Filtros Iceberg", Order = 170, Description = "Un tamaño visible mayor no se considera iceberg. PROVISIONAL: calibrar con el CSV de MYM.")]
+	[Range(1, 10000)]
+	public int MymMaxVisibleClipContracts { get => _c.Cfg.Contratos.MYM.MaxVisibleClipContracts; set { _c.Cfg.Contratos.MYM.MaxVisibleClipContracts = Math.Clamp(value, 1, 10000); Cambio(false); } }
+
+	[Display(Name = "Sintético: tiempo máximo (ms)", GroupName = "5. Filtros Iceberg", Order = 180, Description = "Tiempo entre el llenado y la orden nueva parecida. Recomendado: 50.")]
 	[Range(1, 2000)]
 	public int SyntheticRefillMaxMs { get => _c.Cfg.Iceberg.SyntheticRefillMaxMs; set { _c.Cfg.Iceberg.SyntheticRefillMaxMs = Math.Clamp(value, 1, 2000); Cambio(false); } }
 
-	[Display(Name = "Sintético: tolerancia de tamaño (%)", GroupName = "5. Filtros Iceberg", Order = 90, Description = "Diferencia de tamaño aceptada entre la orden llenada y la nueva. Recomendado: 20.")]
+	[Display(Name = "Sintético: tolerancia de tamaño (%)", GroupName = "5. Filtros Iceberg", Order = 190, Description = "Diferencia de tamaño aceptada entre la orden llenada y la nueva. Recomendado: 20.")]
 	[Range(0, 100)]
 	public int SyntheticSizeTolerancePercent { get => _c.Cfg.Iceberg.SyntheticSizeTolerancePercent; set { _c.Cfg.Iceberg.SyntheticSizeTolerancePercent = Math.Clamp(value, 0, 100); Cambio(false); } }
 
-	[Display(Name = "Detectar sintéticos", GroupName = "5. Filtros Iceberg", Order = 100, Description = "Icebergs gestionados por software (orden nueva tras cada llenado). Necesita MBO.")]
+	[Display(Name = "Detectar sintéticos", GroupName = "5. Filtros Iceberg", Order = 200, Description = "Icebergs gestionados por software (orden nueva tras cada llenado). Necesita MBO.")]
 	public bool DetectSynthetic { get => _c.Cfg.Iceberg.DetectSynthetic; set { _c.Cfg.Iceberg.DetectSynthetic = value; Cambio(false); } }
 
-	[Display(Name = "Ticks a favor -> AGUANTANDO", GroupName = "5. Filtros Iceberg", Order = 110, Description = "Sin recargar y con el precio a estos ticks a favor, el iceberg pasa a AGUANTANDO. Recomendado: 4.")]
+	[Display(Name = "Ticks a favor -> AGUANTANDO", GroupName = "5. Filtros Iceberg", Order = 210, Description = "Sin recargar y con el precio a estos ticks a favor, el iceberg pasa a AGUANTANDO. Recomendado: 4.")]
 	[Range(1, 50)]
 	public int HoldConfirmTicks { get => _c.Cfg.Iceberg.HoldConfirmTicks; set { _c.Cfg.Iceberg.HoldConfirmTicks = Math.Clamp(value, 1, 50); Cambio(false); } }
 
-	[Display(Name = "Ticks atravesados -> ROTO", GroupName = "5. Filtros Iceberg", Order = 120, Description = "El precio atraviesa el nivel estos ticks: ROTO (agotado). Recomendado: 2.")]
+	[Display(Name = "Ticks atravesados -> ROTO", GroupName = "5. Filtros Iceberg", Order = 220, Description = "El precio atraviesa el nivel estos ticks: ROTO (agotado). Recomendado: 2.")]
 	[Range(1, 50)]
 	public int BreakTicks { get => _c.Cfg.Iceberg.BreakTicks; set { _c.Cfg.Iceberg.BreakTicks = Math.Clamp(value, 1, 50); Cambio(false); } }
 
-	[Display(Name = "ACTIVO: recarga en los últimos (s)", GroupName = "5. Filtros Iceberg", Order = 130, Description = "ACTIVO mientras recarga o se ejecuta en estos segundos. Recomendado: 10.")]
+	[Display(Name = "ACTIVO: recarga en los últimos (s)", GroupName = "5. Filtros Iceberg", Order = 230, Description = "ACTIVO mientras recarga o se ejecuta en estos segundos. Recomendado: 10.")]
 	[Range(1, 300)]
 	public int ActiveRefillSeconds { get => _c.Cfg.Iceberg.ActiveRefillSeconds; set { _c.Cfg.Iceberg.ActiveRefillSeconds = Math.Clamp(value, 1, 300); Cambio(false); } }
 
-	[Display(Name = "Órdenes MBO seguidas (máximo)", GroupName = "5. Filtros Iceberg", Order = 140, Description = "Límite de memoria en la apertura de NY. Recomendado: 20000.")]
+	[Display(Name = "Órdenes MBO seguidas (máximo)", GroupName = "5. Filtros Iceberg", Order = 240, Description = "Límite de memoria en la apertura de NY. Recomendado: 20000.")]
 	[Range(1000, 500000)]
 	public int MaxTrackedOrders { get => _c.Cfg.Iceberg.MaxTrackedOrders; set { _c.Cfg.Iceberg.MaxTrackedOrders = Math.Clamp(value, 1000, 500000); Cambio(false); } }
 
@@ -444,140 +488,572 @@ public partial class AbsorptionMaster
 
 	#endregion
 
-	#region 8. Sesgo
+	#region 8. Umbrales por sesión (ES)
 
-	[Display(Name = "Ventana con barrido / stops (s)", GroupName = "8. Sesgo", Order = 10, Description = "Relaciona un iceberg con un barrido o toma de stops (GIRO) y define los setups B y D. Recomendado: 30.")]
+	[Display(Name = "Asia: ejecutado mínimo (ruido)", GroupName = "8. Umbrales por sesión (ES)", Order = 10, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 18:00-02:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int EsAsiaMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Es[Sesion.Asia].MinEjecutado; set { _c.Cfg.Umbrales.Es[Sesion.Asia].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Asia: alta probabilidad", GroupName = "8. Umbrales por sesión (ES)", Order = 20, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 18:00-02:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int EsAsiaHighProbContracts { get => (int)_c.Cfg.Umbrales.Es[Sesion.Asia].AltaProbabilidad; set { _c.Cfg.Umbrales.Es[Sesion.Asia].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Asia: recargas mínimas", GroupName = "8. Umbrales por sesión (ES)", Order = 30, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 18:00-02:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int EsAsiaMinRefills { get => _c.Cfg.Umbrales.Es[Sesion.Asia].MinRecargas; set { _c.Cfg.Umbrales.Es[Sesion.Asia].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Londres: ejecutado mínimo (ruido)", GroupName = "8. Umbrales por sesión (ES)", Order = 40, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 02:00-premercado ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int EsLondonMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Es[Sesion.Londres].MinEjecutado; set { _c.Cfg.Umbrales.Es[Sesion.Londres].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Londres: alta probabilidad", GroupName = "8. Umbrales por sesión (ES)", Order = 50, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 02:00-premercado ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int EsLondonHighProbContracts { get => (int)_c.Cfg.Umbrales.Es[Sesion.Londres].AltaProbabilidad; set { _c.Cfg.Umbrales.Es[Sesion.Londres].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Londres: recargas mínimas", GroupName = "8. Umbrales por sesión (ES)", Order = 60, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 02:00-premercado ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int EsLondonMinRefills { get => _c.Cfg.Umbrales.Es[Sesion.Londres].MinRecargas; set { _c.Cfg.Umbrales.Es[Sesion.Londres].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Premercado NY: ejecutado mínimo (ruido)", GroupName = "8. Umbrales por sesión (ES)", Order = 70, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 1 h antes de las 09:30 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int EsPremarketMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Es[Sesion.Premercado].MinEjecutado; set { _c.Cfg.Umbrales.Es[Sesion.Premercado].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Premercado NY: alta probabilidad", GroupName = "8. Umbrales por sesión (ES)", Order = 80, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 1 h antes de las 09:30 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int EsPremarketHighProbContracts { get => (int)_c.Cfg.Umbrales.Es[Sesion.Premercado].AltaProbabilidad; set { _c.Cfg.Umbrales.Es[Sesion.Premercado].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Premercado NY: recargas mínimas", GroupName = "8. Umbrales por sesión (ES)", Order = 90, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 1 h antes de las 09:30 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int EsPremarketMinRefills { get => _c.Cfg.Umbrales.Es[Sesion.Premercado].MinRecargas; set { _c.Cfg.Umbrales.Es[Sesion.Premercado].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Apertura NY: ejecutado mínimo (ruido)", GroupName = "8. Umbrales por sesión (ES)", Order = 100, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 09:30-11:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int EsNyOpenMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Es[Sesion.AperturaNY].MinEjecutado; set { _c.Cfg.Umbrales.Es[Sesion.AperturaNY].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Apertura NY: alta probabilidad", GroupName = "8. Umbrales por sesión (ES)", Order = 110, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 09:30-11:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int EsNyOpenHighProbContracts { get => (int)_c.Cfg.Umbrales.Es[Sesion.AperturaNY].AltaProbabilidad; set { _c.Cfg.Umbrales.Es[Sesion.AperturaNY].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Apertura NY: recargas mínimas", GroupName = "8. Umbrales por sesión (ES)", Order = 120, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 09:30-11:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int EsNyOpenMinRefills { get => _c.Cfg.Umbrales.Es[Sesion.AperturaNY].MinRecargas; set { _c.Cfg.Umbrales.Es[Sesion.AperturaNY].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Mediodía: ejecutado mínimo (ruido)", GroupName = "8. Umbrales por sesión (ES)", Order = 130, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 11:00-14:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int EsMiddayMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Es[Sesion.Mediodia].MinEjecutado; set { _c.Cfg.Umbrales.Es[Sesion.Mediodia].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Mediodía: alta probabilidad", GroupName = "8. Umbrales por sesión (ES)", Order = 140, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 11:00-14:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int EsMiddayHighProbContracts { get => (int)_c.Cfg.Umbrales.Es[Sesion.Mediodia].AltaProbabilidad; set { _c.Cfg.Umbrales.Es[Sesion.Mediodia].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Mediodía: recargas mínimas", GroupName = "8. Umbrales por sesión (ES)", Order = 150, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 11:00-14:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int EsMiddayMinRefills { get => _c.Cfg.Umbrales.Es[Sesion.Mediodia].MinRecargas; set { _c.Cfg.Umbrales.Es[Sesion.Mediodia].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Cierre: ejecutado mínimo (ruido)", GroupName = "8. Umbrales por sesión (ES)", Order = 160, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 14:00-16:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int EsCloseMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Es[Sesion.Cierre].MinEjecutado; set { _c.Cfg.Umbrales.Es[Sesion.Cierre].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Cierre: alta probabilidad", GroupName = "8. Umbrales por sesión (ES)", Order = 170, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 14:00-16:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int EsCloseHighProbContracts { get => (int)_c.Cfg.Umbrales.Es[Sesion.Cierre].AltaProbabilidad; set { _c.Cfg.Umbrales.Es[Sesion.Cierre].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Cierre: recargas mínimas", GroupName = "8. Umbrales por sesión (ES)", Order = 180, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 14:00-16:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int EsCloseMinRefills { get => _c.Cfg.Umbrales.Es[Sesion.Cierre].MinRecargas; set { _c.Cfg.Umbrales.Es[Sesion.Cierre].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Fuera de horario: ejecutado mínimo (ruido)", GroupName = "8. Umbrales por sesión (ES)", Order = 190, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 16:00-18:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int EsOffHoursMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Es[Sesion.FueraDeHorario].MinEjecutado; set { _c.Cfg.Umbrales.Es[Sesion.FueraDeHorario].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Fuera de horario: alta probabilidad", GroupName = "8. Umbrales por sesión (ES)", Order = 200, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 16:00-18:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int EsOffHoursHighProbContracts { get => (int)_c.Cfg.Umbrales.Es[Sesion.FueraDeHorario].AltaProbabilidad; set { _c.Cfg.Umbrales.Es[Sesion.FueraDeHorario].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Fuera de horario: recargas mínimas", GroupName = "8. Umbrales por sesión (ES)", Order = 210, Description = "ES PROVISIONAL (punto de partida: NQ x 2,5), 16:00-18:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int EsOffHoursMinRefills { get => _c.Cfg.Umbrales.Es[Sesion.FueraDeHorario].MinRecargas; set { _c.Cfg.Umbrales.Es[Sesion.FueraDeHorario].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	#endregion
+
+	#region 9. Umbrales por sesión (MES)
+
+	[Display(Name = "Asia: ejecutado mínimo (ruido)", GroupName = "9. Umbrales por sesión (MES)", Order = 10, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 18:00-02:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int MesAsiaMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Mes[Sesion.Asia].MinEjecutado; set { _c.Cfg.Umbrales.Mes[Sesion.Asia].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Asia: alta probabilidad", GroupName = "9. Umbrales por sesión (MES)", Order = 20, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 18:00-02:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int MesAsiaHighProbContracts { get => (int)_c.Cfg.Umbrales.Mes[Sesion.Asia].AltaProbabilidad; set { _c.Cfg.Umbrales.Mes[Sesion.Asia].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Asia: recargas mínimas", GroupName = "9. Umbrales por sesión (MES)", Order = 30, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 18:00-02:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int MesAsiaMinRefills { get => _c.Cfg.Umbrales.Mes[Sesion.Asia].MinRecargas; set { _c.Cfg.Umbrales.Mes[Sesion.Asia].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Londres: ejecutado mínimo (ruido)", GroupName = "9. Umbrales por sesión (MES)", Order = 40, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 02:00-premercado ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int MesLondonMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Mes[Sesion.Londres].MinEjecutado; set { _c.Cfg.Umbrales.Mes[Sesion.Londres].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Londres: alta probabilidad", GroupName = "9. Umbrales por sesión (MES)", Order = 50, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 02:00-premercado ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int MesLondonHighProbContracts { get => (int)_c.Cfg.Umbrales.Mes[Sesion.Londres].AltaProbabilidad; set { _c.Cfg.Umbrales.Mes[Sesion.Londres].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Londres: recargas mínimas", GroupName = "9. Umbrales por sesión (MES)", Order = 60, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 02:00-premercado ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int MesLondonMinRefills { get => _c.Cfg.Umbrales.Mes[Sesion.Londres].MinRecargas; set { _c.Cfg.Umbrales.Mes[Sesion.Londres].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Premercado NY: ejecutado mínimo (ruido)", GroupName = "9. Umbrales por sesión (MES)", Order = 70, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 1 h antes de las 09:30 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int MesPremarketMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Mes[Sesion.Premercado].MinEjecutado; set { _c.Cfg.Umbrales.Mes[Sesion.Premercado].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Premercado NY: alta probabilidad", GroupName = "9. Umbrales por sesión (MES)", Order = 80, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 1 h antes de las 09:30 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int MesPremarketHighProbContracts { get => (int)_c.Cfg.Umbrales.Mes[Sesion.Premercado].AltaProbabilidad; set { _c.Cfg.Umbrales.Mes[Sesion.Premercado].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Premercado NY: recargas mínimas", GroupName = "9. Umbrales por sesión (MES)", Order = 90, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 1 h antes de las 09:30 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int MesPremarketMinRefills { get => _c.Cfg.Umbrales.Mes[Sesion.Premercado].MinRecargas; set { _c.Cfg.Umbrales.Mes[Sesion.Premercado].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Apertura NY: ejecutado mínimo (ruido)", GroupName = "9. Umbrales por sesión (MES)", Order = 100, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 09:30-11:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int MesNyOpenMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Mes[Sesion.AperturaNY].MinEjecutado; set { _c.Cfg.Umbrales.Mes[Sesion.AperturaNY].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Apertura NY: alta probabilidad", GroupName = "9. Umbrales por sesión (MES)", Order = 110, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 09:30-11:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int MesNyOpenHighProbContracts { get => (int)_c.Cfg.Umbrales.Mes[Sesion.AperturaNY].AltaProbabilidad; set { _c.Cfg.Umbrales.Mes[Sesion.AperturaNY].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Apertura NY: recargas mínimas", GroupName = "9. Umbrales por sesión (MES)", Order = 120, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 09:30-11:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int MesNyOpenMinRefills { get => _c.Cfg.Umbrales.Mes[Sesion.AperturaNY].MinRecargas; set { _c.Cfg.Umbrales.Mes[Sesion.AperturaNY].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Mediodía: ejecutado mínimo (ruido)", GroupName = "9. Umbrales por sesión (MES)", Order = 130, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 11:00-14:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int MesMiddayMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Mes[Sesion.Mediodia].MinEjecutado; set { _c.Cfg.Umbrales.Mes[Sesion.Mediodia].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Mediodía: alta probabilidad", GroupName = "9. Umbrales por sesión (MES)", Order = 140, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 11:00-14:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int MesMiddayHighProbContracts { get => (int)_c.Cfg.Umbrales.Mes[Sesion.Mediodia].AltaProbabilidad; set { _c.Cfg.Umbrales.Mes[Sesion.Mediodia].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Mediodía: recargas mínimas", GroupName = "9. Umbrales por sesión (MES)", Order = 150, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 11:00-14:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int MesMiddayMinRefills { get => _c.Cfg.Umbrales.Mes[Sesion.Mediodia].MinRecargas; set { _c.Cfg.Umbrales.Mes[Sesion.Mediodia].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Cierre: ejecutado mínimo (ruido)", GroupName = "9. Umbrales por sesión (MES)", Order = 160, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 14:00-16:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int MesCloseMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Mes[Sesion.Cierre].MinEjecutado; set { _c.Cfg.Umbrales.Mes[Sesion.Cierre].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Cierre: alta probabilidad", GroupName = "9. Umbrales por sesión (MES)", Order = 170, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 14:00-16:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int MesCloseHighProbContracts { get => (int)_c.Cfg.Umbrales.Mes[Sesion.Cierre].AltaProbabilidad; set { _c.Cfg.Umbrales.Mes[Sesion.Cierre].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Cierre: recargas mínimas", GroupName = "9. Umbrales por sesión (MES)", Order = 180, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 14:00-16:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int MesCloseMinRefills { get => _c.Cfg.Umbrales.Mes[Sesion.Cierre].MinRecargas; set { _c.Cfg.Umbrales.Mes[Sesion.Cierre].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Fuera de horario: ejecutado mínimo (ruido)", GroupName = "9. Umbrales por sesión (MES)", Order = 190, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 16:00-18:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int MesOffHoursMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Mes[Sesion.FueraDeHorario].MinEjecutado; set { _c.Cfg.Umbrales.Mes[Sesion.FueraDeHorario].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Fuera de horario: alta probabilidad", GroupName = "9. Umbrales por sesión (MES)", Order = 200, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 16:00-18:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int MesOffHoursHighProbContracts { get => (int)_c.Cfg.Umbrales.Mes[Sesion.FueraDeHorario].AltaProbabilidad; set { _c.Cfg.Umbrales.Mes[Sesion.FueraDeHorario].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Fuera de horario: recargas mínimas", GroupName = "9. Umbrales por sesión (MES)", Order = 210, Description = "MES PROVISIONAL (punto de partida: NQ x 1,25), 16:00-18:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int MesOffHoursMinRefills { get => _c.Cfg.Umbrales.Mes[Sesion.FueraDeHorario].MinRecargas; set { _c.Cfg.Umbrales.Mes[Sesion.FueraDeHorario].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	#endregion
+
+	#region 10. Umbrales por sesión (YM)
+
+	[Display(Name = "Asia: ejecutado mínimo (ruido)", GroupName = "10. Umbrales por sesión (YM)", Order = 10, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 18:00-02:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int YmAsiaMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Ym[Sesion.Asia].MinEjecutado; set { _c.Cfg.Umbrales.Ym[Sesion.Asia].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Asia: alta probabilidad", GroupName = "10. Umbrales por sesión (YM)", Order = 20, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 18:00-02:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int YmAsiaHighProbContracts { get => (int)_c.Cfg.Umbrales.Ym[Sesion.Asia].AltaProbabilidad; set { _c.Cfg.Umbrales.Ym[Sesion.Asia].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Asia: recargas mínimas", GroupName = "10. Umbrales por sesión (YM)", Order = 30, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 18:00-02:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int YmAsiaMinRefills { get => _c.Cfg.Umbrales.Ym[Sesion.Asia].MinRecargas; set { _c.Cfg.Umbrales.Ym[Sesion.Asia].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Londres: ejecutado mínimo (ruido)", GroupName = "10. Umbrales por sesión (YM)", Order = 40, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 02:00-premercado ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int YmLondonMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Ym[Sesion.Londres].MinEjecutado; set { _c.Cfg.Umbrales.Ym[Sesion.Londres].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Londres: alta probabilidad", GroupName = "10. Umbrales por sesión (YM)", Order = 50, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 02:00-premercado ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int YmLondonHighProbContracts { get => (int)_c.Cfg.Umbrales.Ym[Sesion.Londres].AltaProbabilidad; set { _c.Cfg.Umbrales.Ym[Sesion.Londres].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Londres: recargas mínimas", GroupName = "10. Umbrales por sesión (YM)", Order = 60, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 02:00-premercado ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int YmLondonMinRefills { get => _c.Cfg.Umbrales.Ym[Sesion.Londres].MinRecargas; set { _c.Cfg.Umbrales.Ym[Sesion.Londres].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Premercado NY: ejecutado mínimo (ruido)", GroupName = "10. Umbrales por sesión (YM)", Order = 70, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 1 h antes de las 09:30 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int YmPremarketMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Ym[Sesion.Premercado].MinEjecutado; set { _c.Cfg.Umbrales.Ym[Sesion.Premercado].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Premercado NY: alta probabilidad", GroupName = "10. Umbrales por sesión (YM)", Order = 80, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 1 h antes de las 09:30 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int YmPremarketHighProbContracts { get => (int)_c.Cfg.Umbrales.Ym[Sesion.Premercado].AltaProbabilidad; set { _c.Cfg.Umbrales.Ym[Sesion.Premercado].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Premercado NY: recargas mínimas", GroupName = "10. Umbrales por sesión (YM)", Order = 90, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 1 h antes de las 09:30 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int YmPremarketMinRefills { get => _c.Cfg.Umbrales.Ym[Sesion.Premercado].MinRecargas; set { _c.Cfg.Umbrales.Ym[Sesion.Premercado].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Apertura NY: ejecutado mínimo (ruido)", GroupName = "10. Umbrales por sesión (YM)", Order = 100, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 09:30-11:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int YmNyOpenMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Ym[Sesion.AperturaNY].MinEjecutado; set { _c.Cfg.Umbrales.Ym[Sesion.AperturaNY].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Apertura NY: alta probabilidad", GroupName = "10. Umbrales por sesión (YM)", Order = 110, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 09:30-11:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int YmNyOpenHighProbContracts { get => (int)_c.Cfg.Umbrales.Ym[Sesion.AperturaNY].AltaProbabilidad; set { _c.Cfg.Umbrales.Ym[Sesion.AperturaNY].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Apertura NY: recargas mínimas", GroupName = "10. Umbrales por sesión (YM)", Order = 120, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 09:30-11:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int YmNyOpenMinRefills { get => _c.Cfg.Umbrales.Ym[Sesion.AperturaNY].MinRecargas; set { _c.Cfg.Umbrales.Ym[Sesion.AperturaNY].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Mediodía: ejecutado mínimo (ruido)", GroupName = "10. Umbrales por sesión (YM)", Order = 130, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 11:00-14:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int YmMiddayMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Ym[Sesion.Mediodia].MinEjecutado; set { _c.Cfg.Umbrales.Ym[Sesion.Mediodia].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Mediodía: alta probabilidad", GroupName = "10. Umbrales por sesión (YM)", Order = 140, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 11:00-14:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int YmMiddayHighProbContracts { get => (int)_c.Cfg.Umbrales.Ym[Sesion.Mediodia].AltaProbabilidad; set { _c.Cfg.Umbrales.Ym[Sesion.Mediodia].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Mediodía: recargas mínimas", GroupName = "10. Umbrales por sesión (YM)", Order = 150, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 11:00-14:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int YmMiddayMinRefills { get => _c.Cfg.Umbrales.Ym[Sesion.Mediodia].MinRecargas; set { _c.Cfg.Umbrales.Ym[Sesion.Mediodia].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Cierre: ejecutado mínimo (ruido)", GroupName = "10. Umbrales por sesión (YM)", Order = 160, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 14:00-16:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int YmCloseMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Ym[Sesion.Cierre].MinEjecutado; set { _c.Cfg.Umbrales.Ym[Sesion.Cierre].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Cierre: alta probabilidad", GroupName = "10. Umbrales por sesión (YM)", Order = 170, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 14:00-16:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int YmCloseHighProbContracts { get => (int)_c.Cfg.Umbrales.Ym[Sesion.Cierre].AltaProbabilidad; set { _c.Cfg.Umbrales.Ym[Sesion.Cierre].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Cierre: recargas mínimas", GroupName = "10. Umbrales por sesión (YM)", Order = 180, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 14:00-16:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int YmCloseMinRefills { get => _c.Cfg.Umbrales.Ym[Sesion.Cierre].MinRecargas; set { _c.Cfg.Umbrales.Ym[Sesion.Cierre].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Fuera de horario: ejecutado mínimo (ruido)", GroupName = "10. Umbrales por sesión (YM)", Order = 190, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 16:00-18:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int YmOffHoursMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Ym[Sesion.FueraDeHorario].MinEjecutado; set { _c.Cfg.Umbrales.Ym[Sesion.FueraDeHorario].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Fuera de horario: alta probabilidad", GroupName = "10. Umbrales por sesión (YM)", Order = 200, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 16:00-18:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int YmOffHoursHighProbContracts { get => (int)_c.Cfg.Umbrales.Ym[Sesion.FueraDeHorario].AltaProbabilidad; set { _c.Cfg.Umbrales.Ym[Sesion.FueraDeHorario].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Fuera de horario: recargas mínimas", GroupName = "10. Umbrales por sesión (YM)", Order = 210, Description = "YM PROVISIONAL (punto de partida: NQ x 0,4), 16:00-18:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int YmOffHoursMinRefills { get => _c.Cfg.Umbrales.Ym[Sesion.FueraDeHorario].MinRecargas; set { _c.Cfg.Umbrales.Ym[Sesion.FueraDeHorario].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	#endregion
+
+	#region 11. Umbrales por sesión (MYM)
+
+	[Display(Name = "Asia: ejecutado mínimo (ruido)", GroupName = "11. Umbrales por sesión (MYM)", Order = 10, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 18:00-02:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int MymAsiaMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Mym[Sesion.Asia].MinEjecutado; set { _c.Cfg.Umbrales.Mym[Sesion.Asia].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Asia: alta probabilidad", GroupName = "11. Umbrales por sesión (MYM)", Order = 20, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 18:00-02:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int MymAsiaHighProbContracts { get => (int)_c.Cfg.Umbrales.Mym[Sesion.Asia].AltaProbabilidad; set { _c.Cfg.Umbrales.Mym[Sesion.Asia].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Asia: recargas mínimas", GroupName = "11. Umbrales por sesión (MYM)", Order = 30, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 18:00-02:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int MymAsiaMinRefills { get => _c.Cfg.Umbrales.Mym[Sesion.Asia].MinRecargas; set { _c.Cfg.Umbrales.Mym[Sesion.Asia].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Londres: ejecutado mínimo (ruido)", GroupName = "11. Umbrales por sesión (MYM)", Order = 40, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 02:00-premercado ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int MymLondonMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Mym[Sesion.Londres].MinEjecutado; set { _c.Cfg.Umbrales.Mym[Sesion.Londres].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Londres: alta probabilidad", GroupName = "11. Umbrales por sesión (MYM)", Order = 50, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 02:00-premercado ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int MymLondonHighProbContracts { get => (int)_c.Cfg.Umbrales.Mym[Sesion.Londres].AltaProbabilidad; set { _c.Cfg.Umbrales.Mym[Sesion.Londres].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Londres: recargas mínimas", GroupName = "11. Umbrales por sesión (MYM)", Order = 60, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 02:00-premercado ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int MymLondonMinRefills { get => _c.Cfg.Umbrales.Mym[Sesion.Londres].MinRecargas; set { _c.Cfg.Umbrales.Mym[Sesion.Londres].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Premercado NY: ejecutado mínimo (ruido)", GroupName = "11. Umbrales por sesión (MYM)", Order = 70, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 1 h antes de las 09:30 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int MymPremarketMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Mym[Sesion.Premercado].MinEjecutado; set { _c.Cfg.Umbrales.Mym[Sesion.Premercado].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Premercado NY: alta probabilidad", GroupName = "11. Umbrales por sesión (MYM)", Order = 80, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 1 h antes de las 09:30 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int MymPremarketHighProbContracts { get => (int)_c.Cfg.Umbrales.Mym[Sesion.Premercado].AltaProbabilidad; set { _c.Cfg.Umbrales.Mym[Sesion.Premercado].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Premercado NY: recargas mínimas", GroupName = "11. Umbrales por sesión (MYM)", Order = 90, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 1 h antes de las 09:30 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int MymPremarketMinRefills { get => _c.Cfg.Umbrales.Mym[Sesion.Premercado].MinRecargas; set { _c.Cfg.Umbrales.Mym[Sesion.Premercado].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Apertura NY: ejecutado mínimo (ruido)", GroupName = "11. Umbrales por sesión (MYM)", Order = 100, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 09:30-11:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int MymNyOpenMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Mym[Sesion.AperturaNY].MinEjecutado; set { _c.Cfg.Umbrales.Mym[Sesion.AperturaNY].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Apertura NY: alta probabilidad", GroupName = "11. Umbrales por sesión (MYM)", Order = 110, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 09:30-11:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int MymNyOpenHighProbContracts { get => (int)_c.Cfg.Umbrales.Mym[Sesion.AperturaNY].AltaProbabilidad; set { _c.Cfg.Umbrales.Mym[Sesion.AperturaNY].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Apertura NY: recargas mínimas", GroupName = "11. Umbrales por sesión (MYM)", Order = 120, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 09:30-11:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int MymNyOpenMinRefills { get => _c.Cfg.Umbrales.Mym[Sesion.AperturaNY].MinRecargas; set { _c.Cfg.Umbrales.Mym[Sesion.AperturaNY].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Mediodía: ejecutado mínimo (ruido)", GroupName = "11. Umbrales por sesión (MYM)", Order = 130, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 11:00-14:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int MymMiddayMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Mym[Sesion.Mediodia].MinEjecutado; set { _c.Cfg.Umbrales.Mym[Sesion.Mediodia].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Mediodía: alta probabilidad", GroupName = "11. Umbrales por sesión (MYM)", Order = 140, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 11:00-14:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int MymMiddayHighProbContracts { get => (int)_c.Cfg.Umbrales.Mym[Sesion.Mediodia].AltaProbabilidad; set { _c.Cfg.Umbrales.Mym[Sesion.Mediodia].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Mediodía: recargas mínimas", GroupName = "11. Umbrales por sesión (MYM)", Order = 150, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 11:00-14:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int MymMiddayMinRefills { get => _c.Cfg.Umbrales.Mym[Sesion.Mediodia].MinRecargas; set { _c.Cfg.Umbrales.Mym[Sesion.Mediodia].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Cierre: ejecutado mínimo (ruido)", GroupName = "11. Umbrales por sesión (MYM)", Order = 160, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 14:00-16:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int MymCloseMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Mym[Sesion.Cierre].MinEjecutado; set { _c.Cfg.Umbrales.Mym[Sesion.Cierre].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Cierre: alta probabilidad", GroupName = "11. Umbrales por sesión (MYM)", Order = 170, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 14:00-16:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int MymCloseHighProbContracts { get => (int)_c.Cfg.Umbrales.Mym[Sesion.Cierre].AltaProbabilidad; set { _c.Cfg.Umbrales.Mym[Sesion.Cierre].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Cierre: recargas mínimas", GroupName = "11. Umbrales por sesión (MYM)", Order = 180, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 14:00-16:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int MymCloseMinRefills { get => _c.Cfg.Umbrales.Mym[Sesion.Cierre].MinRecargas; set { _c.Cfg.Umbrales.Mym[Sesion.Cierre].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	[Display(Name = "Fuera de horario: ejecutado mínimo (ruido)", GroupName = "11. Umbrales por sesión (MYM)", Order = 190, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 16:00-18:00 ET. Contratos ejecutados mínimos para considerar iceberg. CALIBRAR.")]
+	[Range(1, 100000)]
+	public int MymOffHoursMinExecutedContracts { get => (int)_c.Cfg.Umbrales.Mym[Sesion.FueraDeHorario].MinEjecutado; set { _c.Cfg.Umbrales.Mym[Sesion.FueraDeHorario].MinEjecutado = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Fuera de horario: alta probabilidad", GroupName = "11. Umbrales por sesión (MYM)", Order = 200, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 16:00-18:00 ET. Contratos para la marca * (con el ratio de alta probabilidad).")]
+	[Range(1, 100000)]
+	public int MymOffHoursHighProbContracts { get => (int)_c.Cfg.Umbrales.Mym[Sesion.FueraDeHorario].AltaProbabilidad; set { _c.Cfg.Umbrales.Mym[Sesion.FueraDeHorario].AltaProbabilidad = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Fuera de horario: recargas mínimas", GroupName = "11. Umbrales por sesión (MYM)", Order = 210, Description = "MYM PROVISIONAL (punto de partida: NQ x 0,2), 16:00-18:00 ET. Recargas vistas (nativo y sintético).")]
+	[Range(1, 1000)]
+	public int MymOffHoursMinRefills { get => _c.Cfg.Umbrales.Mym[Sesion.FueraDeHorario].MinRecargas; set { _c.Cfg.Umbrales.Mym[Sesion.FueraDeHorario].MinRecargas = Math.Clamp(value, 1, 1000); Cambio(false); } }
+
+	#endregion
+
+	#region 12. Sesgo
+
+	[Display(Name = "Ventana con barrido / stops (s)", GroupName = "12. Sesgo", Order = 10, Description = "Relaciona un iceberg con un barrido o toma de stops (GIRO) y define los setups B y D. Recomendado: 30.")]
 	[Range(5, 600)]
 	public int EventContextSeconds { get => _c.Cfg.Iceberg.EventContextSeconds; set { _c.Cfg.Iceberg.EventContextSeconds = Math.Clamp(value, 5, 600); Cambio(false); } }
 
-	[Display(Name = "Tolerancia a VAH/VAL/LVN/POC/VWAP (ticks)", GroupName = "8. Sesgo", Order = 20, Description = "Distancia para decir que el iceberg está 'en' un extremo o retroceso. Recomendado: 4.")]
+	[Display(Name = "Tolerancia a VAH/VAL/LVN/POC/VWAP (ticks)", GroupName = "12. Sesgo", Order = 20, Description = "Distancia para decir que el iceberg está 'en' un extremo o retroceso. Recomendado: 4.")]
 	[Range(0, 50)]
 	public int BiasLevelToleranceTicks { get => _c.Cfg.Iceberg.LevelToleranceTicks; set { _c.Cfg.Iceberg.LevelToleranceTicks = Math.Clamp(value, 0, 50); Cambio(false); } }
 
-	[Display(Name = "Longitud del filtro de tendencia (velas)", GroupName = "8. Sesgo", Order = 30, Description = "Velas de la EMA (si la fuente es EMA). Recomendado: 50.")]
+	[Display(Name = "Longitud del filtro de tendencia (velas)", GroupName = "12. Sesgo", Order = 30, Description = "Velas de la EMA (si la fuente es EMA). Recomendado: 50.")]
 	[Range(2, 1000)]
 	public int TrendLengthBars { get => _c.Cfg.TrendLengthBars; set { _c.Cfg.TrendLengthBars = Math.Clamp(value, 2, 1000); Cambio(true); } }
 
-	[Display(Name = "Fuente de tendencia", GroupName = "8. Sesgo", Order = 40, Description = "VWAP (precio sobre/bajo la VWAP de la sesión) o EMA (pendiente).")]
+	[Display(Name = "Fuente de tendencia", GroupName = "12. Sesgo", Order = 40, Description = "VWAP (precio sobre/bajo la VWAP de la sesión) o EMA (pendiente).")]
 	public FuenteTendencia TrendSource { get => _c.Cfg.TrendSource; set { _c.Cfg.TrendSource = value; Cambio(true); } }
 
 	#endregion
 
-	#region 9. Imbalance
+	#region 13. Imbalance
 
-	[Display(Name = "Ratio diagonal mínimo (%)", GroupName = "9. Imbalance", Order = 10, Description = "Ask del nivel N contra Bid del nivel N-1 (compra) o Bid de N contra Ask de N+1 (venta). 150-1000 %. Recomendado: 300.")]
+	[Display(Name = "Ratio diagonal mínimo (%)", GroupName = "13. Imbalance", Order = 10, Description = "Ask del nivel N contra Bid del nivel N-1 (compra) o Bid de N contra Ask de N+1 (venta). 150-1000 %. Recomendado: 300.")]
 	[Range(150, 1000)]
 	public decimal ImbalanceRatioPercent { get => _c.Cfg.Imbalance.ImbalanceRatioPercent; set { _c.Cfg.Imbalance.ImbalanceRatioPercent = Math.Clamp(value, 150m, 1000m); Cambio(true); } }
 
-	[Display(Name = "Niveles consecutivos mínimos", GroupName = "9. Imbalance", Order = 20, Description = "Niveles seguidos con imbalance del mismo lado para formar la zona (2-10). Recomendado: 3.")]
+	[Display(Name = "Niveles consecutivos mínimos", GroupName = "13. Imbalance", Order = 20, Description = "Niveles seguidos con imbalance del mismo lado para formar la zona (2-10). Recomendado: 3.")]
 	[Range(2, 10)]
 	public int MinStackedLevels { get => _c.Cfg.Imbalance.MinStackedLevels; set { _c.Cfg.Imbalance.MinStackedLevels = Math.Clamp(value, 2, 10); Cambio(true); } }
 
-	[Display(Name = "Volumen mínimo por nivel (contratos)", GroupName = "9. Imbalance", Order = 30, Description = "Volumen mínimo del lado dominante por nivel en RTH. NQ: 15; MNQ: 30-50.")]
+	[Display(Name = "NQ: volumen mínimo por nivel (contratos)", GroupName = "13. Imbalance", Order = 30, Description = "Volumen mínimo del lado dominante por nivel en RTH.")]
 	[Range(1, 100000)]
-	public int MinLevelVolumeContracts { get => _c.Cfg.Imbalance.MinLevelVolumeContracts; set { _c.Cfg.Imbalance.MinLevelVolumeContracts = Math.Clamp(value, 1, 100000); Cambio(true); } }
+	public int MinLevelVolumeContracts { get => _c.Cfg.Contratos.NQ.MinLevelVolumeContracts; set { _c.Cfg.Contratos.NQ.MinLevelVolumeContracts = Math.Clamp(value, 1, 100000); Cambio(true); } }
 
-	[Display(Name = "Factor fuera de RTH", GroupName = "9. Imbalance", Order = 40, Description = "Multiplicador del volumen mínimo fuera de 09:30-16:00 ET. Recomendado: 0,5.")]
+	[Display(Name = "MNQ: volumen mínimo por nivel (contratos)", GroupName = "13. Imbalance", Order = 40, Description = "Volumen mínimo del lado dominante por nivel en RTH. PROVISIONAL: calibrar con el CSV de MNQ.")]
+	[Range(1, 100000)]
+	public int MnqMinLevelVolumeContracts { get => _c.Cfg.Contratos.MNQ.MinLevelVolumeContracts; set { _c.Cfg.Contratos.MNQ.MinLevelVolumeContracts = Math.Clamp(value, 1, 100000); Cambio(true); } }
+
+	[Display(Name = "ES: volumen mínimo por nivel (contratos)", GroupName = "13. Imbalance", Order = 50, Description = "Volumen mínimo del lado dominante por nivel en RTH. PROVISIONAL: calibrar con el CSV de ES.")]
+	[Range(1, 100000)]
+	public int EsMinLevelVolumeContracts { get => _c.Cfg.Contratos.ES.MinLevelVolumeContracts; set { _c.Cfg.Contratos.ES.MinLevelVolumeContracts = Math.Clamp(value, 1, 100000); Cambio(true); } }
+
+	[Display(Name = "MES: volumen mínimo por nivel (contratos)", GroupName = "13. Imbalance", Order = 60, Description = "Volumen mínimo del lado dominante por nivel en RTH. PROVISIONAL: calibrar con el CSV de MES.")]
+	[Range(1, 100000)]
+	public int MesMinLevelVolumeContracts { get => _c.Cfg.Contratos.MES.MinLevelVolumeContracts; set { _c.Cfg.Contratos.MES.MinLevelVolumeContracts = Math.Clamp(value, 1, 100000); Cambio(true); } }
+
+	[Display(Name = "YM: volumen mínimo por nivel (contratos)", GroupName = "13. Imbalance", Order = 70, Description = "Volumen mínimo del lado dominante por nivel en RTH. PROVISIONAL: calibrar con el CSV de YM.")]
+	[Range(1, 100000)]
+	public int YmMinLevelVolumeContracts { get => _c.Cfg.Contratos.YM.MinLevelVolumeContracts; set { _c.Cfg.Contratos.YM.MinLevelVolumeContracts = Math.Clamp(value, 1, 100000); Cambio(true); } }
+
+	[Display(Name = "MYM: volumen mínimo por nivel (contratos)", GroupName = "13. Imbalance", Order = 80, Description = "Volumen mínimo del lado dominante por nivel en RTH. PROVISIONAL: calibrar con el CSV de MYM.")]
+	[Range(1, 100000)]
+	public int MymMinLevelVolumeContracts { get => _c.Cfg.Contratos.MYM.MinLevelVolumeContracts; set { _c.Cfg.Contratos.MYM.MinLevelVolumeContracts = Math.Clamp(value, 1, 100000); Cambio(true); } }
+
+	[Display(Name = "Factor fuera de RTH", GroupName = "13. Imbalance", Order = 90, Description = "Multiplicador del volumen mínimo fuera de 09:30-16:00 ET. Recomendado: 0,5.")]
 	[Range(0.1, 2)]
 	public decimal OffHoursFactor { get => _c.Cfg.Imbalance.OffHoursFactor; set { _c.Cfg.Imbalance.OffHoursFactor = Math.Clamp(value, 0.1m, 2m); Cambio(true); } }
 
-	[Display(Name = "Lado débil a cero: exigir el mínimo", GroupName = "9. Imbalance", Order = 50, Description = "Activado: un lado débil a 0 cuenta como 1 contrato y exige el volumen mínimo (sin 'infinitos'). Desactivado: ese nivel no cuenta.")]
+	[Display(Name = "Lado débil a cero: exigir el mínimo", GroupName = "13. Imbalance", Order = 100, Description = "Activado: un lado débil a 0 cuenta como 1 contrato y exige el volumen mínimo (sin 'infinitos'). Desactivado: ese nivel no cuenta.")]
 	public bool IgnoreZeroSide { get => _c.Cfg.Imbalance.IgnoreZeroSide; set { _c.Cfg.Imbalance.IgnoreZeroSide = value; Cambio(true); } }
 
-	[Display(Name = "Velas que se extiende la zona", GroupName = "9. Imbalance", Order = 60, Description = "Velas que la zona sigue viva y dibujada. Recomendado: 50.")]
+	[Display(Name = "Velas que se extiende la zona", GroupName = "13. Imbalance", Order = 110, Description = "Velas que la zona sigue viva y dibujada. Recomendado: 50.")]
 	[Range(1, 2000)]
 	public int ZoneExtendBars { get => _c.Cfg.Imbalance.ZoneExtendBars; set { _c.Cfg.Imbalance.ZoneExtendBars = Math.Clamp(value, 1, 2000); Cambio(true); } }
 
-	[Display(Name = "Ticks de cierre más allá -> ROTA", GroupName = "9. Imbalance", Order = 70, Description = "Cierre de vela a estos ticks (o más) fuera de la zona = ROTA. Recomendado: 2.")]
+	[Display(Name = "Ticks de cierre más allá -> ROTA", GroupName = "13. Imbalance", Order = 120, Description = "Cierre de vela a estos ticks (o más) fuera de la zona = ROTA. Recomendado: 2.")]
 	[Range(1, 50)]
 	public int MinBreakTicks { get => _c.Cfg.Imbalance.MinBreakTicks; set { _c.Cfg.Imbalance.MinBreakTicks = Math.Clamp(value, 1, 50); Cambio(true); } }
 
-	[Display(Name = "Zonas vivas máximas", GroupName = "9. Imbalance", Order = 80, Description = "Las más antiguas dejan de extenderse. Recomendado: 20.")]
+	[Display(Name = "Zonas vivas máximas", GroupName = "13. Imbalance", Order = 130, Description = "Las más antiguas dejan de extenderse. Recomendado: 20.")]
 	[Range(1, 200)]
 	public int MaxActiveZones { get => _c.Cfg.Imbalance.MaxActiveZones; set { _c.Cfg.Imbalance.MaxActiveZones = Math.Clamp(value, 1, 200); Cambio(true); } }
 
 	#endregion
 
-	#region 10. Stops
+	#region 14. Stops
 
-	[Display(Name = "Cascada mínima en RTH (contratos)", GroupName = "10. Stops", Order = 10, Description = "Volumen mínimo de la ráfaga en 09:30-16:00 ET. NQ: 100; MNQ: 200.")]
+	[Display(Name = "NQ: cascada mínima en RTH (contratos)", GroupName = "14. Stops", Order = 10, Description = "Volumen mínimo de la ráfaga en 09:30-16:00 ET.")]
 	[Range(1, 100000)]
-	public int MinCascadeContractsRth { get => _c.Cfg.Stops.MinCascadeContractsRth; set { _c.Cfg.Stops.MinCascadeContractsRth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+	public int MinCascadeContractsRth { get => _c.Cfg.Contratos.NQ.MinCascadeContractsRth; set { _c.Cfg.Contratos.NQ.MinCascadeContractsRth = Math.Clamp(value, 1, 100000); Cambio(false); } }
 
-	[Display(Name = "Cascada mínima fuera de RTH (contratos)", GroupName = "10. Stops", Order = 20, Description = "Volumen mínimo fuera de RTH. NQ: 50; MNQ: 100.")]
+	[Display(Name = "MNQ: cascada mínima en RTH (contratos)", GroupName = "14. Stops", Order = 20, Description = "Volumen mínimo de la ráfaga en 09:30-16:00 ET. PROVISIONAL: calibrar con el CSV de MNQ.")]
 	[Range(1, 100000)]
-	public int MinCascadeContractsEth { get => _c.Cfg.Stops.MinCascadeContractsEth; set { _c.Cfg.Stops.MinCascadeContractsEth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+	public int MnqMinCascadeContractsRth { get => _c.Cfg.Contratos.MNQ.MinCascadeContractsRth; set { _c.Cfg.Contratos.MNQ.MinCascadeContractsRth = Math.Clamp(value, 1, 100000); Cambio(false); } }
 
-	[Display(Name = "Duración máxima de la ráfaga (ms)", GroupName = "10. Stops", Order = 30, Description = "Ráfaga de órdenes a mercado en la misma dirección. Recomendado: 300.")]
+	[Display(Name = "ES: cascada mínima en RTH (contratos)", GroupName = "14. Stops", Order = 30, Description = "Volumen mínimo de la ráfaga en 09:30-16:00 ET. PROVISIONAL: calibrar con el CSV de ES.")]
+	[Range(1, 100000)]
+	public int EsMinCascadeContractsRth { get => _c.Cfg.Contratos.ES.MinCascadeContractsRth; set { _c.Cfg.Contratos.ES.MinCascadeContractsRth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "MES: cascada mínima en RTH (contratos)", GroupName = "14. Stops", Order = 40, Description = "Volumen mínimo de la ráfaga en 09:30-16:00 ET. PROVISIONAL: calibrar con el CSV de MES.")]
+	[Range(1, 100000)]
+	public int MesMinCascadeContractsRth { get => _c.Cfg.Contratos.MES.MinCascadeContractsRth; set { _c.Cfg.Contratos.MES.MinCascadeContractsRth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "YM: cascada mínima en RTH (contratos)", GroupName = "14. Stops", Order = 50, Description = "Volumen mínimo de la ráfaga en 09:30-16:00 ET. PROVISIONAL: calibrar con el CSV de YM.")]
+	[Range(1, 100000)]
+	public int YmMinCascadeContractsRth { get => _c.Cfg.Contratos.YM.MinCascadeContractsRth; set { _c.Cfg.Contratos.YM.MinCascadeContractsRth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "MYM: cascada mínima en RTH (contratos)", GroupName = "14. Stops", Order = 60, Description = "Volumen mínimo de la ráfaga en 09:30-16:00 ET. PROVISIONAL: calibrar con el CSV de MYM.")]
+	[Range(1, 100000)]
+	public int MymMinCascadeContractsRth { get => _c.Cfg.Contratos.MYM.MinCascadeContractsRth; set { _c.Cfg.Contratos.MYM.MinCascadeContractsRth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "NQ: cascada mínima fuera de RTH (contratos)", GroupName = "14. Stops", Order = 70, Description = "Volumen mínimo fuera de RTH.")]
+	[Range(1, 100000)]
+	public int MinCascadeContractsEth { get => _c.Cfg.Contratos.NQ.MinCascadeContractsEth; set { _c.Cfg.Contratos.NQ.MinCascadeContractsEth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "MNQ: cascada mínima fuera de RTH (contratos)", GroupName = "14. Stops", Order = 80, Description = "Volumen mínimo fuera de RTH. PROVISIONAL: calibrar con el CSV de MNQ.")]
+	[Range(1, 100000)]
+	public int MnqMinCascadeContractsEth { get => _c.Cfg.Contratos.MNQ.MinCascadeContractsEth; set { _c.Cfg.Contratos.MNQ.MinCascadeContractsEth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "ES: cascada mínima fuera de RTH (contratos)", GroupName = "14. Stops", Order = 90, Description = "Volumen mínimo fuera de RTH. PROVISIONAL: calibrar con el CSV de ES.")]
+	[Range(1, 100000)]
+	public int EsMinCascadeContractsEth { get => _c.Cfg.Contratos.ES.MinCascadeContractsEth; set { _c.Cfg.Contratos.ES.MinCascadeContractsEth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "MES: cascada mínima fuera de RTH (contratos)", GroupName = "14. Stops", Order = 100, Description = "Volumen mínimo fuera de RTH. PROVISIONAL: calibrar con el CSV de MES.")]
+	[Range(1, 100000)]
+	public int MesMinCascadeContractsEth { get => _c.Cfg.Contratos.MES.MinCascadeContractsEth; set { _c.Cfg.Contratos.MES.MinCascadeContractsEth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "YM: cascada mínima fuera de RTH (contratos)", GroupName = "14. Stops", Order = 110, Description = "Volumen mínimo fuera de RTH. PROVISIONAL: calibrar con el CSV de YM.")]
+	[Range(1, 100000)]
+	public int YmMinCascadeContractsEth { get => _c.Cfg.Contratos.YM.MinCascadeContractsEth; set { _c.Cfg.Contratos.YM.MinCascadeContractsEth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "MYM: cascada mínima fuera de RTH (contratos)", GroupName = "14. Stops", Order = 120, Description = "Volumen mínimo fuera de RTH. PROVISIONAL: calibrar con el CSV de MYM.")]
+	[Range(1, 100000)]
+	public int MymMinCascadeContractsEth { get => _c.Cfg.Contratos.MYM.MinCascadeContractsEth; set { _c.Cfg.Contratos.MYM.MinCascadeContractsEth = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Duración máxima de la ráfaga (ms)", GroupName = "14. Stops", Order = 130, Description = "Ráfaga de órdenes a mercado en la misma dirección. Recomendado: 300.")]
 	[Range(10, 10000)]
 	public int CascadeMaxMs { get => _c.Cfg.Stops.CascadeMaxMs; set { _c.Cfg.Stops.CascadeMaxMs = Math.Clamp(value, 10, 10000); Cambio(false); } }
 
-	[Display(Name = "Niveles mínimos atravesados", GroupName = "10. Stops", Order = 40, Description = "Ticks que debe atravesar la ráfaga. Recomendado: 3.")]
+	[Display(Name = "Niveles mínimos atravesados", GroupName = "14. Stops", Order = 140, Description = "Ticks que debe atravesar la ráfaga. Recomendado: 3.")]
 	[Range(2, 100)]
 	public int MinCascadeLevels { get => _c.Cfg.Stops.MinCascadeLevels; set { _c.Cfg.Stops.MinCascadeLevels = Math.Clamp(value, 2, 100); Cambio(false); } }
 
-	[Display(Name = "Velas a cada lado de un swing", GroupName = "10. Stops", Order = 50, Description = "Un swing es el máximo/mínimo de 2N+1 velas. Recomendado: 20.")]
+	[Display(Name = "Velas a cada lado de un swing", GroupName = "14. Stops", Order = 150, Description = "Un swing es el máximo/mínimo de 2N+1 velas. Recomendado: 20.")]
 	[Range(2, 500)]
 	public int SwingLengthBars { get => _c.Cfg.SwingLengthBars; set { _c.Cfg.SwingLengthBars = Math.Clamp(value, 2, 500); Cambio(true); } }
 
-	[Display(Name = "Paso de números redondos (puntos)", GroupName = "10. Stops", Order = 60, Description = "Zonas en múltiplos de este paso. NQ: 50. 0 = sin números redondos.")]
+	[Display(Name = "Paso de números redondos (puntos)", GroupName = "14. Stops", Order = 160, Description = "Zonas en múltiplos de este paso. NQ: 50. 0 = sin números redondos.")]
 	[Range(0, 100000)]
 	public int RoundNumberStep { get => _c.Cfg.RoundNumberStep; set { _c.Cfg.RoundNumberStep = Math.Clamp(value, 0, 100000); Cambio(true); } }
 
-	[Display(Name = "Mostrar zonas probables", GroupName = "10. Stops", Order = 70, Description = "Dibuja las zonas probables (modo Full) y avisa en el panel al acercarse el precio.")]
+	[Display(Name = "Mostrar zonas probables", GroupName = "14. Stops", Order = 170, Description = "Dibuja las zonas probables (modo Full) y avisa en el panel al acercarse el precio.")]
 	public bool ShowProbableZones { get => _c.Cfg.Stops.ShowProbableZones; set { _c.Cfg.Stops.ShowProbableZones = value; Cambio(false); } }
 
-	[Display(Name = "Distancia a la zona (ticks)", GroupName = "10. Stops", Order = 80, Description = "Distancia para asociar una cascada a una zona. Recomendado: 4.")]
+	[Display(Name = "Distancia a la zona (ticks)", GroupName = "14. Stops", Order = 180, Description = "Distancia para asociar una cascada a una zona. Recomendado: 4.")]
 	[Range(0, 100)]
 	public int ZoneToleranceTicks { get => _c.Cfg.Stops.ZoneToleranceTicks; set { _c.Cfg.Stops.ZoneToleranceTicks = Math.Clamp(value, 0, 100); Cambio(false); } }
 
-	[Display(Name = "Vuelve dentro en (s) -> TRAMPA", GroupName = "10. Stops", Order = 90, Description = "Si el precio vuelve dentro en este tiempo: TRAMPA; si no: CONTINUACIÓN. Recomendado: 60.")]
+	[Display(Name = "Vuelve dentro en (s) -> TRAMPA", GroupName = "14. Stops", Order = 190, Description = "Si el precio vuelve dentro en este tiempo: TRAMPA; si no: CONTINUACIÓN. Recomendado: 60.")]
 	[Range(1, 3600)]
 	public int StopReclaimSeconds { get => _c.Cfg.Stops.StopReclaimSeconds; set { _c.Cfg.Stops.StopReclaimSeconds = Math.Clamp(value, 1, 3600); Cambio(false); } }
 
-	[Display(Name = "Duración del Initial Balance (min)", GroupName = "10. Stops", Order = 100, Description = "IBH/IBL desde las 09:30 ET. Recomendado: 60.")]
+	[Display(Name = "Duración del Initial Balance (min)", GroupName = "14. Stops", Order = 200, Description = "IBH/IBL desde las 09:30 ET. Recomendado: 60.")]
 	[Range(5, 390)]
 	public int IbMinutes { get => _c.Cfg.IbMinutes; set { _c.Cfg.IbMinutes = Math.Clamp(value, 5, 390); Cambio(true); } }
 
-	[Display(Name = "Solo cascadas en una zona", GroupName = "10. Stops", Order = 110, Description = "Activado: solo cascadas junto a una zona probable. Desactivado: también 'sin zona'.")]
+	[Display(Name = "Solo cascadas en una zona", GroupName = "14. Stops", Order = 210, Description = "Activado: solo cascadas junto a una zona probable. Desactivado: también 'sin zona'.")]
 	public bool RequireZone { get => _c.Cfg.Stops.RequireZone; set { _c.Cfg.Stops.RequireZone = value; Cambio(false); } }
 
 	#endregion
 
-	#region 11. Sweeps
+	#region 15. Sweeps
 
-	[Display(Name = "Niveles mínimos", GroupName = "11. Sweeps", Order = 10, Description = "Niveles barridos por una sola orden agresiva (4 ticks = 1 punto en NQ). Recomendado: 4.")]
+	[Display(Name = "Niveles mínimos", GroupName = "15. Sweeps", Order = 10, Description = "Niveles barridos por una sola orden agresiva (4 ticks = 1 punto en NQ). Recomendado: 4.")]
 	[Range(2, 200)]
 	public int MinSweepLevels { get => _c.Cfg.Barridos.MinSweepLevels; set { _c.Cfg.Barridos.MinSweepLevels = Math.Clamp(value, 2, 200); Cambio(false); } }
 
-	[Display(Name = "Volumen mínimo de la orden (contratos)", GroupName = "11. Sweeps", Order = 20, Description = "Volumen de la orden reconstruida. NQ: 50; MNQ: 100.")]
+	[Display(Name = "NQ: volumen mínimo de la orden (contratos)", GroupName = "15. Sweeps", Order = 20, Description = "Volumen de la orden reconstruida.")]
 	[Range(1, 100000)]
-	public int MinSweepContracts { get => _c.Cfg.Barridos.MinSweepContracts; set { _c.Cfg.Barridos.MinSweepContracts = Math.Clamp(value, 1, 100000); Cambio(false); } }
+	public int MinSweepContracts { get => _c.Cfg.Contratos.NQ.MinSweepContracts; set { _c.Cfg.Contratos.NQ.MinSweepContracts = Math.Clamp(value, 1, 100000); Cambio(false); } }
 
-	[Display(Name = "Vuelve dentro en (s) -> LIQUIDEZ", GroupName = "11. Sweeps", Order = 30, Description = "Si vuelve dentro del rango en este tiempo: LIQUIDEZ (trampa); si no: RUPTURA. Recomendado: 30.")]
+	[Display(Name = "MNQ: volumen mínimo de la orden (contratos)", GroupName = "15. Sweeps", Order = 30, Description = "Volumen de la orden reconstruida. PROVISIONAL: calibrar con el CSV de MNQ.")]
+	[Range(1, 100000)]
+	public int MnqMinSweepContracts { get => _c.Cfg.Contratos.MNQ.MinSweepContracts; set { _c.Cfg.Contratos.MNQ.MinSweepContracts = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "ES: volumen mínimo de la orden (contratos)", GroupName = "15. Sweeps", Order = 40, Description = "Volumen de la orden reconstruida. PROVISIONAL: calibrar con el CSV de ES.")]
+	[Range(1, 100000)]
+	public int EsMinSweepContracts { get => _c.Cfg.Contratos.ES.MinSweepContracts; set { _c.Cfg.Contratos.ES.MinSweepContracts = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "MES: volumen mínimo de la orden (contratos)", GroupName = "15. Sweeps", Order = 50, Description = "Volumen de la orden reconstruida. PROVISIONAL: calibrar con el CSV de MES.")]
+	[Range(1, 100000)]
+	public int MesMinSweepContracts { get => _c.Cfg.Contratos.MES.MinSweepContracts; set { _c.Cfg.Contratos.MES.MinSweepContracts = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "YM: volumen mínimo de la orden (contratos)", GroupName = "15. Sweeps", Order = 60, Description = "Volumen de la orden reconstruida. PROVISIONAL: calibrar con el CSV de YM.")]
+	[Range(1, 100000)]
+	public int YmMinSweepContracts { get => _c.Cfg.Contratos.YM.MinSweepContracts; set { _c.Cfg.Contratos.YM.MinSweepContracts = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "MYM: volumen mínimo de la orden (contratos)", GroupName = "15. Sweeps", Order = 70, Description = "Volumen de la orden reconstruida. PROVISIONAL: calibrar con el CSV de MYM.")]
+	[Range(1, 100000)]
+	public int MymMinSweepContracts { get => _c.Cfg.Contratos.MYM.MinSweepContracts; set { _c.Cfg.Contratos.MYM.MinSweepContracts = Math.Clamp(value, 1, 100000); Cambio(false); } }
+
+	[Display(Name = "Vuelve dentro en (s) -> LIQUIDEZ", GroupName = "15. Sweeps", Order = 80, Description = "Si vuelve dentro del rango en este tiempo: LIQUIDEZ (trampa); si no: RUPTURA. Recomendado: 30.")]
 	[Range(1, 3600)]
 	public int SweepReclaimSeconds { get => _c.Cfg.Barridos.SweepReclaimSeconds; set { _c.Cfg.Barridos.SweepReclaimSeconds = Math.Clamp(value, 1, 3600); Cambio(false); } }
 
-	[Display(Name = "Distancia al nivel de referencia (ticks)", GroupName = "11. Sweeps", Order = 40, Description = "El barrido debe empezar a esta distancia del nivel (o antes) y cruzarlo. Recomendado: 4.")]
+	[Display(Name = "Distancia al nivel de referencia (ticks)", GroupName = "15. Sweeps", Order = 90, Description = "El barrido debe empezar a esta distancia del nivel (o antes) y cruzarlo. Recomendado: 4.")]
 	[Range(0, 100)]
 	public int LevelToleranceTicks { get => _c.Cfg.Barridos.LevelToleranceTicks; set { _c.Cfg.Barridos.LevelToleranceTicks = Math.Clamp(value, 0, 100); Cambio(false); } }
 
-	[Display(Name = "Niveles: PDH / PDL", GroupName = "11. Sweeps", Order = 50, Description = "Máximo y mínimo del día anterior.")]
+	[Display(Name = "Niveles: PDH / PDL", GroupName = "15. Sweeps", Order = 100, Description = "Máximo y mínimo del día anterior.")]
 	public bool RefPdhPdl { get => _c.Cfg.Barridos.RefPdhPdl; set { _c.Cfg.Barridos.RefPdhPdl = value; Cambio(false); } }
 
-	[Display(Name = "Niveles: IBH / IBL", GroupName = "11. Sweeps", Order = 60, Description = "Initial Balance (cuando termina).")]
+	[Display(Name = "Niveles: IBH / IBL", GroupName = "15. Sweeps", Order = 110, Description = "Initial Balance (cuando termina).")]
 	public bool RefIbhIbl { get => _c.Cfg.Barridos.RefIbhIbl; set { _c.Cfg.Barridos.RefIbhIbl = value; Cambio(false); } }
 
-	[Display(Name = "Niveles: ONH / ONL", GroupName = "11. Sweeps", Order = 70, Description = "Máximo y mínimo overnight.")]
+	[Display(Name = "Niveles: ONH / ONL", GroupName = "15. Sweeps", Order = 120, Description = "Máximo y mínimo overnight.")]
 	public bool RefOnhOnl { get => _c.Cfg.Barridos.RefOnhOnl; set { _c.Cfg.Barridos.RefOnhOnl = value; Cambio(false); } }
 
-	[Display(Name = "Niveles: swings", GroupName = "11. Sweeps", Order = 80, Description = "Swings sin superar.")]
+	[Display(Name = "Niveles: swings", GroupName = "15. Sweeps", Order = 130, Description = "Swings sin superar.")]
 	public bool RefSwings { get => _c.Cfg.Barridos.RefSwings; set { _c.Cfg.Barridos.RefSwings = value; Cambio(false); } }
 
-	[Display(Name = "Niveles: VAH / VAL", GroupName = "11. Sweeps", Order = 90, Description = "Área de valor de la sesión RTH.")]
+	[Display(Name = "Niveles: VAH / VAL", GroupName = "15. Sweeps", Order = 140, Description = "Área de valor de la sesión RTH.")]
 	public bool RefVahVal { get => _c.Cfg.Barridos.RefVahVal; set { _c.Cfg.Barridos.RefVahVal = value; Cambio(false); } }
 
-	[Display(Name = "Solo barridos en un nivel", GroupName = "11. Sweeps", Order = 100, Description = "Activado: solo barridos en un nivel de referencia o contra un iceberg. Desactivado: también 'sin nivel'.")]
+	[Display(Name = "Solo barridos en un nivel", GroupName = "15. Sweeps", Order = 150, Description = "Activado: solo barridos en un nivel de referencia o contra un iceberg. Desactivado: también 'sin nivel'.")]
 	public bool OnlyAtReferenceLevels { get => _c.Cfg.Barridos.OnlyAtReferenceLevels; set { _c.Cfg.Barridos.OnlyAtReferenceLevels = value; Cambio(false); } }
 
 	#endregion

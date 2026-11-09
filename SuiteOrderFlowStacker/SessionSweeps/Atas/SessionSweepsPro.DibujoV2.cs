@@ -230,8 +230,56 @@ public partial class SessionSweepsPro
 		if (_v.ShowCvdDivergences)
 			DibujarDivergencias(context, visible);
 
+		if (_v.ShowTrackerDiagnostics)
+			DibujarDiagnostico(context, visible);
+
 		if (_v.ShowInChartPanel)
 			DibujarPanelEnGrafico(context, area, ContenidoPanelV2(false));
+	}
+
+	/// <summary>
+	/// Modo diagnóstico (5): lo que Sessions Sweeps recibe de cada tracker, con una marca distinta de la del tracker (rombo
+	/// hueco fucsia y "SSP …"), para superponerla a su dibujo original y comprobar que es el mismo evento.
+	/// </summary>
+	private void DibujarDiagnostico(RenderContext context, Func<int, int, bool> visible)
+	{
+		if (_canal is not { } canal || CurrentBar <= 0)
+			return;
+
+		var desde = GetCandle(Math.Max(0, FirstVisibleBarNumber)).Time;
+		var hasta = GetCandle(Math.Clamp(LastVisibleBarNumber, 0, CurrentBar - 1)).Time.AddMinutes(1);
+		var color = ColorDe(ColorPanel.Fucsia);
+		var pluma = new RenderPen(color, 1);
+
+		void Marca(DateTime utc, decimal precio, string texto)
+		{
+			var bar = BarDe(utc);
+
+			if (!visible(bar, bar))
+				return;
+
+			var (x, y) = (X(bar) + AnchoVela / 2, Y(precio));
+			context.DrawLine(pluma, x, y - 5, x + 5, y);
+			context.DrawLine(pluma, x + 5, y, x, y + 5);
+			context.DrawLine(pluma, x, y + 5, x - 5, y);
+			context.DrawLine(pluma, x - 5, y, x, y - 5);
+			context.DrawString(texto, _fuente!, color, new Rectangle(x + 7, y - 7, 90, 13), _izquierda);
+		}
+
+		foreach (var e in canal.Consultar<IcebergEvent>(desde, hasta))
+			Marca(e.Utc, e.Precio, "SSP ICE " + e.Estado);
+
+		foreach (var e in canal.Consultar<StopsEvent>(desde, hasta))
+			Marca(e.Utc, e.Extremo, "SSP STOP");
+
+		foreach (var e in canal.Consultar<SweepTrackerEvent>(desde, hasta))
+			Marca(e.Utc, e.Hasta, "SSP SWEEP");
+
+		foreach (var e in canal.Consultar<StackedEvent>(desde, hasta))
+			Marca(e.Utc, (e.Bajo + e.Alto) / 2, "SSP STK");
+
+		foreach (var e in canal.Consultar<ImbalanceEvent>(desde, hasta))
+			Marca(e.Utc, e.PrecioReferencia, "SSP IMB");
 	}
 
 	private void DibujarManuales(RenderContext context, Func<int, int, bool> visible)
