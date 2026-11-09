@@ -306,12 +306,21 @@ public partial class SessionSweepsPro
 		var alto = LabelFontSize + 6;
 		var lineas = c.Lineas.Where(l => !l.Separador).ToList();
 		var ancho = Math.Max(300, lineas.Select(l => context.MeasureString(l.Texto, _fuente!).Width + 16 * (l.Sangria + 1) + 20).DefaultIfEmpty(300).Max());
-		var caja = new Rectangle(area.Left + _v.InChartPanelX, area.Top + _v.InChartPanelY, ancho, alto * (lineas.Count + 2) + 8);
+		const int FilasGrafico = 4;
+		var filas = lineas.Sum(l => l.Grafico is null ? 1 : FilasGrafico);
+		var caja = new Rectangle(area.Left + _v.InChartPanelX, area.Top + _v.InChartPanelY, ancho, alto * (filas + 2) + 8);
 		context.FillRectangle(Color.FromArgb(220, 18, 20, 26), caja);
 		var y = caja.Top + 4;
 
 		foreach (var l in lineas)
 		{
+			if (l.Grafico is { } g)
+			{
+				MiniGraficoEnGrafico(context, new Rectangle(caja.Left + 6, y + 2, caja.Width - 12, alto * FilasGrafico - 4), g);
+				y += alto * FilasGrafico;
+				continue;
+			}
+
 			var x = caja.Left + 6 + 12 * l.Sangria;
 
 			foreach (var s in l.Segmentos)
@@ -334,5 +343,34 @@ public partial class SessionSweepsPro
 		}
 
 		context.DrawString(c.Pie, _fuente!, ColorDe(ColorPanel.Gris), new Rectangle(caja.Left + 6, y + 4, caja.Width - 12, alto), _izquierda);
+	}
+
+	/// <summary>Minigráfico de velas de CVD con sus divergencias (v3, 13.9) dentro del panel del gráfico.</summary>
+	private void MiniGraficoEnGrafico(RenderContext context, Rectangle r, GraficoMini g)
+	{
+		context.FillRectangle(Color.FromArgb(230, 28, 32, 38), r);
+
+		if (g.Velas.Count == 0)
+			return;
+
+		var min = Math.Min(g.Velas.Min(v => v.Low), g.Tramos.Select(d => Math.Min(d.V1, d.V2)).DefaultIfEmpty(decimal.MaxValue).Min());
+		var max = Math.Max(g.Velas.Max(v => v.High), g.Tramos.Select(d => Math.Max(d.V1, d.V2)).DefaultIfEmpty(decimal.MinValue).Max());
+		var rango = max - min == 0 ? 1 : max - min;
+		var paso = (double)r.Width / g.Velas.Count;
+		int Y(decimal v) => r.Top + 2 + (int)((double)((max - v) / rango) * (r.Height - 4));
+		int X(int i) => r.Left + (int)(paso * i + paso / 2);
+
+		for (var i = 0; i < g.Velas.Count; i++)
+		{
+			var v = g.Velas[i];
+			var color = ColorDe(v.Close >= v.Open ? ColorPanel.Verde : ColorPanel.Rojo);
+			context.DrawLine(new RenderPen(color, 1), X(i), Y(v.High), X(i), Y(v.Low));
+			var arriba = Y(Math.Max(v.Open, v.Close));
+			var w = Math.Max(1, (int)(paso * 0.6));
+			context.FillRectangle(color, new Rectangle(X(i) - w / 2, arriba, w, Math.Max(1, Y(Math.Min(v.Open, v.Close)) - arriba)));
+		}
+
+		foreach (var d in g.Tramos.Where(d => d.I1 >= 0 && d.I2 < g.Velas.Count))
+			context.DrawLine(new RenderPen(ColorDe(d.Alcista ? ColorPanel.Verde : ColorPanel.Rojo), d.Micro ? 1 : 2), X(d.I1), Y(d.V1), X(d.I2), Y(d.V2));
 	}
 }

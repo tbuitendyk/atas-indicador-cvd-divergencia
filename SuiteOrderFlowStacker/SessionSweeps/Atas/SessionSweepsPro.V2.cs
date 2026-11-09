@@ -278,14 +278,14 @@ public partial class SessionSweepsPro
 			return;
 
 		_panelAbierto = true;
-		abrir(ClavePanel, $"Sessions Sweeps Pro · {_instrumentoV2}", ContenidoPanelV2, Array.Empty<BotonPanel>(), _cfg.V2.PanelRefreshMs);
+		abrir(ClavePanel, $"Sessions Sweeps Pro · {_instrumentoV2}", ContenidoPanelV2, BotonesPanelV2(), _cfg.V2.PanelRefreshMs);
 	}
 
 	private ContenidoPanel ContenidoPanelV2(bool detalle)
 	{
 		if (_motor is not { } motor)
 		{
-			var c = new ContenidoPanel { Titulo = "SESSIONS SWEEPS PRO", Pie = "Estadística simulada; no es un registro de operaciones reales." };
+			var c = new ContenidoPanel { Titulo = "SESSIONS SWEEPS PRO", Pie = PoliticaAlertasV2.AvisoLegal };
 			c.Lineas.Add(LineaPanel.De(new Segmento(_estado.Length > 0 ? _estado : "Cargando el historial…", ColorPanel.Naranja)));
 			return c;
 		}
@@ -295,9 +295,33 @@ public partial class SessionSweepsPro
 			Detalle = detalle,
 			ArchivoCsv = ArchivoCsvV2(),
 			Mbo = _mboVisto,
-			SaldoAtas = motor.SaldoAtas
+			SaldoAtas = motor.SaldoAtas,
+			CorreoConfigurado = CanalesConfigurados().Correo,
+			TelegramConfigurado = CanalesConfigurados().Telegram,
+			Envios = UltimosEnvios,
+			Mt5 = _mt5.LineasPanel(motor.Raiz, motor.Instrumento.Spec)
 		});
 	}
+
+	private (DateTime Utc, bool Correo, bool Telegram) _canales;
+
+	/// <summary>Si hay credenciales guardadas (se mira el disco cada 10 s, no en cada refresco del panel).</summary>
+	private (bool Correo, bool Telegram) CanalesConfigurados()
+	{
+		if (DateTime.UtcNow - _canales.Utc > TimeSpan.FromSeconds(10))
+			_canales = (DateTime.UtcNow, !string.IsNullOrWhiteSpace(SmtpUser) && ExisteCredencial("smtp"), !string.IsNullOrWhiteSpace(TelegramChatId) && ExisteCredencial("telegram"));
+
+		return (_canales.Correo, _canales.Telegram);
+	}
+
+	/// <summary>Controles del panel principal (v3, 13.16): solo actúan sobre el puente MT5; nunca abren operaciones.</summary>
+	private IReadOnlyList<BotonPanel> BotonesPanelV2() => new[]
+	{
+		new BotonPanel(() => _mt5.Pausado ? "REANUDAR" : "PAUSAR", () => _mt5.Pausado = !_mt5.Pausado, () => _mt5.Pausado),
+		new BotonPanel(() => "CERRAR TODO", () => _mt5.CerrarTodo()),
+		new BotonPanel(() => _mt5.OrdenesDeshabilitadas ? "HABILITAR ÓRDENES" : "DESHABILITAR ÓRDENES", () => _mt5.OrdenesDeshabilitadas = !_mt5.OrdenesDeshabilitadas,
+			() => _mt5.OrdenesDeshabilitadas)
+	};
 
 	/// <summary>Nombre del CSV del día (S10 lo escribe).</summary>
 	private string ArchivoCsvV2() => $"SessionSweeps_{_instrumentoV2}_{DateTime.UtcNow:yyyy-MM-dd}.csv";

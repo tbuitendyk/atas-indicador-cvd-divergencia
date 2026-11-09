@@ -56,6 +56,26 @@ internal static class PruebasV3Modelos
 			b.All(x => x.Gatillo?.Resultado == ResultadoGatillo.Valido || (x.Entrada is null && x.Estado != EstadoModelo.Entrada)).ToString(), "True");
 		c.Check("con ModelBEnableEdge apagado no se arma", ConEdge(false).Setups.Count(x => x.Zona.Tipo == "EDGE").ToString(), "0");
 
+		c.Seccion("v3 S7 Cabecera del panel: gatillo (LÍNEA 2) con un Modelo B en un EDGE");
+		var tocado = ConEdge(true);
+		var linea2 = tocado.M.Panel(new OpcionesPanel()).Lineas[1];
+		c.Check("el precio tocó el EDGE sin gatillo VÁLIDO: nunca 'CUMPLIDO'", linea2.Texto.Contains("CUMPLIDO", StringComparison.Ordinal) && !linea2.Texto.StartsWith("NO SE HA", StringComparison.Ordinal) ? linea2.Texto : "no", "no");
+		var lejos = new SimMotor(sinBarridos: true);
+		lejos.M.Leer(m => { m.SesgoForzado = 1; return 0; });
+		var tEdge = Utc(new DateTime(2026, 10, 30, 9, 30, 0));
+		lejos.M.EdgeDesdeSuite(new EdgeZone { Id = 78, Fuente = FuenteSuite.Thermal, Utc = tEdge, CambioUtc = tEdge, Version = 1, RangoId = 1, Precio = 21396, Bajo = 21395.5m, Alto = 21396.5m, Lado = EdgeZone.PisoHvn });
+		lejos.Minuto(new DateTime(2026, 10, 30, 9, 41, 0), SimMotor.Camino(21402, 21412, 8, 2));
+		lejos.Minuto(new DateTime(2026, 10, 30, 9, 42, 0), SimMotor.Camino(21412, 21409, 2, 8));
+		// Un FVG+EDGE de Modelo B armado por debajo (los FVG se arman al formarse, antes de que el precio llegue).
+		lejos.M.Leer(m =>
+		{
+			m.Setups.Add(new SetupModelo { Id = 999, Modelo = "MOD2", Etiqueta = "B - FVG+EDGE", Signo = 1, Zona = new ZonaOperable { Tipo = "FVG+EDGE", Bajo = 21395.5m, Alto = 21396.5m, Signo = 1, EdgeId = 78 } });
+			return 0;
+		});
+		var setupLejos = lejos.Setups.FirstOrDefault(x => x.Id == 999);
+		c.Check("zona armada sin tocar: 'NO SE HA CUMPLIDO — EN CAMINO A EDGE PISO HVN 21,396.00' con la distancia",
+			$"{setupLejos?.Estado} | {lejos.M.Panel(new OpcionesPanel()).Lineas[1].Texto}", "Armado | NO SE HA CUMPLIDO — EN CAMINO A EDGE PISO HVN 21,396.00 · a 52 ticks / 13 pts");
+
 		c.Seccion("v3 S12 FVG+LVN > FVG+EDGE > FVG; BFVG+EDGE (prueba 20)");
 		var lvn = new RepositorioLvn();
 		var edge = new RepositorioEdge();

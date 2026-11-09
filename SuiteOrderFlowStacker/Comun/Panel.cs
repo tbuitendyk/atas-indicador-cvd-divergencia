@@ -39,6 +39,12 @@ public sealed class LineaPanel
 	public bool Separador { get; init; }
 	public ColorPanel? Recuadro { get; init; }
 
+	/// <summary>Recuadro desplegable al que pertenece (v3, 13): en un título, la clave que se pliega; null = siempre visible.</summary>
+	public string? Grupo { get; init; }
+
+	/// <summary>Minigráfico (velas de CVD con sus divergencias) en lugar de texto.</summary>
+	public GraficoMini? Grafico { get; init; }
+
 	public static LineaPanel De(params Segmento[] segmentos)
 	{
 		var l = new LineaPanel();
@@ -46,7 +52,7 @@ public sealed class LineaPanel
 		return l;
 	}
 
-	public static LineaPanel Seccion(string titulo) => new LineaPanel { Titulo = true }.Con(new Segmento(titulo, ColorPanel.Titulo, true));
+	public static LineaPanel Seccion(string titulo, string? grupo = null) => new LineaPanel { Titulo = true, Grupo = grupo }.Con(new Segmento(titulo, ColorPanel.Titulo, true));
 
 	public static LineaPanel Linea() => new() { Separador = true };
 
@@ -56,7 +62,9 @@ public sealed class LineaPanel
 		return this;
 	}
 
-	public string Texto => string.Concat(Segmentos.ConvertAll(s => (s.Flecha == FlechaPanel.Arriba ? "▲" : s.Flecha == FlechaPanel.Abajo ? "▼" : "") + s.Texto));
+	public string Texto => Grafico is { } g
+		? $"[CVD: {g.Velas.Count} velas, {g.Tramos.Count} divergencias]"
+		: string.Concat(Segmentos.ConvertAll(s => (s.Flecha == FlechaPanel.Arriba ? "▲" : s.Flecha == FlechaPanel.Abajo ? "▼" : "") + s.Texto));
 }
 
 /// <summary>Contenido de un panel flotante (lo arma el núcleo; lo dibuja la ventana o el gráfico).</summary>
@@ -67,8 +75,18 @@ public sealed class ContenidoPanel
 	public string Pie { get; init; } = "";
 }
 
-/// <summary>Posición guardada de una ventana flotante.</summary>
-public sealed record PosicionVentana(double Left, double Top, double Width, double Height, bool Topmost, double Letra, double Opacidad, bool Detalle, bool Minimizada);
+/// <summary>Vela del minigráfico.</summary>
+public sealed record VelaMini(decimal Open, decimal High, decimal Low, decimal Close);
+
+/// <summary>Divergencia dibujada SOBRE las velas del minigráfico (índices y valores de esas velas).</summary>
+public sealed record TramoMini(int I1, int I2, decimal V1, decimal V2, bool Alcista, bool Micro);
+
+/// <summary>Minigráfico de velas de CVD con sus divergencias (v3, 6 y 13.9).</summary>
+public sealed record GraficoMini(IReadOnlyList<VelaMini> Velas, IReadOnlyList<TramoMini> Tramos);
+
+/// <summary>Posición guardada de una ventana flotante (y los recuadros plegados).</summary>
+public sealed record PosicionVentana(double Left, double Top, double Width, double Height, bool Topmost, double Letra, double Opacidad, bool Detalle, bool Minimizada,
+	string[]? Plegadas = null);
 
 /// <summary>
 /// Colocación de una ventana flotante (11.1, T30): se respeta la posición guardada en cualquier monitor; si quedó fuera

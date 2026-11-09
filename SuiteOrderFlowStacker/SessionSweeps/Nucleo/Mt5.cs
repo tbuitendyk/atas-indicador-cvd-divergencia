@@ -303,6 +303,25 @@ public sealed class GestorMt5
 		}
 	}
 
+	/// <summary>Recuadro 16 del panel: estado, prueba de conversión, límites del día y las últimas líneas del registro.</summary>
+	public List<string> LineasPanel(RaizInstrumento raiz, EspecContrato? spec)
+	{
+		lock (_sync)
+		{
+			var l = new List<string> { Estado(raiz) };
+
+			if (Modo == ModoMt5.Apagado)
+				return l;
+
+			var hoy = Zonas.DiaOperativo(DateTime.UtcNow);
+			l.Add(Mapeo(raiz).PruebaConversion(spec));
+			l.Add($"Hoy: {_operaciones.Count(o => Zonas.DiaOperativo(o.Utc) == hoy)}/{MaxOperacionesDia} operaciones · pérdida " +
+				$"{(_dia == hoy ? _perdidaDia : 0).ToString("0", CultureInfo.InvariantCulture)} de {MaxPerdidaDiaUsd.ToString("0", CultureInfo.InvariantCulture)} USD");
+			l.AddRange(Registro.Skip(Math.Max(0, Registro.Count - 3)));
+			return l;
+		}
+	}
+
 	public string Estado(RaizInstrumento raiz)
 	{
 		lock (_sync)

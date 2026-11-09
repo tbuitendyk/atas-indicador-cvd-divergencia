@@ -36,6 +36,9 @@ internal sealed class VentanaFlotante : Window
 	private double _letra = 11;
 	private bool _detalle;
 
+	/// <summary>Recuadros plegados (v3, 13): se guardan con la posición de la ventana.</summary>
+	private readonly HashSet<string> _plegadas = new(StringComparer.Ordinal);
+
 	/// <summary>
 	/// Los indicadores de la DLL real registran la ventana en la fábrica al construirse (las pruebas no tienen WPF y dejan
 	/// la fábrica vacía o con un falso).
@@ -207,7 +210,13 @@ internal sealed class VentanaFlotante : Window
 		_lineas.Children.Clear();
 
 		foreach (var l in c.Lineas)
-			_lineas.Children.Add(Linea(l));
+		{
+			// Recuadro plegado: queda solo su título.
+			if (!l.Titulo && l.Grupo is { } g && _plegadas.Contains(g))
+				continue;
+
+			_lineas.Children.Add(l.Grafico is { } grafico ? MiniGrafico(grafico) : Linea(l));
+		}
 
 		_pie.Text = c.Pie;
 		_pie.FontSize = _letra - 1;
@@ -227,6 +236,21 @@ internal sealed class VentanaFlotante : Window
 
 		var t = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = l.Titulo ? _letra + 1 : _letra, Margin = new Thickness(12 * l.Sangria, 1, 0, 1) };
 
+		// Título de un recuadro desplegable: triángulo vectorial y clic para plegar / desplegar.
+		if (l.Titulo && l.Grupo is { } grupo)
+		{
+			var plegado = _plegadas.Contains(grupo);
+			t.Inlines.Add(new InlineUIContainer(Triangulo(plegado)) { BaselineAlignment = BaselineAlignment.Center });
+			t.Cursor = System.Windows.Input.Cursors.Hand;
+			t.MouseLeftButtonUp += (_, _) => Seguro(() =>
+			{
+				if (!_plegadas.Remove(grupo))
+					_plegadas.Add(grupo);
+
+				Refrescar();
+			});
+		}
+
 		foreach (var s in l.Segmentos)
 		{
 			if (s.Flecha != FlechaPanel.Ninguna)
@@ -239,6 +263,76 @@ internal sealed class VentanaFlotante : Window
 			return t;
 
 		return new Border { BorderBrush = Brocha(borde), BorderThickness = new Thickness(1.5), Padding = new Thickness(6, 3, 6, 3), Margin = new Thickness(0, 2, 0, 2), Child = t };
+	}
+
+	/// <summary>Triángulo del recuadro: a la derecha plegado, hacia abajo desplegado.</summary>
+	private UIElement Triangulo(bool plegado)
+	{
+		var h = _letra * 0.8;
+		var puntos = plegado
+			? new PointCollection { new(0, 0), new(h, h / 2), new(0, h) }
+			: new PointCollection { new(0, 0), new(h, 0), new(h / 2, h) };
+
+		return new Polygon { Points = puntos, Fill = Brocha(ColorPanel.Titulo), Width = h, Height = h, Margin = new Thickness(0, 0, 6, 0) };
+	}
+
+	/// <summary>
+	/// Minigráfico del recuadro CVD (v3, 13.9): velas de CVD con mecha y cuerpo, y las divergencias dibujadas SOBRE esas
+	/// velas (sólida = macro, punteada = micro). Formas WPF, sin imágenes.
+	/// </summary>
+	private UIElement MiniGrafico(GraficoMini g)
+	{
+		var ancho = Math.Max(240, (_lineas.ActualWidth > 0 ? _lineas.ActualWidth : 480) - 8);
+		var alto = Math.Max(70, _letra * 8);
+		var lienzo = new Canvas { Width = ancho, Height = alto, Margin = new Thickness(0, 3, 0, 3), Background = new SolidColorBrush(Color.FromRgb(28, 32, 38)) };
+
+		if (g.Velas.Count == 0)
+			return lienzo;
+
+		var min = decimal.MaxValue;
+		var max = decimal.MinValue;
+
+		foreach (var v in g.Velas)
+			(min, max) = (Math.Min(min, v.Low), Math.Max(max, v.High));
+
+		foreach (var d in g.Tramos)
+			(min, max) = (Math.Min(min, Math.Min(d.V1, d.V2)), Math.Max(max, Math.Max(d.V1, d.V2)));
+
+		var rango = max - min == 0 ? 1 : max - min;
+		var paso = ancho / g.Velas.Count;
+		double Y(decimal v) => 4 + (double)((max - v) / rango) * (alto - 8);
+		double X(int i) => paso * i + paso / 2;
+
+		for (var i = 0; i < g.Velas.Count; i++)
+		{
+			var v = g.Velas[i];
+			var color = Brocha(v.Close >= v.Open ? ColorPanel.Verde : ColorPanel.Rojo);
+			lienzo.Children.Add(new Line { X1 = X(i), X2 = X(i), Y1 = Y(v.High), Y2 = Y(v.Low), Stroke = color, StrokeThickness = 1 });
+			var arriba = Y(Math.Max(v.Open, v.Close));
+			var cuerpo = new Rectangle { Width = Math.Max(1, paso * 0.6), Height = Math.Max(1, Y(Math.Min(v.Open, v.Close)) - arriba), Fill = color };
+			Canvas.SetLeft(cuerpo, X(i) - cuerpo.Width / 2);
+			Canvas.SetTop(cuerpo, arriba);
+			lienzo.Children.Add(cuerpo);
+		}
+
+		foreach (var d in g.Tramos)
+		{
+			if (d.I1 < 0 || d.I2 >= g.Velas.Count)
+				continue;
+
+			var linea = new Line
+			{
+				X1 = X(d.I1), X2 = X(d.I2), Y1 = Y(d.V1), Y2 = Y(d.V2), StrokeThickness = d.Micro ? 1 : 2,
+				Stroke = Brocha(d.Alcista ? ColorPanel.Verde : ColorPanel.Rojo)
+			};
+
+			if (d.Micro)
+				linea.StrokeDashArray = new DoubleCollection { 3, 2 };
+
+			lienzo.Children.Add(linea);
+		}
+
+		return lienzo;
 	}
 
 	/// <summary>Flecha como forma vectorial (sin emojis).</summary>
@@ -296,6 +390,9 @@ internal sealed class VentanaFlotante : Window
 
 			if (ajustada.Minimizada)
 				WindowState = WindowState.Minimized;
+
+			foreach (var g in ajustada.Plegadas ?? Array.Empty<string>())
+				_plegadas.Add(g);
 		}
 		catch
 		{
@@ -308,6 +405,6 @@ internal sealed class VentanaFlotante : Window
 		Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Archivo())!);
 		var r = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
 		File.WriteAllText(Archivo(), JsonSerializer.Serialize(new PosicionVentana(r.Left, r.Top, r.Width, r.Height, Topmost, _letra, Opacity, _detalle,
-			WindowState == WindowState.Minimized)));
+			WindowState == WindowState.Minimized, new List<string>(_plegadas).ToArray())));
 	}
 }
