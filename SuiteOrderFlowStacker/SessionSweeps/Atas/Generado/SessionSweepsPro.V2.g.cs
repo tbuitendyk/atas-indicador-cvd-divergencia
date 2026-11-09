@@ -436,10 +436,10 @@ public partial class SessionSweepsPro
 	[Range(0, 5000)]
 	public int InChartPanelY { get => _v.InChartPanelY; set { _v.InChartPanelY = Math.Clamp(value, 0, 5000); RedrawChart(); } }
 
-	[Display(Name = "Cajas de barrido (v2)", GroupName = "28. Panel y dibujo", Order = 50, Description = "Coloreadas por estado (TRAMPA, PREMIUM, RUPTURA, FALLIDO…).")]
+	[Display(Name = "Cajas de barrido", GroupName = "28. Panel y dibujo", Order = 50, Description = "Coloreadas por estado (REAL, PREMIUM, RUPTURA / ACEPTACIÓN, FALLIDO…).")]
 	public bool ShowSweepBoxes { get => _v.ShowSweepBoxes; set { _v.ShowSweepBoxes = value; RedrawChart(); } }
 
-	[Display(Name = "Zonas de los modelos", GroupName = "28. Panel y dibujo", Order = 60, Description = "MOD1-MOD4 y BFVG con entrada, stop y objetivos.")]
+	[Display(Name = "Zonas de los modelos", GroupName = "28. Panel y dibujo", Order = 60, Description = "Modelo A (barrido, BFVG) y Modelo B (LVN / EDGE / FVG) con entrada, stop y objetivo.")]
 	public bool ShowModelBoxes { get => _v.ShowModelBoxes; set { _v.ShowModelBoxes = value; RedrawChart(); } }
 
 	[Display(Name = "FVG / BFVG (v2)", GroupName = "28. Panel y dibujo", Order = 70, Description = "")]

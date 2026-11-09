@@ -64,3 +64,27 @@ completo y cómo se aplica cada punto del anexo: [PLAN.md](PLAN.md).
 21. **CSV:** dos archivos por día operativo (barridos y modelos), una fila por congelación y por transición; el gatillo
     manual se graba cuando cambia su respuesta (Origen MANUAL). Además de las columnas de la sección 14 llevan la hora
     de la fila y `T0Utc` con precisión completa para restaurar.
+
+## v3 — Sessions Sweeps Pro (corrección del 08-11-2026)
+
+Las decisiones de diseño de la v3 están en [PLAN_V3.md](PLAN_V3.md) ("Decisiones propias"). Además, al construirla:
+
+22. **Nombre:** visible "Sessions Sweeps Pro (Suite)"; las clases no cambian para que las plantillas de ATAS sigan
+    abriendo.
+23. **Estados:** BARRIDO REAL (≥ 70) y BARRIDO REAL PREMIUM (≥ 85 y las 7 puertas); la antigua TRAMPA B (por debajo
+    de 70) queda INDETERMINADO. Los CSV de la v2 se siguen leyendo.
+24. **Modelos:** A = MOD1 + BFVG; B = MOD2 + el antiguo MOD4 ("B - RETROCESO TRAS ROMPIMIENTO"); el antiguo MOD3
+    (iceberg roto) es contexto. Un solo objetivo (TP a 2R o el próximo LVN/EDGE) y salida TP o EMA 15, lo primero.
+25. **Panel (S7):** cabecera de 3 líneas siempre visible y 17 recuadros plegables (la ventana guarda cuáles están
+    plegados junto con su posición). "GATILLO … CUMPLIDO" solo con un setup en entrada o gestión (vela cerrada); con
+    una zona armada sin tocar, "NO SE HA CUMPLIDO — EN CAMINO A …" con la distancia en ticks y puntos (prioridad a
+    las zonas del Modelo B; la más cercana). El minigráfico de CVD son las últimas 40 velas de CVD con sus
+    divergencias, dibujado con formas WPF (y con el render de ATAS en el panel del gráfico).
+26. **Botones del panel:** PAUSAR / CERRAR TODO / DESHABILITAR ÓRDENES actúan solo sobre el puente MT5; nunca abren
+    operaciones. El estado de correo y Telegram en el panel mira el disco cada 10 s, no en cada refresco.
+27. **CSV v3:** archivos nuevos `_barridos_v3.csv` y `_modelos_v3.csv` (las 50 / 23 columnas de la v2 en el mismo
+    orden y las de auditoría al final) para no mezclar filas de dos formatos el día de la actualización; la
+    restauración lee los v3. El proveedor de datos sale "NO DISPONIBLE": la API de ATAS usada no lo expone y no se
+    inventa (// VERIFICAR).
+28. **Grupo "13. Correo y Telegram":** se renombró el grupo (antes "13. Correo") porque también tiene Telegram. ATAS
+    guarda los valores por propiedad, así que las plantillas no pierden nada.

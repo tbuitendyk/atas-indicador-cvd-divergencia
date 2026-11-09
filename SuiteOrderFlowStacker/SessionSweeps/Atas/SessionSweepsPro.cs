@@ -41,7 +41,7 @@ public partial class SessionSweepsPro : Indicator
 	private const string G7 = "7. Proyeccion";
 	private const string G8 = "8. FVG / IFVG";
 	private const string G12 = "12. Alertas";
-	private const string G13 = "13. Correo";
+	private const string G13 = "13. Correo y Telegram";
 	private const string G14 = "14. MSS";
 	private const string G15 = "15. Visual";
 

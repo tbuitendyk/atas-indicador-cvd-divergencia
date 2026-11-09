@@ -1,189 +1,235 @@
-# Session Sweeps Pro v2.0 (Suite) — Manual de usuario
+# Sessions Sweeps Pro (Suite) v3 — Manual de usuario
 
-Es el NQ Session Sweeps Pro **rehecho dentro de la suite**, con otro nombre para que **no sobrescriba** al anterior:
-en ATAS se llama **Session Sweeps Pro (Suite)** y vive en `SuiteOrderFlowStacker.dll`. El **NQ Session Sweeps Pro**
-(`NQSessionSweepsPro.dll`) sigue igual y se pueden tener los dos.
+**Sessions Sweeps Pro** vigila la liquidez de las sesiones, clasifica cada barrido en el tick y arma dos modelos de
+entrada: **A (barrido)** y **B (retroceso a LVN / EDGE / FVG)**, con gatillo de order flow. Funciona en NQ, ES y YM (y
+sus micros) con un perfil propio por instrumento. Vive en `SuiteOrderFlowStacker.dll` junto a los trackers y el
+Thermal; el **NQ Session Sweeps Pro** (`NQSessionSweepsPro.dll`) sigue aparte y no cambia.
 
-Qué hace:
+> **Las señales y estadísticas son informativas y deben validarse. No son un registro de operaciones reales salvo
+> que provengan de ejecuciones confirmadas.** Las puntuaciones son puntos para ordenar, no probabilidades.
 
-1. Vigila la liquidez **externa** (PDH/PDL, días y semana anteriores) e **interna** (sesiones, máximos/mínimos iguales).
-2. Detecta el barrido **en el tick** (T0) y lo **clasifica** con barras de volumen y los eventos de la suite:
-   TRAMPA B / A / **PREMIUM** (giro), **RUPTURA** (continuación), FALLIDO, RUPTURA FALLIDA, SIN LIQ, INDETERMINADO.
-3. Arma los modelos **MOD1** (trampa), **BFVG** (FVG de la pierna de recuperación), **MOD2** (a favor del sesgo),
-   **MOD3** (rompimiento con continuidad) y **MOD4** (ruptura y retroceso) y busca el **gatillo** de order flow.
-4. Lo muestra en un **panel flotante** que se mueve a cualquier lugar o monitor (Resumen / Detalle).
-5. Avisa (sonido y ventana de ATAS) y manda un **correo** en cada toma de liquidez externa válida con entrada, stop y
-   objetivos. Graba todo en **CSV** para calibrar.
-
-> **Estadística simulada; no es un registro de operaciones reales.** Las puntuaciones son puntos, no probabilidades.
-> Todos los umbrales son valores iniciales para el NQ en la sesión de Nueva York: **calibrar** con el CSV.
-
-Otros documentos: **[OPERATIVA.md](OPERATIVA.md)** (cómo operar MOD1-MOD4 y BFVG) ·
-**[PARAMETROS.md](PARAMETROS.md)** (los 116 parámetros nuevos) · **[DECISIONES.md](DECISIONES.md)** (lo que decidió la
-IA) · **[PLAN.md](PLAN.md)** · **[PROGRESO.md](PROGRESO.md)** (hecho y lo que hay que comprobar en ATAS).
+Otros documentos: [OPERATIVA.md](OPERATIVA.md) (cómo operar A y B, práctica con LVN y EDGE) ·
+[PARAMETROS.md](PARAMETROS.md) (todos los parámetros, generado) · [DECISIONES.md](DECISIONES.md) ·
+[PLAN_V3.md](PLAN_V3.md) · [PROGRESO.md](PROGRESO.md) (hecho, pruebas y lo que hay que comprobar en ATAS real) ·
+[VALIDACION_TRACKERS.md](VALIDACION_TRACKERS.md) · [PROMPT_V3.md](PROMPT_V3.md) (la especificación).
 
 ---
 
-## 1. Instalar
+## 1. Instalar y poner en el gráfico
 
-Cierre ATAS y haga doble clic en el acceso directo del escritorio (`C:\homs\bic.cmd`): sincroniza GitHub, compila e
-instala `SuiteOrderFlowStacker` (ya está en `instalar.txt`). Al abrir ATAS, en el grupo de indicadores personalizados
-aparecen, además de los seis de la suite:
+1. Cierre ATAS y ejecute `C:\homs\bic.cmd` (sincroniza GitHub, compila e instala la suite).
+2. Gráfico de **1 minuto** (*TimeFrame M1*) de NQ, ES, YM, MNQ, MES o MYM. En otra temporalidad el indicador lo dice
+   y no calcula.
+3. Agregue **Sessions Sweeps Pro (Suite)**.
+4. Agregue el **Thermal Volume Profile + LVN (Suite)** del mismo instrumento (en este gráfico o en otro): es la fuente
+   de **LVN y EDGE** y tiene las herramientas PIERNA, LVN, EDGE y GATILLO. Sin él: `SIN FUENTE LVN`.
+5. Para los bloques B y C del barrido agregue los trackers del **mismo instrumento** en cualquier gráfico: **Iceberg
+   Tracker Pro**, **Stops Tracker Pro**, **Sweeps Tracker Pro**, **Stacked Imbalance Pro** y/o **Absorption Master**.
+   Conservan su dibujo original; su panel propio viene apagado (*0. General → Panel propio en el gráfico*): todo se lee en el
+   panel de Sessions Sweeps.
+6. Opcional: **Sessions Sweeps CVD (Suite)** (subpanel con las velas del CVD y sus divergencias).
 
-| En ATAS | Para qué |
+Al terminar de cargar el historial se abre el panel flotante. Los indicadores se hablan por dentro de la DLL (bus de
+eventos por contrato, versión 3.0.0); si uno es de otra versión, el panel dice `VERSIÓN DISTINTA` y sus eventos no se
+usan.
+
+## 2. Instrumento y calibración
+
+- El símbolo del gráfico elige el perfil: **NQ, ES, YM, MNQ, MES, MYM** (grupos *31-36. Perfil …*). Si el proveedor
+  usa otro nombre, *30. Instrumentos → Alias de símbolos* (`ENQ=NQ;EP=ES`). Sin reconocer: **INSTRUMENTO NO
+  SOPORTADO** (sin señales ni alertas).
+- El tick de ATAS se compara con el del contrato (NQ/ES/MNQ/MES 0.25; YM/MYM 1). Si no coincide: **VALOR DE CONTRATO
+  NO VALIDADO** y no se calculan contratos ni se mandan órdenes.
+- **Calibración:** con las velas de 1 minuto de RTH cargadas (por defecto 20 sesiones) calcula la mediana de volumen y
+  de |delta| por minuto (también por franja de 15 min) y el **VolumePerBar AUTO** = mediana × 0,33 (con mínimo y
+  máximo). Estados: **CALIBRADO**, **CALIBRACIÓN INSUFICIENTE** (valores PROVISIONAL, en naranja) o **CONFIGURACIÓN
+  MANUAL**. Se guarda por familia en `%APPDATA%\ATAS\OrderFlowSuite\SessionsSweeps\perfiles`.
+- Los umbrales en contratos de ES, YM y micros son **PROVISIONAL** hasta calibrarlos: nunca se copian de NQ.
+- Cargue al menos 20 días de historial en el gráfico para que calibre.
+
+## 3. Configuración por grupos (lo que importa)
+
+| Grupo | Ajuste | Recomendado (NQ, NY) |
+|---|---|---|
+| 3. Niveles de liquidez | PDH/PDL, días anteriores, PWH/PWL, iguales, máximos/mínimos de sesión; *Ventana de detección* | Todo encendido; ventana **NY** (Premercado, NY AM, NY PM). |
+| 16. Barras de volumen y horario | Killzone, *Horas de noticias*, bloqueo por noticia | 09:30-11:30 NY; `08:30;10:00;14:00`; 5 min. |
+| 17. Fuentes de la suite | Activado y peso de Iceberg, Stops, Sweeps, Stacked, Imbalance, Absorción | Todos sí, peso 1. |
+| 22. Estados y alertas | *Puntos BARRIDO REAL* / *PREMIUM*; *Estado mínimo para alertar* | 70 / 85; REAL. |
+| 23. FVG / LVN | FVG 1m y 5m, tamaño mínimo, ventana BFVG, distancia mínima del objetivo | Sí / 4 ticks / 30 min / 8 ticks. |
+| 24. Modelos | Modelo A, Modelo B y sus zonas (LVN, EDGE, FVG, EMA, nivel), intentos por zona, TP, salida | Todo sí; 2 intentos; TP 2R; **TP o EMA 15, lo primero**. |
+| 25. Riesgo | Monto o porcentaje, riesgo por operación, leer saldo de ATAS | Monto 200 USD (o 0,5 %). |
+| 27. CVD | Pivotes macro/micro, reinicio, CVD Trigger Matrix | 10 / 3; 18:00 NY. |
+| 28. Panel y dibujo | Panel flotante, panel en el gráfico, cajas, zonas, FVG, LVN, diagnóstico de trackers | Panel flotante sí. |
+| 29. CSV | Grabar CSV, restaurar del CSV al recargar | Sí / sí. |
+| 30-36. Instrumentos y perfiles | Alias, fracción AUTO, contratos por barra (AUTO / manual), umbrales en contratos y ticks | AUTO; revisar ES/YM tras calibrar. |
+| 37. Alertas y canales | ATAS / correo / Telegram por alerta | Ver sección 7. |
+| 13. Correo y Telegram | SMTP, destinatarios, contraseña de aplicación, token y chat ID | Ver sección 7. |
+| 38. MT5 (opcional) | Modo, mapeo de símbolos, límites | **APAGADO** (ver sección 8). |
+
+Todos los valores con su rango y descripción: [PARAMETROS.md](PARAMETROS.md).
+
+## 4. El panel
+
+Se arrastra a cualquier lugar o monitor y recuerda posición, tamaño, modo, letra, opacidad y **qué recuadros están
+plegados** (`%APPDATA%\ATAS\OrderFlowSuite\ventanas`). Botones: Detalle/Resumen, Fijar, A− / A+, Opacidad, Minimizar
+y los controles del puente MT5 (**PAUSAR / REANUDAR**, **CERRAR TODO**, **DESHABILITAR / HABILITAR ÓRDENES**). Clic en
+el título de un recuadro lo pliega o despliega.
+
+**Cabecera (siempre visible):**
+
+1. **ESTADO:** SIN OPERACIÓN · PENDIENTE DE CUMPLIMIENTO DE BARRIDO DE LIQUIDEZ · BARRIDO DE LIQUIDEZ REAL ·
+   BARRIDO DE LIQUIDEZ REAL PREMIUM · RUPTURA / ACEPTACIÓN (contexto).
+2. **Gatillo:** GATILLO ALCISTA / BAJISTA CUMPLIDO (solo con vela cerrada y gatillo VÁLIDO) · GATILLO PENDIENTE (y
+   qué falta) · `NO SE HA CUMPLIDO — EN CAMINO A LVN 21,412.50 · a 20 ticks / 5 pts`.
+3. **Instrumento:** raíz, contrato, CALIBRADO / PROVISIONAL / MANUAL, datos TICKS o APROX, Thermal, trackers
+   cargados y estado de MT5.
+
+| Recuadro | Qué dice |
 |---|---|
-| **Session Sweeps Pro (Suite)** | El indicador principal (este manual). |
-| **Session Sweeps CVD (Suite)** | Subpanel con el CVD en velas y sus divergencias (opcional). |
+| 1. Instrumento y calibración | Contrato, tick, USD por tick y por punto, VolumePerBar, medianas en contratos, perfil y sesiones. |
+| 2. Sesión | Sesión, hora CDMX y NY, killzone, noticias. |
+| 3. Contexto | H1, 15m y 5m con flecha; el rompimiento con iceberg roto (contexto, no entrada). |
+| 4. Barrido | Nivel, hora del T0 (CDMX), nueva dirección, clasificación y puntos, penetración, volumen más allá en contratos, stops, validación, recuperación 1m/5m (ticks y puntos), lo que falta. |
+| 5-8. Iceberg · Stacked / Imbalance · Stops · Sweeps | Estado de cada tracker y su último evento (con Detalle: eventos del día). |
+| 9. CVD | CVD y delta en contratos, **minigráfico de velas de CVD con sus divergencias**, CVD Trigger Matrix (macro, micro, absorción, giro) y su último disparo. |
+| 10. Modelo A | El setup del barrido y los BFVG. |
+| 11. Modelo B | Zona (LVN, EDGE, FVG…), estado, distancia en ticks/puntos, gatillo. |
+| 12. LVN / EDGE | Próximo objetivo LVN o EDGE en la dirección, con origen, estado y distancia. |
+| 13. Footprint / gatillo | VÁLIDO (vela de arranque o continuidad) · PENDIENTE (lo que falta) · NO EJECUTABLE (motivo). |
+| 14. Riesgo | Modo, contratos, entrada, SL, TP, R:R y salida (TP o EMA 15). |
+| 15. Alertas | Correo y Telegram configurados y el último envío de cada canal. |
+| 16. MT5 | Modo, mapeo, prueba de conversión, operaciones y pérdida del día, registro. |
+| 17. Calidad y trazabilidad | Versión, eventos del día, CSV, TICKS/APROX, MBO/INFERIDO y cada fuente. |
 
-La ventana flotante es de **ATAS clásico** (Windows, WPF). Si no se abre, active *28. Panel y dibujo → Panel dentro del
-gráfico*.
+**Detalle** añade los bloques A-E con sus topes, penalizaciones, las 7 puertas premium, el desglose punto a punto,
+las transiciones y los setups.
 
-## 2. Ponerlo en el gráfico
+## 5. Thermal Volume Profile + LVN (Suite)
 
-1. Gráfico de **NQ (o MNQ) de 1 minuto** (*TimeFrame M1*). En otra temporalidad el indicador lo dice y no calcula.
-2. Agregue **Session Sweeps Pro (Suite)**.
-3. Agregue el **Thermal Volume Profile + LVN (Suite)** del mismo instrumento (en este gráfico o en otro): es la **única
-   fuente de LVN** y tiene el botón **GATILLO**. Sin él, el panel dice `SIN FUENTE LVN` y los modelos usan solo FVG, EMA y
-   niveles.
-4. Para los bloques B y C del clasificador (stops, icebergs, sweeps, stacked, absorción) agregue los indicadores de la
-   suite del **mismo instrumento** en cualquier gráfico: **Iceberg Tracker Pro**, **Stops Tracker Pro**,
-   **Sweeps Tracker Pro**, **Stacked Imbalance Pro** y/o **Absorption Master** (que ya los lleva todos dentro). Se
-   comunican por dentro de la DLL; el panel dice de cada uno `CARGADO`, `SIN DATOS` o `NO CARGADO`.
-5. Opcional: **Session Sweeps CVD (Suite)** en el mismo gráfico.
+Panel flotante del Thermal: **PERFIL**, **RANGO**, **PIERNA** (congela el perfil de una pierna: no suma volumen nuevo;
+DESCONGELAR, BORRAR PIERNA), **ZONA**, **LVN** (punto o zona arrastrando), **BORRAR LVN**, **DESHACER**, **EDGE**,
+**GATILLO**, **BORRAR GATILLO**, Tipo, Dirección, Fijar, Recalcular y FVG / Interna / Externa de Sessions Sweeps.
 
-Al terminar de cargar el historial se abre el panel flotante. Si una fuente de la suite carga **después**, Session
-Sweeps recalcula una vez para verla (como mucho 3 veces por instrumento).
+- **LVN:** valle entre dos picos del **perfil fino** (1-2 ticks por fila), zona completa a media profundidad,
+  puntuación 0-100. PROVISIONAL hasta confirmarse con cierres; luego ACTIVO, PROBADO o ATRAVESADO (con histéresis).
+  Sessions Sweeps nunca usa un PROVISIONAL. Un LVN manual se ajusta al valle cercano (se ve el precio original).
+- **EDGE:** borde de un HVN (TECHO HVN / PISO HVN) en ticks, con estados y toques. El **dibujo** se configura aparte
+  del cálculo (*7. EDGE → Mostrar líneas EDGE*, línea / franja, grosor, discontinua, solo los N más cercanos).
+- **Rango nuevo** → borra las líneas LVN (configurable) y avisa a Sessions Sweeps, que cancela los setups que
+  dependían solo de ellas.
 
-**Trades del historial.** Al terminar de cargar, se piden a ATAS los trades del día (desde las 18:00 ET) y se recalcula
-una vez con ellos. Mientras tanto (o si el proveedor no los da) las barras de volumen se reconstruyen del footprint de
-1 minuto: el panel dice `Datos: APROX`; con los trades, `Datos: TICKS`.
+## 6. Modelos y gatillo
 
-## 3. El panel flotante
+- **Modelo A — barrido:** solo con BARRIDO REAL o PREMIUM. Zona del barrido o BFVG de la pierna de recuperación
+  (A - BFVG, A - BFVG+LVN, A - BFVG+EDGE). Stop más allá del extremo con margen.
+- **Modelo B — retroceso (mayor prioridad):** a favor del sesgo, a FVG+LVN > FVG+EDGE > LVN > EDGE > FVG > EMA 15 /
+  nivel roto; también **B - RETROCESO TRAS ROMPIMIENTO** (retroceso ≤ 61,8 % tras una ruptura con aceptación).
+- **Gatillo:** VÁLIDO por **vela de arranque** o **de continuidad** (vela de volumen o compuesta), PENDIENTE con lo que
+  falta, NO EJECUTABLE con el motivo. Nunca se da por cumplido antes del cierre de la vela.
+- **Salida:** TP a 2R (o al próximo LVN/EDGE) o cierre de 1 m al otro lado de la EMA 15, lo primero. El SL nunca se
+  amplía. Detalle en [OPERATIVA.md](OPERATIVA.md).
+- **GATILLO manual:** en el Thermal pulse GATILLO, arrastre un recuadro sobre las velas (ESC cancela). Respuesta:
+  GATILLO POR VELA DE ARRANQUE / DE CONTINUIDAD, NO EJECUTABLE o [-]. Se graba en el CSV con Origen MANUAL y no alerta.
 
-Se arrastra por la barra de título a cualquier lugar o monitor y recuerda posición, tamaño, modo, letra y opacidad
-(`%APPDATA%\ATAS\OrderFlowSuite\ventanas`). Si quedó fuera de pantalla (se quitó un monitor) vuelve al principal.
-Botones: **Detalle/Resumen**, **Fijar** (siempre visible), **A− / A+**, **Opacidad**, **Minimizar**.
+## 7. Alertas, correo y Telegram
 
-| Sección | Qué dice |
-|---|---|
-| 1. Contexto temporal | H1, 15m y 5m: ALCISTA (verde) / BAJISTA (rojo) / RANGO, con flecha. |
-| 2. Barrido de liquidez externa | Hora **CDMX** del barrido, nivel, **nueva dirección** (verde/rojo negrita), clasificación y puntos (PROVISIONAL en naranja mientras evalúa; CONFLICTO PINE; NOTICIA), stops tomados, **validación** y recuperación 1m / 5m (>= 16 ticks). |
-| 3. Absorción y modelos | Recuadro con Iceberg, Stops, Sweeps, Stacked e Imbalance (OK verde / parcial naranja / no gris / NO CARGADO / APAGADO); estado de MOD1, BFVG, MOD2, MOD3, MOD4; caja fucsia **MOD3 ROMPIMIENTO CONTINUIDAD** y los contrarios **INVALIDADO POR MOD3**. |
-| 4. Próximo LVN objetivo | `Próximo LVN objetivo (alcista): 29,412.50` — "(alcista)/(bajista)" en naranja, el precio verde (largo) o rojo (corto), con origen AUTO/MANUAL y hora. Sin objetivo: `(short)/(long): Sin objetivo LVN` en amarillo. |
-| 5. Footprint gatillo | **VÁLIDO** (texto blanco y flecha verde/roja, ARRANQUE o CONTINUIDAD), **PENDIENTE** (naranja, con lo que falta) o **INVÁLIDO** (rojo, con el motivo). |
-| 6. Plan de riesgo | Modo MONTO ($) o PORCENTAJE de la cuenta; contratos = floor(riesgo / (ticks de stop × valor del tick)); "RIESGO INSUFICIENTE: usar MNQ". |
-| 7. Micro-impulso | EMA 15 de 1 minuto y la gestión tras TP1. |
-| 8. Calidad y trazabilidad | Versión, eventos del día, datos TICKS/APROX, MBO/INFERIDO, archivo CSV y estado de cada fuente. |
+Solo cinco alertas, solo en vivo, una vez por evento y nunca con NOTICIA:
 
-**Validación del barrido:** "**Certificada como real por iceberg (MBO)**" **solo** con MBO y el iceberg AGUANTANDO; con
-el iceberg inferido (sin MBO) dice "**Probable: iceberg inferido**"; sin iceberg, "Sin iceberg".
+| Alerta | ATAS | Correo | Telegram |
+|---|---|---|---|
+| BARRIDO DE LIQUIDEZ REAL | sí | no | no |
+| BARRIDO REAL PREMIUM (y UPGRADE PREMIUM, sin repetir) | sí | sí | sí |
+| RUPTURA / ACEPTACIÓN (contexto) | sí | no | no |
+| GATILLO VÁLIDO — Modelo A | sí | sí | sí |
+| GATILLO VÁLIDO — Modelo B | sí | sí | sí |
 
-**Detalle** añade los bloques A-E con sus topes, penalizaciones, las 7 puertas premium, el desglose punto a punto, las
-transiciones, las zonas de los modelos y las fuentes usadas.
+(Valores por defecto de *37. Alertas y canales*; cada casilla se cambia.) El mensaje lleva instrumento, contrato,
+dirección, hora CDMX y NY, clasificación, zona, gatillo, entrada, SL, TP, trackers y estado de MT5.
 
-## 4. En el gráfico
+**Correo** (*13. Correo y Telegram*): servidor `smtp.gmail.com`, puerto 587, TLS, *Usuario SMTP* y *Contraseña de
+aplicación* (Gmail: 16 letras, con verificación en dos pasos). Destinatarios separados por `;`. **Telegram:** cree un
+bot con @BotFather, pegue el token en *Telegram: token del bot* y su *chat ID*. La contraseña y el token se guardan
+**cifrados con DPAPI de Windows** (no en los ajustes de ATAS ni en archivos en claro; para quitar el token escriba `BORRAR`).
+*Enviar correo de prueba* y *Telegram: enviar prueba* comprueban todo; el resultado sale en el recuadro 15. Los envíos
+van por una cola: ATAS nunca espera.
 
-| Dibujo | Color |
-|---|---|
-| Caja de barrido TRAMPA B / A / PREMIUM | Verde (giro al alza) o rojo (a la baja); PREMIUM con **borde dorado**. |
-| RUPTURA | Azul. |
-| FALLIDO / RUPTURA FALLIDA | Morado. |
-| PROVISIONAL (aún evaluando) | Naranja. |
-| SIN LIQ / indeterminado | Gris. |
-| Zona MOD1 / BFVG / MOD2 | Verde o rojo; punteada mientras espera el gatillo, con ENTRADA, STOP, TP1, TP2. |
-| Zona MOD3 | Fucsia. MOD4: azul claro. |
-| FVG (1m y 5m) | Verde/rojo translúcido; los de 5m más intensos y rotulados. |
-| LVN del Thermal | Naranja (activos), gris punteado (mitigados). |
-| Divergencias del CVD | Tramos verdes (alcistas) o rojos (bajistas) entre pivotes; las micro, punteadas. |
+## 8. MT5 (opcional, APAGADO por defecto)
 
-Interruptores en *28. Panel y dibujo* (también FVG, liquidez interna y externa desde el panel del Thermal).
+1. Copie `SessionSweeps/MT5/SessionsSweepsBridge.mq5` a MetaEditor, compílelo y póngalo en un gráfico de MT5. En MT5:
+   *Herramientas → Opciones → Asesores expertos → Permitir WebRequest para las URL*: `http://127.0.0.1:5005` (el *Puerto local del puente*; // VERIFICAR).
+2. En *38. MT5*: modo **SIMULACIÓN** primero (no necesita MT5), luego **DEMO**. **REAL** exige escribir la frase
+   `CONFIRMO OPERAR EN REAL`.
+3. Mapee cada instrumento (`NQ → USTEC`, etc.), mire la **prueba de conversión** en el recuadro 16 y solo entonces
+   marque *mapeo validado*. SL y TP viajan como **distancias** (factor por instrumento).
+4. Nunca manda órdenes en el historial o la recarga, sin mapeo validado, con calibración insuficiente, con NOTICIA,
+   pausado, con órdenes deshabilitadas, dos veces el mismo evento, con posición abierta en esa dirección o la contraria,
+   por debajo del volumen mínimo del bróker, o pasados los límites del día.
+5. Las credenciales de MT5 **no** se piden: la cuenta vive en MT5.
 
-## 5. GATILLO manual (desde el Thermal)
+## 9. Qué toma en cuenta el barrido de liquidez
 
-1. En la barra del **Thermal Volume Profile + LVN (Suite)** o en su panel flotante pulse **GATILLO**.
-2. Arrastre un recuadro sobre las velas del retroceso (de tiempo y de precios). **ESC** cancela.
-3. Session Sweeps analiza las barras de volumen del recuadro como **vela de volumen**, **vela compuesta** o AUTO
-   (botón *Tipo*), en la dirección AUTO / LARGO / CORTO (botón *Dirección*), y responde:
-   - **GATILLO POR VELA DE ARRANQUE** o **DE CONTINUIDAD** con flecha verde (largo) o roja (corto), entrada, SL y R:R;
-   - **NO EJECUTABLE** con lo que falta o el motivo;
-   - **[-]** sin direccionalidad clara: se espera nueva confirmación.
-4. El panel del Thermal muestra la lectura de la vela compuesta (POC y su tercio, delta que vira, subasta, razones).
-   Un recuadro que llega a la vela actual se **reevalúa en vivo** cada 5 s hasta pulsar **Fijar**. **Recalcular** lo
-   vuelve a mandar; **Borrar cajas** las quita. El gatillo manual se graba en el CSV con Origen MANUAL y **no alerta**.
+1. **Nivel vigilado** (grupo 3): PDH/PDL, días anteriores sin barrer, PWH/PWL, máximos y mínimos iguales, máximos y
+   mínimos de sesión (Asia, Londres, Premercado), dentro de la ventana de detección.
+2. **T0 en el tick:** el primer trade que pasa el nivel por *Penetración mínima* (NQ 2 ticks). Desde ahí se mide en
+   **barras de volumen** (VolumePerBar del instrumento) hasta congelar o vencer (15 barras o 300 s).
+3. **Puntos por bloques**, con tope cada uno (total 0-100):
 
-El panel del Thermal también tiene PERFIL, RANGO, ZONA LVN, LÍNEAS LVN (las líneas manuales valen para MOD2; al elegir
-un rango nuevo se borran) y la línea de estado: LVN AUTO/MANUAL, rango y `Session Sweeps Pro: CONECTADO`.
+| Bloque | Tope | Qué suma |
+|---|---|---|
+| A Nivel | 20 | Externo 10 · sesión 6 · swing interno 2; iguales +5; intacto con antigüedad +3; killzone +2. |
+| B Toma de stops | 20 | Ráfaga propia o del Sweeps Tracker +6; barra del cruce rápida +4; agresor ≥ 65 % +4; Stops Tracker +4; penetración en rango +2. |
+| C Absorción | 25 | Divergencia de delta más allá +6 (+3 con volumen relativo bajo); iceberg AGUANTANDO MBO +6 / inferido +3; Absorption Master +3; F2 freno +4; POC y VA en el tercio del extremo +4; subasta terminada +3; stacked contrario +2. |
+| D Recuperación | 25 | Cierre de vuelta +6; F3 rápida +6; giro de delta +5; stacked en la nueva dirección +4; recuperación ≥ 16 ticks sin tocar el extremo +4. |
+| E Contexto | 10 | 15m y H1 no en contra +3; divergencia de CVD +3; vuelta al otro lado de la VWAP +2; coincide el Pine +2. Con NOTICIA no suma. |
 
-## 6. CVD
+Penalizaciones (después de los topes): subasta sin terminar −4; barra de arranque lenta −3.
 
-**Session Sweeps CVD (Suite)**: el delta acumulado en velas (reinicio 18:00 NY o 09:30) con divergencias **de máximo a
-máximo** (bajista: precio más alto, CVD más bajo) y **de mínimo a mínimo** (alcista). **Macro** con pivotes de 10 velas
-a cada lado; **micro** (3 velas) solo dentro del tramo de una macro, para afinar el punto de giro. Sin líneas
-verticales. Las mismas divergencias se dibujan sobre el precio en Session Sweeps Pro (*Divergencias del CVD en el
-precio*).
+4. **Estados:**
+   - **BARRIDO REAL:** recuperó el nivel + hay absorción + arranque (F3 rápida o giro de delta) + toma de stops + ≥ 70.
+   - **BARRIDO REAL PREMIUM:** REAL con ≥ 85 y las **7 puertas**: (1) bloque A ≥ 12; (2) ráfaga o stops; (3) iceberg
+     aguantando o F2 ≥ 3 barras con POC en el tercio; (4) subasta terminada; (5) recuperación en ≤ 3 barras con F3 y
+     giro de delta; (6) recuperación ≥ 16 ticks sin tocar el extremo; (7) killzone, sin noticia y sin 15m en contra.
+   - **RUPTURA / ACEPTACIÓN:** no recupera y cumple ≥ 3 de 5: cierres de aceptación, POC más allá, delta sostenido, poca
+     absorción (o iceberg roto), retest que aguanta.
+   - **SIN LIQ:** penetración ≤ 2 ticks sin toma de stops. **INDETERMINADO:** vence sin cumplir.
+5. **Validación:** "Certificada como real por iceberg (MBO)" solo con MBO y el iceberg AGUANTANDO; sin MBO, "Probable:
+   iceberg inferido".
+6. **Congelación y transiciones:** al congelar, el estado no se repinta. Después solo: REAL → **UPGRADE PREMIUM**
+   (≤ 10 barras); REAL/PREMIUM → **FALLIDO** (cierre más allá del extremo + margen); RUPTURA → **RUPTURA FALLIDA**
+   (cierre 4 ticks de vuelta en ≤ 5 barras, y nace una evaluación nueva).
+7. **Unidades:** volumen y delta en contratos del instrumento; ticks del instrumento. Con NQ los valores de arriba;
+   ES y YM usan los suyos.
 
-## 7. Alertas y correo
+## 10. CSV y recarga del historial
 
-Solo en vivo (nunca al cargar o recalcular el historial), una vez por evento y **nunca con NOTICIA** (5 min antes y
-después de las horas de *Horas de noticias*, por defecto 08:30;10:00;14:00 NY):
+En `%APPDATA%\ATAS\OrderFlowSuite\SessionSweeps\{Instrumento}\`:
 
-| Alerta (12. Alertas) | Cuándo |
-|---|---|
-| Alerta de ruptura | El tick que rompe un máximo/mínimo vigilado (informativa). |
-| Cuentas atrás 1m y 5m | Antes del cierre de la vela gatillo tras el barrido. |
-| TRAMPA / UPGRADE PREMIUM | Al congelar una TRAMPA >= *Estado mínimo para alertar* (TRAMPA A), y en cada UPGRADE PREMIUM. |
-| Gatillo VÁLIDO | Entrada de MOD1, BFVG, MOD2, MOD3 o MOD4. |
-| MOD3 / RUPTURA (arma MOD4) | Activación de MOD3; ruptura confirmada que arma MOD4. |
-| FALLIDO / RUPTURA FALLIDA | Las dos transiciones. |
+- `yyyy-MM-dd_barridos_v3.csv` — una fila al congelar y en cada transición: medidas, bloques A-E, estado, puertas,
+  fuentes, transiciones, y la auditoría v3 (hora ET y CDMX, raíz, contrato, timeframe, tick, USD por tick y punto,
+  calibración, versión del perfil, fuente REAL/MBO/APROX, canales, MT5, volumen y delta en contratos, DeltaPct).
+- `yyyy-MM-dd_modelos_v3.csv` — entradas, cierres e invalidaciones de A y B (zona, centro, LVN/EDGE/FVG, gatillo,
+  entrada, SL, TP, R:R, contratos, riesgo, resultado, MAE/MFE, salida) y los gatillos manuales.
 
-**Correo** (13. Correo): en cada **toma de liquidez externa válida** (gatillo VÁLIDO sobre PDH/PDL, días o semana
-anteriores) con entrada, stop, TP1 (con R:R), TP2, contratos y razones. Destinatario por defecto
-`uniontradingacademy@gmail.com`. **Hay que poner el usuario y la contraseña SMTP en ATAS** (Gmail: contraseña de
-aplicación de 16 letras con la verificación en dos pasos). Sin ellos no se intenta enviar (queda un aviso en el
-registro de ATAS). *Enviar correo de prueba* comprueba la configuración. La contraseña no se guarda en ningún archivo
-del proyecto.
+Nunca llevan credenciales. Al recargar, los barridos ya congelados del día **toman su estado del CSV** y nada suena.
 
-## 8. CSV y recarga del historial
-
-En `%APPDATA%\ATAS\OrderFlowSuite\SessionSweeps\{Instrumento}\` (29. CSV):
-
-- `yyyy-MM-dd_barridos.csv` — una fila al congelar cada barrido y otra en cada transición (columnas de la sección 14:
-  medidas, bloques A-E, estado, puertas, fuentes, transiciones).
-- `yyyy-MM-dd_modelos.csv` — entradas, cierres e invalidaciones de MOD1-MOD4 y BFVG (zona, gatillo, entrada, stop,
-  TP1, TP2, contratos, riesgo, resultado, MAE/MFE) y los gatillos manuales (Origen MANUAL).
-
-**Recarga:** icebergs, stops y sweeps de la suite solo existen en vivo, así que recalcular no los reproduce. Por eso,
-al recargar, los barridos ya congelados del día **toman su estado del CSV** (*Restaurar los barridos del día desde el
-CSV*), y la recarga no hace sonar nada.
-
-## Ajustes heredados del NQ
-
-Los grupos 1-15 son los del NQ Session Sweeps Pro ([NQSessionSweepsPro/LEEME.md](../../NQSessionSweepsPro/LEEME.md)):
-sesiones, tabla, niveles de liquidez, barridos del Pine, order flow, H1, proyección, FVG/IFVG, alertas, correo, MSS y
-visual. Cambios:
-
-- Sin los grupos 9-11 (Modelo A, Modelo B y LVN/perfil propio): los modelos son MOD1-MOD4 y BFVG, y los LVN vienen del
-  Thermal.
-- "Margen del stop" de la proyección se llama ahora `ProjectionStopBufferTicks`; el `StopBufferTicks` de v2 está en
-  *21. Recuperación*.
-- El panel clásico del NQ (*Panel clásico del último barrido*) viene apagado: el de v2 es el panel flotante.
-- Solo gráfico de 1 minuto.
-
-## 9. Problemas frecuentes
+## 11. Problemas frecuentes
 
 | Ve | Causa y arreglo |
 |---|---|
-| `Session Sweeps Pro funciona en graficos de 1 minuto` | Cambie el gráfico a M1. |
-| Panel: fuentes `NO CARGADO` | Ese indicador de la suite no está en ningún gráfico del mismo instrumento (o no late: ver PROGRESO.md, VERIFICAR). |
-| `SIN FUENTE LVN` | Agregue el Thermal Volume Profile + LVN (Suite) del mismo instrumento. |
-| `Datos: APROX` todo el día | El proveedor no respondió a la petición de trades del historial; con datos en vivo, lo nuevo es TICKS. |
-| GATILLO: `MOTOR NO CARGADO` | Session Sweeps Pro (Suite) no está en ningún gráfico de ese instrumento. |
-| No llega el correo | Usuario y contraseña SMTP en *13. Correo*; pruebe *Enviar correo de prueba*; mire el registro de ATAS. |
-| No se ve la ventana | Puede estar en otro monitor o minimizada; o active *Panel dentro del gráfico*. |
+| `funciona en graficos de 1 minuto` | Cambie el gráfico a M1. |
+| `INSTRUMENTO NO SOPORTADO` | Agregue el alias en *30. Instrumentos*. |
+| `VALOR DE CONTRATO NO VALIDADO` | El tick de ATAS no es el del contrato: revise el instrumento. |
+| `CALIBRACIÓN INSUFICIENTE` / PROVISIONAL | Cargue 20 días o más de historial de 1 minuto. |
+| Fuentes `NO CARGADO` / `VERSIÓN DISTINTA` | Falta ese tracker en un gráfico del mismo contrato, o es de otra compilación: reinstale con bic.cmd. |
+| `SIN FUENTE LVN` | Agregue el Thermal (Suite) del mismo instrumento. |
+| `Datos: APROX` todo el día | El proveedor no dio los trades del historial; lo nuevo en vivo es TICKS. |
+| Correo / Telegram `SIN CONFIGURAR` o ERROR | Usuario y contraseña de aplicación, token y chat ID; use las pruebas; mire el recuadro 15 y el registro de ATAS. |
+| MT5 `SIN VALIDAR` / `EA SIN CONTACTO` | Revise la prueba de conversión y marque el mapeo; EA en el gráfico de MT5 y WebRequest permitido. |
+| No se ve la ventana | Otro monitor o minimizada; o active *Panel dentro del gráfico*. |
 
-## 10. Pruebas
+## 12. Pruebas
 
-`bash SuiteOrderFlowStacker/pruebas/verificar.sh` (Linux o Windows con el SDK de .NET 10): compila la DLL contra
-sustitutos de ATAS con 0 avisos y ejecuta las comprobaciones (T1-T31 del documento maestro y las del anexo). Los
-parámetros de v2 se generan con `python3 SuiteOrderFlowStacker/herramientas/generar_parametros_v2.py` (también
-escribe [PARAMETROS.md](PARAMETROS.md)).
+`bash SuiteOrderFlowStacker/pruebas/verificar.sh` compila la DLL contra sustitutos de ATAS con 0 avisos y ejecuta las
+comprobaciones (T1-T31 de v2 y las pruebas 1-36 de v3). **No sustituye la prueba en ATAS real** con el feed que se use:
+la lista de `// VERIFICAR` está en [PROGRESO.md](PROGRESO.md). Parámetros: `python3
+SuiteOrderFlowStacker/herramientas/generar_parametros_v2.py` (también escribe [PARAMETROS.md](PARAMETROS.md)).

@@ -337,7 +337,7 @@ public partial class ThermalVolumeProfileLVN
 	/// <summary>Contenido del panel flotante del Thermal (hilo de la ventana: todo se copia bajo cerrojo).</summary>
 	private ContenidoPanel ContenidoThermal(bool detalle)
 	{
-		var c = new ContenidoPanel { Titulo = "THERMAL VOLUME PROFILE + LVN", Pie = "Estadística simulada; no es un registro de operaciones reales." };
+		var c = new ContenidoPanel { Titulo = "THERMAL VOLUME PROFILE + LVN", Pie = "Las señales y estadísticas son informativas y deben validarse. No son un registro de operaciones reales salvo que provengan de ejecuciones confirmadas." };
 		var L = c.Lineas;
 		Termico.ResultadoTermico? r;
 		(int Desde, int Hasta) rango;

@@ -174,8 +174,8 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `ShowInChartPanel` | Panel dentro del gráfico | No |  | El mismo contenido dibujado sobre el gráfico (si no se quiere la ventana). |
 | `InChartPanelX` | Panel en el gráfico: X | 25 | 0-5000 |  |
 | `InChartPanelY` | Panel en el gráfico: Y | 60 | 0-5000 |  |
-| `ShowSweepBoxes` | Cajas de barrido (v2) | Sí |  | Coloreadas por estado (TRAMPA, PREMIUM, RUPTURA, FALLIDO…). |
-| `ShowModelBoxes` | Zonas de los modelos | Sí |  | MOD1-MOD4 y BFVG con entrada, stop y objetivos. |
+| `ShowSweepBoxes` | Cajas de barrido | Sí |  | Coloreadas por estado (REAL, PREMIUM, RUPTURA / ACEPTACIÓN, FALLIDO…). |
+| `ShowModelBoxes` | Zonas de los modelos | Sí |  | Modelo A (barrido, BFVG) y Modelo B (LVN / EDGE / FVG) con entrada, stop y objetivo. |
 | `ShowFvgV2` | FVG / BFVG (v2) | Sí |  |  |
 | `ShowInternalLiquidity` | Liquidez interna | Sí |  | Niveles de sesión e iguales. |
 | `ShowExternalLiquidity` | Liquidez externa | Sí |  | PDH/PDL y semana anterior. |

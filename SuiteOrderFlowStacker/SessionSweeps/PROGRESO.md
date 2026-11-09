@@ -1,4 +1,4 @@
-# Progreso — Session Sweeps Pro v2.0 (rama `session-sweeps-pro`)
+# Progreso — Sessions Sweeps Pro (v2.0 y v3)
 
 Plan y decisiones: [PLAN.md](PLAN.md). Verificación: `bash SuiteOrderFlowStacker/pruebas/verificar.sh` (0 avisos, todas
 las comprobaciones).
@@ -40,7 +40,7 @@ Plan: [PLAN_V3.md](PLAN_V3.md) · especificación: [PROMPT_V3.md](PROMPT_V3.md) 
 | S4 Parámetros por instrumento y calibración | **hecha** | Grupos 31-36 "Perfil NQ/ES/YM/MNQ/MES/MYM" (23 valores cada uno; ES, YM y micros PROVISIONAL, nunca copiados de NQ). Calibración con las velas de 1 min RTH cargadas: medianas de volumen y \|delta\| (también por franja), VolumePerBar AUTO = mediana × 0,33 con límites; CALIBRADO / CALIBRACIÓN INSUFICIENTE / CONFIGURACIÓN MANUAL; guardada por familia en `%APPDATA%\\ATAS\\OrderFlowSuite\\SessionsSweeps\\perfiles`. Pruebas 1-7, 9, 10, 30, 34. |
 | S5 Bus, latidos, EdgeZone | **hecha** | Bus 3.0.0: canal por contrato (ya lo era), `EdgeZone`, `InstrumentProfileUpdated`, LvnZone con puntuación, profundidad, ancho, toque, PROVISIONAL y precio original; latido con versión (`VERSIÓN DISTINTA`: sus eventos no se usan); deduplicación por tipo, precio, dirección y segundo (prueba 27). |
 | S6 Trackers: panel propio apagado, diagnóstico, VALIDACION_TRACKERS.md | **hecha** | `ShowInfoPanel` (apagado en Stacked, Iceberg, Stops y Sweeps; encendido en el Master); su dibujo y su algoritmo no cambian. Umbrales en contratos por familia en los trackers (NQ, MNQ, ES, MES, YM, MYM; tablas de icebergs por sesión para ES, MES, YM, MYM; PROVISIONAL), Auto por el símbolo. Diagnóstico de trackers en Sessions Sweeps (rombo hueco fucsia "SSP …"). [VALIDACION_TRACKERS.md](VALIDACION_TRACKERS.md). |
-| S7 Paneles (cabecera + 17 recuadros, Thermal) | pendiente | |
+| S7 Paneles (cabecera + 17 recuadros, Thermal) | **hecha** | `PanelV2.cs`: cabecera de 3 líneas (ESTADO; GATILLO … CUMPLIDO / PENDIENTE / "NO SE HA CUMPLIDO — EN CAMINO A LVN/EDGE/FVG <precio>" con ticks y puntos; instrumento, calibración, datos, Thermal, trackers, MT5) y 17 recuadros plegables (b1-b17) con unidades del instrumento; minigráfico de velas de CVD con sus divergencias (`GraficoMini`), aviso legal v3. `VentanaFlotante`: plegar con clic en el título (se guarda con la posición), minigráfico con formas WPF; el panel en el gráfico también lo dibuja. Botones PAUSAR/REANUDAR, CERRAR TODO, DESHABILITAR/HABILITAR ÓRDENES (solo el puente MT5). Panel Thermal: los botones de 4.2 ya estaban (S9-S10). Prueba 35 (posición y plegados). |
 | S8 Thermal: perfil fino y LVN entre picos | **hecha** | `MotorTermico.cs`: perfil fino de detección (1-2 ticks por fila, límite explícito de filas, "AGRUPADO" en el estado si se supera), `DetectarLvnValles` (picos con prominencia, valle contra el pico menor, zona a media profundidad, centro en el mínimo real, extremos sin dos picos descartados, solapes), puntuación 0-100 (profundidad real 40, estrecho 15, volumen bajo 15, no tocado 15; FVG 15 en Sessions Sweeps), `LvnMethod` (Suite: valle entre picos; Thermal suelto: heredado, sin cambios), LVN manual ajustado al valle (precio original visible), `SeguidorLvn` (PROVISIONAL, confirmación con cierres, histéresis, PROBADO / ATRAVESADO) que dibuja y publica la Suite. Sessions Sweeps usa ACTIVO / PROBADO y nunca un PROVISIONAL. Pruebas 11-14, 16. |
 | S9 Thermal: PIERNA, LVN manual, rango | **hecha** | `ThermalVolumeProfile.SuiteHerramientas.cs`: PIERNA (velas fijas de la pierna: no suma volumen nuevo; "PERFIL CONGELADO"; descongelar / borrar; nuevo rango → RangeReset), LVN manual como punto o zona (arrastre vertical), formato Centro\|Bajo\|Alto\|Instrumento\|RangeId\|Origen\|HoraUtc con migración del antiguo, solo se quita un LVN visible, BORRAR LVN y DESHACER, solo el instrumento del gráfico; pantalla → precio invirtiendo GetYByPrice (escalas no lineales; también el Thermal suelto); selección y BORRAR GATILLO; panel Thermal con los botones de 4.2. Prueba 15. |
 | S10 EDGE | **hecha** | EDGE en el perfil fino con parámetros en ticks (prueba 19), TECHO HVN / PISO HVN, dibujo separado del cálculo (ShowEdgeLines, Línea / Franja / Línea y franja, grosor, discontinua, franja en ticks, opacidad, solo los N más cercanos; prueba 18), estados y toques (primer toque, repetidos, ruptura), botón EDGE (manual, lado por el perfil), publicación `EdgeZone`; el panel Thermal dice si la detección o el dibujo están apagados. |
@@ -49,4 +49,32 @@ Plan: [PLAN_V3.md](PLAN_V3.md) · especificación: [PROMPT_V3.md](PROMPT_V3.md) 
 | S13 CVD y Trigger Matrix | **hecha** | CVD del instrumento dentro del motor (velas con mechas de MaxDelta/MinDelta, reinicio 18:00 o 09:30 NY, divergencias macro/micro) para el minigráfico del panel; las divergencias se dibujan solo sobre velas de CVD (panel y Sessions Sweeps CVD), ya no sobre el precio (prueba 26). `MatrizCvd`: los 4 filtros del Institutional CVD Trigger portados (macro, micro, absorción en la mecha, giro de delta con umbral por instrumento). Divergencias ocultas: la versión del repositorio no las calcula, así que no se añaden. |
 | S14 Alertas, correo, Telegram | **hecha** | Solo las 5 alertas (REAL, PREMIUM con UPGRADE PREMIUM sin repetir, RUPTURA / ACEPTACIÓN de contexto, GATILLO VÁLIDO A, GATILLO VÁLIDO B) con ATAS / correo / Telegram por alerta (grupo 37); nunca en el historial, con NOTICIA ni dos veces. Mensaje con instrumento, contrato, dirección, CDMX/ET, clasificación, zona, gatillo, entrada/SL/TP, trackers y MT5. `ColaEnvios` asíncrona (3 reintentos, registro sin secretos), SMTP con varios destinatarios y remitente, Telegram Bot API; contraseña SMTP y token del bot cifrados con DPAPI (nunca en los ajustes de ATAS). Se retiran las alertas del motor heredado (ruptura en el tick, cuentas atrás, IFVG). Pruebas 28, 29, 36. |
 | S15 MT5 | **hecha** | `Mt5.cs` (GestorMt5): APAGADO por defecto, SIMULACIÓN interna, DEMO y REAL (frase de confirmación), mapeo NQ/ES/YM con ficha del EA, prueba de conversión y validación del usuario, lotes por riesgo con mínimo/máximo/paso del bróker, SL/TP como distancias, idempotencia por EventId, límites diarios, una posición por dirección y sin contrarias, PAUSAR / CERRAR TODO / DESHABILITAR, nunca en histórico ni con calibración insuficiente. Puente TCP 127.0.0.1 (texto plano) y EA `MT5/SessionsSweepsBridge.mq5` (WebRequest; // VERIFICAR). Pruebas 31-34. |
-| S16 CSV, documentación, pruebas, manual | pendiente | |
+| S16 CSV, documentación, pruebas, manual | **hecha** | CSV v3 (`_barridos_v3.csv`, `_modelos_v3.csv`): hora ET y CDMX, raíz, contrato, proveedor (NO DISPONIBLE), timeframe, tick, USD por tick y punto (o NO VALIDADO), calibración, sesiones, versión del perfil, fuente REAL/MBO/APROX, canales, MT5, volumen y delta en contratos, DeltaPct, VolumenRelativo, Modelo A/B, centro y estado de la zona, LVN/EDGE/FVG, resultado del gatillo, R:R, salida; nunca credenciales. Documentos: [LEEME.md](LEEME.md) (manual v3), [OPERATIVA.md](OPERATIVA.md) (A, B y práctica con LVN/EDGE), [DECISIONES.md](DECISIONES.md), [PARAMETROS.md](PARAMETROS.md) (regenerado, 275 parámetros). Manual para el propietario en Claude Docs. |
+
+### Pruebas al cerrar la v3
+
+| Conjunto | Resultado |
+|---|---|
+| `SuiteOrderFlowStacker/pruebas/verificar.sh` (DLL con 0 avisos, `-warnaserror`) | ALL PASS, 479 comprobaciones |
+| `ThermalVolumeProfile/pruebas/verificar.sh` (Thermal suelto) | ALL PASS, 123 |
+| `NQSessionSweepsPro/pruebas/verificar.sh` (NQ suelto, sin cambios) | ALL PASS, 101 |
+
+Pruebas 1-36 del prompt v3: cubiertas con datos sintéticos (buyside y sellside donde aplica). Son simulaciones contra
+sustitutos de ATAS: **no** son prueba de ejecución real.
+
+### // VERIFICAR v3 (solo en ATAS real, con el feed que se use)
+
+- Bus 3.0.0 entre indicadores de la misma DLL: el latido con versión debe mostrar `CARGADO` en la línea 3 y en 5-8.
+- Calibración: que ATAS entregue al menos 20 sesiones de velas de 1 minuto con volumen y delta (si no: PROVISIONAL).
+- Detección del contrato por `InstrumentInfo.Instrument` y el tick de ATAS para NQ, ES, YM y micros.
+- Ventana flotante: plegar recuadros, minigráfico de CVD y botones en ATAS clásico; restaura posición en varios
+  monitores (prueba 35 cubre la lógica, no la ventana real).
+- Panel del Thermal: PIERNA, LVN (punto y zona), BORRAR LVN, DESHACER, EDGE, GATILLO, BORRAR GATILLO con el ratón
+  real; conversión pantalla → precio con escala logarítmica.
+- `ChartInfo.ChartType` / `ChartInfo.TimeFrame` para la columna Timeframe del CSV; nombre del proveedor: no expuesto
+  (NO DISPONIBLE).
+- DPAPI (`CryptProtectData` por P/Invoke) en la cuenta de Windows que corre ATAS; SMTP de Gmail con contraseña de
+  aplicación; Telegram Bot API (`api.telegram.org`) alcanzable desde la red del usuario.
+- MT5: EA `SessionsSweepsBridge.mq5` compilado en MetaEditor, WebRequest permitido a `http://127.0.0.1:5005`, fichas
+  INFO del símbolo, órdenes con SL/TP como distancias en DEMO antes que REAL.
+- `MaxDelta` / `MinDelta` de las velas para las mechas del CVD.
