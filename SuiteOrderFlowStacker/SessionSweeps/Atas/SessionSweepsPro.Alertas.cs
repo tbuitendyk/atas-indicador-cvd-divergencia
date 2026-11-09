@@ -3,6 +3,7 @@ namespace ATAS.Indicators.Custom;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 using OrderFlowSuite.Comun;
 
@@ -24,7 +25,7 @@ public partial class SessionSweepsPro
 	private GrabadorCsvV2? _grabador;
 
 	[Display(Name = "Grabar CSV de barridos y modelos", GroupName = G29, Order = 10,
-		Description = "%APPDATA%\\ATAS\\OrderFlowSuite\\SessionSweeps\\{Instrumento}\\yyyy-MM-dd_barridos.csv y _modelos.csv (solo en vivo). Para calibrar.")]
+		Description = "%APPDATA%\\ATAS\\OrderFlowSuite\\SessionSweeps\\{Instrumento}\\yyyy-MM-dd_barridos_v3.csv y _modelos_v3.csv (solo en vivo; con instrumento, calibración, fuente, canales y MT5, sin credenciales). Para calibrar.")]
 	public bool RecordCsv { get; set; } = true;
 
 	[Display(Name = "Restaurar los barridos del día desde el CSV", GroupName = G29, Order = 20,
@@ -40,7 +41,12 @@ public partial class SessionSweepsPro
 		if (_grabador?.Instrumento != _instrumentoV2)
 		{
 			_grabador?.Dispose();
-			_grabador = new GrabadorCsvV2(GrabadorCsvV2.CarpetaPorDefecto, _instrumentoV2) { Error = (mensaje, error) => this.LogWarn(mensaje + ": " + error.Message) };
+			_grabador = new GrabadorCsvV2(GrabadorCsvV2.CarpetaPorDefecto, _instrumentoV2)
+			{
+				Error = (mensaje, error) => this.LogWarn(mensaje + ": " + error.Message),
+				Contexto = ContextoCsvV2,
+				Salida = () => _cfg.V2.ExitMode.ToString()
+			};
 		}
 
 		if (RestoreFromCsv)
@@ -49,6 +55,18 @@ public partial class SessionSweepsPro
 			_grabador.Vaciar();
 			motor.RestaurarDesde.AddRange(_grabador.LeerBarridos(Zonas.DiaOperativo(DateTime.UtcNow)));
 		}
+	}
+
+	/// <summary>
+	/// Auditoría del CSV (19): instrumento, timeframe del gráfico, fuente de datos, canales y MT5, sin credenciales. ATAS no
+	/// expone el nombre del proveedor de datos en la API usada aquí: "NO DISPONIBLE". // VERIFICAR en ATAS real.
+	/// </summary>
+	private ContextoCsv ContextoCsvV2()
+	{
+		var canales = CanalesConfigurados();
+		var texto = string.Join("+", new[] { "ATAS", canales.Correo ? "CORREO" : "", canales.Telegram ? "TELEGRAM" : "" }.Where(x => x.Length > 0));
+		return new ContextoCsv(_motor?.Instrumento ?? new EstadoInstrumento(), "NO DISPONIBLE", $"{ChartInfo?.ChartType} {ChartInfo?.TimeFrame}".Trim(),
+			_mboVisto ? "MBO" : "REAL", texto, EstadoMt5Texto());
 	}
 
 	/// <summary>Novedades del motor: en el historial se descartan; en vivo, CSV, alerta y correo.</summary>
