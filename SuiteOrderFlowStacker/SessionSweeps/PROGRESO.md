@@ -35,7 +35,7 @@ Plan: [PLAN_V3.md](PLAN_V3.md) · especificación: [PROMPT_V3.md](PROMPT_V3.md) 
 | Subfase | Estado | Notas |
 |---|---|---|
 | S1 Plan | **hecha** | PLAN_V3.md |
-| S2 Nombre visible | pendiente | |
+| S2 Nombre visible | **hecha** | En ATAS: **Sessions Sweeps Pro (Suite)** y **Sessions Sweeps CVD (Suite)**; panel SESSIONS SWEEPS PRO; correo, ventana, Thermal y mensajes. Las clases no cambian de nombre: las plantillas guardadas de ATAS siguen funcionando (sin migración). |
 | S3 Perfiles e instrumento | pendiente | |
 | S4 Parámetros por instrumento y calibración | pendiente | |
 | S5 Bus, latidos, EdgeZone | pendiente | |

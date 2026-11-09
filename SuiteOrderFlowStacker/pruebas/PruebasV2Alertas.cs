@@ -85,7 +85,7 @@ internal static class PruebasV2Alertas
 		};
 		var correo = Al(N("GATILLO VÁLIDO", setup.Barrido!, setup));
 		c.Check("gatillo VÁLIDO sobre el PDL: alerta de entrada con correo", correo is null ? "nada" : $"{correo.Categoria} {correo.Correo}", "Entrada True");
-		c.Check("asunto", correo?.Asunto ?? "", "Session Sweeps Pro · NQ · MOD1 LARGO · MIN Dia anterior");
+		c.Check("asunto", correo?.Asunto ?? "", "Sessions Sweeps Pro · NQ · MOD1 LARGO · MIN Dia anterior");
 		var cuerpo = correo?.Cuerpo ?? "";
 		c.Check("el cuerpo trae entrada, stop, TP1 con R:R, TP2, contratos y el aviso legal",
 			new[] { "ENTRADA 21,385.25", "STOP    21,379.75", "TP1     21,393.50  (R:R 1.5)", "TP2     21,420.00", "7 NQ", "Estadística simulada; no es un registro de operaciones reales." }

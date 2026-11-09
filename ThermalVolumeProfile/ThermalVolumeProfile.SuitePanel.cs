@@ -268,7 +268,7 @@ public partial class ThermalVolumeProfileLVN
 
 			var texto = c.Resultado is { } r
 				? $"{(direccion == 0 ? "[-] " : "")}{r.Resultado} · {r.VelaAnalizada} · {r.Score}{(c.Fijada ? " · FIJADO" : q.EnVivo ? " · EN VIVO" : "")}"
-				: EstadoMotor() == EstadoFuente.NoCargado ? "MOTOR NO CARGADO (Session Sweeps Pro)" : "analizando…";
+				: EstadoMotor() == EstadoFuente.NoCargado ? "MOTOR NO CARGADO (Sessions Sweeps Pro)" : "analizando…";
 			context.DrawString(texto, _fuenteEstado, color, new Rectangle(caja.Right + 22, y - 8, 420, 16), _izquierda);
 		}
 	}
@@ -353,7 +353,7 @@ public partial class ThermalVolumeProfileLVN
 		var motor = EstadoMotor();
 		L.Add(LineaPanel.Seccion("ESTADO"));
 		L.Add(LineaPanel.De(new Segmento($"LVN AUTO {auto} · MANUAL {manual} · rango {_rangoId}: {textoRango}")));
-		L.Add(LineaPanel.De(new Segmento("Session Sweeps Pro: "), motor switch
+		L.Add(LineaPanel.De(new Segmento("Sessions Sweeps Pro: "), motor switch
 		{
 			EstadoFuente.Cargado => new Segmento("CONECTADO", ColorPanel.Verde, true),
 			EstadoFuente.SinDatos => new Segmento("SIN DATOS", ColorPanel.Naranja),
@@ -393,7 +393,7 @@ public partial class ThermalVolumeProfileLVN
 		if (caja.Resultado is not { } res)
 		{
 			L.Add(LineaPanel.De(motor == EstadoFuente.NoCargado
-				? new Segmento("MOTOR NO CARGADO: Session Sweeps Pro (Suite) no está en ningún gráfico de este instrumento", ColorPanel.Amarillo)
+				? new Segmento("MOTOR NO CARGADO: Sessions Sweeps Pro (Suite) no está en ningún gráfico de este instrumento", ColorPanel.Amarillo)
 				: new Segmento("Analizando…", ColorPanel.Naranja)));
 			return c;
 		}

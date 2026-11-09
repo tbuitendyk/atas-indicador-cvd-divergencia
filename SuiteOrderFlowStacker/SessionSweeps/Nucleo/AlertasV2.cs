@@ -84,7 +84,7 @@ public static class PoliticaAlertasV2
 	}
 
 	public static string Asunto(SetupModelo s, string simbolo) =>
-		$"Session Sweeps Pro · {simbolo} · {s.Etiqueta} {(s.Signo > 0 ? "LARGO" : "CORTO")} · {s.Barrido?.Nombre ?? s.Zona.Tipo}";
+		$"Sessions Sweeps Pro · {simbolo} · {s.Etiqueta} {(s.Signo > 0 ? "LARGO" : "CORTO")} · {s.Barrido?.Nombre ?? s.Zona.Tipo}";
 
 	/// <summary>Correo de una toma de liquidez externa válida: contexto, entrada, SL, TP y plan de riesgo.</summary>
 	public static string Cuerpo(SetupModelo s, string simbolo, Func<decimal, string> precio, bool mnq, DateTime utc)

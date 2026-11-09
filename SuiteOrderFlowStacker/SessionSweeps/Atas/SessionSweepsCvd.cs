@@ -35,8 +35,8 @@ public enum ReinicioCvd
 /// (alcista). MACRO con pivotes de N velas a cada lado; MICRO, más sensible, solo dentro del tramo de una macro, para
 /// afinar el punto de giro. Cada divergencia es un tramo recto entre sus dos pivotes: sin líneas verticales.
 /// </summary>
-[DisplayName("Session Sweeps CVD (Suite)")]
-[Description("CVD en velas con divergencias macro y micro (máximo a máximo, mínimo a mínimo) para Session Sweeps Pro. Valores iniciales para el NQ en la sesión de Nueva York.")]
+[DisplayName("Sessions Sweeps CVD (Suite)")]
+[Description("CVD en velas con divergencias macro y micro (máximo a máximo, mínimo a mínimo) para Sessions Sweeps Pro. Valores iniciales para el NQ en la sesión de Nueva York.")]
 public class SessionSweepsCvd : Indicator
 {
 	private const string G = "CVD";

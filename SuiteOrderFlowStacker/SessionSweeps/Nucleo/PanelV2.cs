@@ -12,7 +12,7 @@ public sealed class OpcionesPanel
 {
 	public bool Detalle;
 	public string ArchivoCsv = "";
-	public string Version = "Session Sweeps Pro v2.0";
+	public string Version = "Sessions Sweeps Pro v3.0";
 	public bool Mbo;
 	public decimal? SaldoAtas;
 }
@@ -32,7 +32,7 @@ public sealed partial class MotorSweeps
 
 	private ContenidoPanel ArmarPanel(OpcionesPanel o)
 	{
-		var c = new ContenidoPanel { Titulo = $"SESSION SWEEPS PRO · {Simbolo} · {(o.Detalle ? "DETALLE" : "RESUMEN")}", Pie = "Estadística simulada; no es un registro de operaciones reales." };
+		var c = new ContenidoPanel { Titulo = $"SESSIONS SWEEPS PRO · {Simbolo} · {(o.Detalle ? "DETALLE" : "RESUMEN")}", Pie = "Estadística simulada; no es un registro de operaciones reales." };
 		var L = c.Lineas;
 
 		// 1) CONTEXTO TEMPORAL.

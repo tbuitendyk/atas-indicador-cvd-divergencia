@@ -26,8 +26,8 @@ using MediaColor = System.Windows.Media.Color;
 /// FVG/IFVG, LVN y Modelos A y B, con correo. Todo el cálculo está en Nucleo/ (MotorSweeps); aquí se pasan las velas
 /// y los trades, se avisa y se dibuja. Ver LEEME.md y DECISIONES.md.
 /// </summary>
-[DisplayName("Session Sweeps Pro (Suite)")]
-[Description("Session Sweeps Pro v2.0 (Suite Order Flow Stacker): clasificador de barridos premium, MOD1-MOD4 y BFVG con gatillo de order flow, LVN del Thermal, eventos de la suite, panel flotante y correo.")]
+[DisplayName("Sessions Sweeps Pro (Suite)")]
+[Description("Sessions Sweeps Pro v3 (Suite Order Flow Stacker): Modelo A (barrido de liquidez real / premium) y Modelo B (retroceso a LVN / EDGE / FVG) con gatillo de order flow, perfiles NQ / ES / YM, LVN y EDGE del Thermal, panel flotante, alertas, correo, Telegram y puente MT5 opcional.")]
 public partial class SessionSweepsPro : Indicator
 {
 	#region Grupos
@@ -193,7 +193,7 @@ public partial class SessionSweepsPro : Indicator
 	[Range(0, 1000)]
 	public int AbsMaxTicks { get => _cfg.AbsMaxTicks; set { _cfg.AbsMaxTicks = value; Recalcular(); } }
 
-	[Display(Name = "Panel clásico del último barrido (NQ)", GroupName = G5, Order = 50, Description = "El panel del indicador NQ. El de v2.0 está en 28. Panel y dibujo.")]
+	[Display(Name = "Panel clásico del último barrido", GroupName = G5, Order = 50, Description = "Panel heredado de texto simple. El panel principal está en 28. Panel y dibujo.")]
 	public bool ShowSweepPanel { get; set; }
 
 	[Display(Name = "Panel: posición X", GroupName = G5, Order = 60)]
@@ -310,10 +310,10 @@ public partial class SessionSweepsPro : Indicator
 		Description = "Gatillo VÁLIDO sobre un barrido de liquidez externa (PDH/PDL, días y semana anteriores) con entrada, stop y objetivos. Solo en vivo, nunca con NOTICIA.")]
 	public bool EmailOnValidEntry { get; set; } = true;
 
-	[Display(Name = "Correo al barrer (en t0, aviso del NQ)", GroupName = G13, Order = 80)]
+	[Display(Name = "Correo al barrer (en t0, aviso informativo)", GroupName = G13, Order = 80)]
 	public bool EmailOnSweep { get; set; }
 
-	[Display(Name = "Correo de actualización (al cierre de W5, NQ)", GroupName = G13, Order = 85)]
+	[Display(Name = "Correo de actualización (al cierre de W5)", GroupName = G13, Order = 85)]
 	public bool EmailOnUpdate { get; set; }
 
 	[Display(Name = "Zona horaria del correo", GroupName = G13, Order = 120, Description = "Por ejemplo Eastern Standard Time o Central Standard Time (Mexico).")]
@@ -450,7 +450,7 @@ public partial class SessionSweepsPro : Indicator
 		// Decisión 4: Session Sweeps Pro v2.0 trabaja sobre el gráfico de 1 minuto (las barras de volumen se arman por minuto).
 		if (_minutos != 1)
 		{
-			_estado = "Session Sweeps Pro funciona en graficos de 1 minuto (TimeFrame M1)";
+			_estado = "Sessions Sweeps Pro funciona en graficos de 1 minuto (TimeFrame M1)";
 			return;
 		}
 
@@ -604,7 +604,7 @@ public partial class SessionSweepsPro : Indicator
 		if (string.IsNullOrWhiteSpace(SmtpUser) || SmtpPassword is not { Length: > 0 })
 		{
 			if (!_avisoSinSmtp)
-				this.LogWarn("Session Sweeps Pro: correo sin configurar (usuario y contraseña SMTP en 13. Correo); no se envía.");
+				this.LogWarn("Sessions Sweeps Pro: correo sin configurar (usuario y contraseña SMTP en 13. Correo); no se envía.");
 
 			_avisoSinSmtp = true;
 			return;
@@ -618,7 +618,7 @@ public partial class SessionSweepsPro : Indicator
 	{
 		var hora = Zonas.PorNombre(EmailTimeZone);
 		var ahora = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, hora).ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-		Enviar("prueba|" + Guid.NewGuid(), "Session Sweeps Pro - correo de prueba", $"Correo de prueba enviado a las {ahora}.\nSi lo recibe, el correo esta bien configurado.");
+		Enviar("prueba|" + Guid.NewGuid(), "Sessions Sweeps Pro - correo de prueba", $"Correo de prueba enviado a las {ahora}.\nSi lo recibe, el correo esta bien configurado.");
 	}
 
 	#endregion

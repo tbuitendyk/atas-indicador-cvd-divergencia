@@ -266,14 +266,14 @@ public partial class SessionSweepsPro
 			return;
 
 		_panelAbierto = true;
-		abrir(ClavePanel, $"Session Sweeps Pro · {_instrumentoV2}", ContenidoPanelV2, Array.Empty<BotonPanel>(), _cfg.V2.PanelRefreshMs);
+		abrir(ClavePanel, $"Sessions Sweeps Pro · {_instrumentoV2}", ContenidoPanelV2, Array.Empty<BotonPanel>(), _cfg.V2.PanelRefreshMs);
 	}
 
 	private ContenidoPanel ContenidoPanelV2(bool detalle)
 	{
 		if (_motor is not { } motor)
 		{
-			var c = new ContenidoPanel { Titulo = "SESSION SWEEPS PRO", Pie = "Estadística simulada; no es un registro de operaciones reales." };
+			var c = new ContenidoPanel { Titulo = "SESSIONS SWEEPS PRO", Pie = "Estadística simulada; no es un registro de operaciones reales." };
 			c.Lineas.Add(LineaPanel.De(new Segmento(_estado.Length > 0 ? _estado : "Cargando el historial…", ColorPanel.Naranja)));
 			return c;
 		}

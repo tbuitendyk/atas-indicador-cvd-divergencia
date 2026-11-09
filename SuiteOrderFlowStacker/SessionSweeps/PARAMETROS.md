@@ -1,8 +1,8 @@
-# Parámetros de Session Sweeps Pro v2.0 (Suite)
+# Parámetros de Sessions Sweeps Pro (Suite)
 
 Tabla generada por `herramientas/generar_parametros_v2.py` (nombres, rangos y descripciones del generador; valores por
 defecto leídos del código). No se edita a mano. Todos son **valores iniciales a calibrar** con el CSV; las puntuaciones
-no son probabilidades. Los grupos 1-15 son los del NQ Session Sweeps Pro (ver [LEEME.md](LEEME.md#ajustes-heredados-del-nq)).
+no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ver [LEEME.md](LEEME.md)).
 
 ## 16. Barras de volumen y horario
 

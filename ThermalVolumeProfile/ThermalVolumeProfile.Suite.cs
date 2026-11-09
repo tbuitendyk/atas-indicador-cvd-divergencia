@@ -20,7 +20,7 @@ using Utils.Common.Logging;
 /// </summary>
 public partial class ThermalVolumeProfileLVN
 {
-	private const string GSuite = "12. Session Sweeps Pro";
+	private const string GSuite = "12. Sessions Sweeps Pro";
 	private readonly Dictionary<long, LvnZone> _lvnPublicados = new();
 	private long _rangoId = 1;
 	private string? _identidadRango;
@@ -28,7 +28,7 @@ public partial class ThermalVolumeProfileLVN
 	private DateTime _ultimoLatido;
 
 	[Display(Name = "Borrar las líneas LVN al elegir un rango nuevo", GroupName = GSuite, Order = 10,
-		Description = "Al seleccionar un rango nuevo se borran las líneas LVN manuales y las zonas del rango anterior (y se avisa a Session Sweeps Pro).")]
+		Description = "Al seleccionar un rango nuevo se borran las líneas LVN manuales y las zonas del rango anterior (y se avisa a Sessions Sweeps Pro).")]
 	public bool ClearLinesOnNewRange { get; set; } = true;
 
 	[Display(Name = "Pedir confirmación antes de borrar", GroupName = GSuite, Order = 20)]
