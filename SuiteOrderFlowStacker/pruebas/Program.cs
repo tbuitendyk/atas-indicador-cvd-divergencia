@@ -13,6 +13,7 @@ PruebasV2Modelos.Ejecutar(c);
 PruebasV2Panel.Ejecutar(c);
 PruebasV2Manual.Ejecutar(c);
 PruebasV2Alertas.Ejecutar(c);
+PruebasV3Instrumentos.Ejecutar(c);
 Documentacion.Ejecutar(c);
 
 return c.Resumen();

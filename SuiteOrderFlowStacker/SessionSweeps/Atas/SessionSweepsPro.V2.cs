@@ -72,7 +72,7 @@ public partial class SessionSweepsPro
 		}
 
 		motor.Almacen = _almacen;
-		motor.Mnq = motor.Simbolo.StartsWith("MNQ", StringComparison.OrdinalIgnoreCase);
+		motor.Instrumento = PrepararInstrumento();
 		motor.Fuentes = string.IsNullOrEmpty(instrumento) ? SinFuentes.Instancia : new FuentesBus(instrumento, () => DateTime.UtcNow);
 		Suscribir();
 		PrepararCsvV2(motor);

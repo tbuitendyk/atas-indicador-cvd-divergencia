@@ -16,39 +16,31 @@ public partial class SessionSweepsPro
 {
 	// --- 16. Barras de volumen y horario ---------------------------------------------------------------------
 
-	[Display(Name = "Contratos por barra (NQ)", GroupName = "16. Barras de volumen y horario", Order = 10, Description = "Cada barra de volumen cierra al llegar a estos contratos. NQ: 500 (calibrar con el CSV).")]
-	[Range(10, 100000)]
-	public int VolumePerBar { get => _cfg.V2.VolumePerBar; set { _cfg.V2.VolumePerBar = Math.Clamp(value, 10, 100000); Recalcular(); } }
-
-	[Display(Name = "Contratos por barra (MNQ)", GroupName = "16. Barras de volumen y horario", Order = 20, Description = "El MNQ negocia más contratos: 1000 como punto de partida.")]
-	[Range(10, 100000)]
-	public int VolumePerBarMnq { get => _cfg.V2.VolumePerBarMnq; set { _cfg.V2.VolumePerBarMnq = Math.Clamp(value, 10, 100000); Recalcular(); } }
-
-	[Display(Name = "Barras para las medianas", GroupName = "16. Barras de volumen y horario", Order = 30, Description = "Medianas de duración, rango y volumen (solo barras de RTH). Recomendado: 30.")]
+	[Display(Name = "Barras para las medianas", GroupName = "16. Barras de volumen y horario", Order = 10, Description = "Medianas de duración, rango y volumen (solo barras de RTH). Recomendado: 30.")]
 	[Range(5, 500)]
 	public int MedianLookbackBars { get => _cfg.V2.MedianLookbackBars; set { _cfg.V2.MedianLookbackBars = Math.Clamp(value, 5, 500); Recalcular(); } }
 
-	[Display(Name = "Delta previo a T0 (s)", GroupName = "16. Barras de volumen y horario", Order = 40, Description = "Segundos antes de la ruptura para el delta previo. Recomendado: 60.")]
+	[Display(Name = "Delta previo a T0 (s)", GroupName = "16. Barras de volumen y horario", Order = 20, Description = "Segundos antes de la ruptura para el delta previo. Recomendado: 60.")]
 	[Range(5, 600)]
 	public int PreT0DeltaSec { get => _cfg.V2.PreT0DeltaSec; set { _cfg.V2.PreT0DeltaSec = Math.Clamp(value, 5, 600); Recalcular(); } }
 
-	[Display(Name = "Refresco del panel (ms)", GroupName = "16. Barras de volumen y horario", Order = 50, Description = "Cada cuánto se redibuja el panel flotante. Recomendado: 250.")]
+	[Display(Name = "Refresco del panel (ms)", GroupName = "16. Barras de volumen y horario", Order = 30, Description = "Cada cuánto se redibuja el panel flotante. Recomendado: 250.")]
 	[Range(100, 5000)]
 	public int PanelRefreshMs { get => _cfg.V2.PanelRefreshMs; set { _cfg.V2.PanelRefreshMs = Math.Clamp(value, 100, 5000); RedrawChart(); } }
 
-	[Display(Name = "Killzone: inicio (NY)", GroupName = "16. Barras de volumen y horario", Order = 60, Description = "Inicio de la ventana de mayor peso (hora de Nueva York). 09:30 = 07:30 CDMX en verano, 08:30 en invierno.")]
+	[Display(Name = "Killzone: inicio (NY)", GroupName = "16. Barras de volumen y horario", Order = 40, Description = "Inicio de la ventana de mayor peso (hora de Nueva York). 09:30 = 07:30 CDMX en verano, 08:30 en invierno.")]
 	[Mask(MaskTypes.DateTimeAdvancingCaret, "HH:mm")]
 	public TimeSpan KillzoneStartNY { get => _cfg.V2.KillzoneStartNY; set { _cfg.V2.KillzoneStartNY = value; Recalcular(); } }
 
-	[Display(Name = "Killzone: fin (NY)", GroupName = "16. Barras de volumen y horario", Order = 70, Description = "Fin de la killzone (hora de Nueva York).")]
+	[Display(Name = "Killzone: fin (NY)", GroupName = "16. Barras de volumen y horario", Order = 50, Description = "Fin de la killzone (hora de Nueva York).")]
 	[Mask(MaskTypes.DateTimeAdvancingCaret, "HH:mm")]
 	public TimeSpan KillzoneEndNY { get => _cfg.V2.KillzoneEndNY; set { _cfg.V2.KillzoneEndNY = value; Recalcular(); } }
 
-	[Display(Name = "Bloqueo por noticia (min)", GroupName = "16. Barras de volumen y horario", Order = 80, Description = "Minutos antes y después de cada hora de noticia en los que no se alerta ni se entra (NOTICIA).")]
+	[Display(Name = "Bloqueo por noticia (min)", GroupName = "16. Barras de volumen y horario", Order = 60, Description = "Minutos antes y después de cada hora de noticia en los que no se alerta ni se entra (NOTICIA).")]
 	[Range(0, 60)]
 	public int NewsBlockMin { get => _cfg.V2.NewsBlockMin; set { _cfg.V2.NewsBlockMin = Math.Clamp(value, 0, 60); Recalcular(); } }
 
-	[Display(Name = "Horas de noticias (NY)", GroupName = "16. Barras de volumen y horario", Order = 90, Description = "Separadas por ';' en hora de Nueva York, por ejemplo 08:30;10:00;14:00.")]
+	[Display(Name = "Horas de noticias (NY)", GroupName = "16. Barras de volumen y horario", Order = 70, Description = "Separadas por ';' en hora de Nueva York, por ejemplo 08:30;10:00;14:00.")]
 	public string NewsTimes { get => _cfg.V2.NewsTimes; set { _cfg.V2.NewsTimes = value ?? ""; Recalcular(); } }
 
 	// --- 17. Fuentes de la suite -----------------------------------------------------------------------------
@@ -127,91 +119,51 @@ public partial class SessionSweepsPro
 
 	// --- 19. Stops -------------------------------------------------------------------------------------------
 
-	[Display(Name = "Penetración mínima (ticks)", GroupName = "19. Stops", Order = 10, Description = "Ticks más allá del nivel para que cuente como barrido.")]
-	[Range(1, 40)]
-	public int MinPenetrationTicks { get => _cfg.V2.MinPenetrationTicks; set { _cfg.V2.MinPenetrationTicks = Math.Clamp(value, 1, 40); Recalcular(); } }
-
-	[Display(Name = "Barrido máximo (ticks)", GroupName = "19. Stops", Order = 20, Description = "Más allá de esto deja de ser un barrido y se vigila la ruptura.")]
-	[Range(4, 200)]
-	public int MaxSweepTicks { get => _cfg.V2.MaxSweepTicks; set { _cfg.V2.MaxSweepTicks = Math.Clamp(value, 4, 200); Recalcular(); } }
-
-	[Display(Name = "Ráfaga: × velocidad mediana", GroupName = "19. Stops", Order = 30, Description = "Velocidad de 5 s respecto a la mediana para una ráfaga de stops.")]
-	[Range(1, 10)]
-	public decimal BurstSpeedMult { get => _cfg.V2.BurstSpeedMult; set { _cfg.V2.BurstSpeedMult = Math.Clamp(value, 1m, 10m); Recalcular(); } }
-
-	[Display(Name = "Barra rápida: × duración mediana", GroupName = "19. Stops", Order = 40, Description = "Barra de volumen que dura menos de esto = rápida.")]
+	[Display(Name = "Barra rápida: × duración mediana", GroupName = "19. Stops", Order = 10, Description = "Barra de volumen que dura menos de esto = rápida.")]
 	[Range(0.1, 1)]
 	public decimal FastBarDurationMult { get => _cfg.V2.FastBarDurationMult; set { _cfg.V2.FastBarDurationMult = Math.Clamp(value, 0.1m, 1m); Recalcular(); } }
 
-	[Display(Name = "Agresor mínimo (fracción)", GroupName = "19. Stops", Order = 50, Description = "Parte del volumen más allá del nivel del lado agresor (0,65 = 65 %).")]
-	[Range(0.5, 1)]
-	public decimal AggressorShareMin { get => _cfg.V2.AggressorShareMin; set { _cfg.V2.AggressorShareMin = Math.Clamp(value, 0.5m, 1m); Recalcular(); } }
-
-	[Display(Name = "Ventana de eventos de stops (s)", GroupName = "19. Stops", Order = 60, Description = "Alrededor de T0.")]
+	[Display(Name = "Ventana de eventos de stops (s)", GroupName = "19. Stops", Order = 20, Description = "Alrededor de T0.")]
 	[Range(1, 300)]
 	public int StopsEventWindowSec { get => _cfg.V2.StopsEventWindowSec; set { _cfg.V2.StopsEventWindowSec = Math.Clamp(value, 1, 300); Recalcular(); } }
 
-	[Display(Name = "Volumen más allá: × medio de barridos", GroupName = "19. Stops", Order = 70, Description = "Respecto a los últimos barridos.")]
+	[Display(Name = "Volumen más allá: × medio de barridos", GroupName = "19. Stops", Order = 30, Description = "Respecto a los últimos barridos.")]
 	[Range(0.5, 10)]
 	public decimal VolBeyondRelMult { get => _cfg.V2.VolBeyondRelMult; set { _cfg.V2.VolBeyondRelMult = Math.Clamp(value, 0.5m, 10m); Recalcular(); } }
 
-	[Display(Name = "Barridos para la media", GroupName = "19. Stops", Order = 80, Description = "Barridos anteriores para el volumen relativo.")]
+	[Display(Name = "Barridos para la media", GroupName = "19. Stops", Order = 40, Description = "Barridos anteriores para el volumen relativo.")]
 	[Range(3, 200)]
 	public int SweepHistoryCount { get => _cfg.V2.SweepHistoryCount; set { _cfg.V2.SweepHistoryCount = Math.Clamp(value, 3, 200); Recalcular(); } }
 
-	[Display(Name = "Volumen más allá: piso (contratos)", GroupName = "19. Stops", Order = 90, Description = "Mínimo absoluto.")]
-	[Range(0, 100000)]
-	public int MinVolBeyondFloor { get => _cfg.V2.MinVolBeyondFloor; set { _cfg.V2.MinVolBeyondFloor = Math.Clamp(value, 0, 100000); Recalcular(); } }
-
 	// --- 20. Absorción ---------------------------------------------------------------------------------------
 
-	[Display(Name = "Divergencia de delta mínima", GroupName = "20. Absorción", Order = 10, Description = "Delta % de la barra contra el movimiento (0,15 = 15 %).")]
-	[Range(0, 1)]
-	public decimal DivergenceDeltaPctMin { get => _cfg.V2.DivergenceDeltaPctMin; set { _cfg.V2.DivergenceDeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
-
-	[Display(Name = "Iceberg: distancia máxima (ticks)", GroupName = "20. Absorción", Order = 20, Description = "Del extremo del barrido.")]
+	[Display(Name = "Iceberg: distancia máxima (ticks)", GroupName = "20. Absorción", Order = 10, Description = "Del extremo del barrido.")]
 	[Range(0, 20)]
 	public int IcebergMaxDistTicks { get => _cfg.V2.IcebergMaxDistTicks; set { _cfg.V2.IcebergMaxDistTicks = Math.Clamp(value, 0, 20); Recalcular(); } }
 
-	[Display(Name = "F2: barras mínimas", GroupName = "20. Absorción", Order = 30, Description = "Compresión tras el extremo.")]
+	[Display(Name = "F2: barras mínimas", GroupName = "20. Absorción", Order = 20, Description = "Compresión tras el extremo.")]
 	[Range(1, 20)]
 	public int F2MinBars { get => _cfg.V2.F2MinBars; set { _cfg.V2.F2MinBars = Math.Clamp(value, 1, 20); Recalcular(); } }
 
-	[Display(Name = "F2: barras máximas", GroupName = "20. Absorción", Order = 40, Description = "")]
+	[Display(Name = "F2: barras máximas", GroupName = "20. Absorción", Order = 30, Description = "")]
 	[Range(1, 30)]
 	public int F2MaxBars { get => _cfg.V2.F2MaxBars; set { _cfg.V2.F2MaxBars = Math.Clamp(value, 1, 30); Recalcular(); } }
 
-	[Display(Name = "F2: barras máximas en retroceso", GroupName = "20. Absorción", Order = 50, Description = "")]
+	[Display(Name = "F2: barras máximas en retroceso", GroupName = "20. Absorción", Order = 40, Description = "")]
 	[Range(1, 40)]
 	public int F2MaxBarsRetrace { get => _cfg.V2.F2MaxBarsRetrace; set { _cfg.V2.F2MaxBarsRetrace = Math.Clamp(value, 1, 40); Recalcular(); } }
 
-	[Display(Name = "Compresión: × rango mediano", GroupName = "20. Absorción", Order = 60, Description = "")]
+	[Display(Name = "Compresión: × rango mediano", GroupName = "20. Absorción", Order = 50, Description = "")]
 	[Range(0.1, 2)]
 	public decimal CompressionRangeMult { get => _cfg.V2.CompressionRangeMult; set { _cfg.V2.CompressionRangeMult = Math.Clamp(value, 0.1m, 2m); Recalcular(); } }
 
-	[Display(Name = "Compresión: máximo (ticks)", GroupName = "20. Absorción", Order = 70, Description = "")]
+	[Display(Name = "Compresión: máximo (ticks)", GroupName = "20. Absorción", Order = 60, Description = "")]
 	[Range(1, 60)]
 	public int CompressionMaxTicks { get => _cfg.V2.CompressionMaxTicks; set { _cfg.V2.CompressionMaxTicks = Math.Clamp(value, 1, 60); Recalcular(); } }
 
-	[Display(Name = "Área de valor (fracción)", GroupName = "20. Absorción", Order = 80, Description = "0,70 = 70 % del volumen.")]
+	[Display(Name = "Área de valor (fracción)", GroupName = "20. Absorción", Order = 70, Description = "0,70 = 70 % del volumen.")]
 	[Range(0.5, 0.95)]
 	public decimal ValueAreaPct { get => _cfg.V2.ValueAreaPct; set { _cfg.V2.ValueAreaPct = Math.Clamp(value, 0.5m, 0.95m); Recalcular(); } }
-
-	[Display(Name = "Subasta terminada: contratos máximos", GroupName = "20. Absorción", Order = 90, Description = "En el extremo.")]
-	[Range(0, 50)]
-	public int FinishedAuctionMaxContracts { get => _cfg.V2.FinishedAuctionMaxContracts; set { _cfg.V2.FinishedAuctionMaxContracts = Math.Clamp(value, 0, 50); Recalcular(); } }
-
-	[Display(Name = "Stacked: niveles mínimos", GroupName = "20. Absorción", Order = 100, Description = "Contiguos.")]
-	[Range(2, 10)]
-	public int StackedMinLevels { get => _cfg.V2.StackedMinLevels; set { _cfg.V2.StackedMinLevels = Math.Clamp(value, 2, 10); Recalcular(); } }
-
-	[Display(Name = "Imbalance: ratio", GroupName = "20. Absorción", Order = 110, Description = "Diagonal (3 = 300 %).")]
-	[Range(1.5, 10)]
-	public decimal ImbalanceRatio { get => _cfg.V2.ImbalanceRatio; set { _cfg.V2.ImbalanceRatio = Math.Clamp(value, 1.5m, 10m); Recalcular(); } }
-
-	[Display(Name = "Imbalance: volumen mínimo", GroupName = "20. Absorción", Order = 120, Description = "Del lado dominante.")]
-	[Range(1, 1000)]
-	public int ImbalanceMinVolume { get => _cfg.V2.ImbalanceMinVolume; set { _cfg.V2.ImbalanceMinVolume = Math.Clamp(value, 1, 1000); Recalcular(); } }
 
 	// --- 21. Recuperación ------------------------------------------------------------------------------------
 
@@ -235,25 +187,9 @@ public partial class SessionSweepsPro
 	[Range(0.5, 10)]
 	public decimal F3RangeMult { get => _cfg.V2.F3RangeMult; set { _cfg.V2.F3RangeMult = Math.Clamp(value, 0.5m, 10m); Recalcular(); } }
 
-	[Display(Name = "F3: delta % mínimo", GroupName = "21. Recuperación", Order = 60, Description = "")]
-	[Range(0, 1)]
-	public decimal F3DeltaPctMin { get => _cfg.V2.F3DeltaPctMin; set { _cfg.V2.F3DeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
-
-	[Display(Name = "Continuación: delta % mínimo", GroupName = "21. Recuperación", Order = 70, Description = "")]
-	[Range(0, 1)]
-	public decimal ContDeltaPctMin { get => _cfg.V2.ContDeltaPctMin; set { _cfg.V2.ContDeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
-
-	[Display(Name = "Giro de delta mínimo", GroupName = "21. Recuperación", Order = 80, Description = "")]
+	[Display(Name = "Giro de delta mínimo", GroupName = "21. Recuperación", Order = 60, Description = "")]
 	[Range(0, 1)]
 	public decimal DeltaFlipMin { get => _cfg.V2.DeltaFlipMin; set { _cfg.V2.DeltaFlipMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
-
-	[Display(Name = "Recuperación 1m/5m (ticks)", GroupName = "21. Recuperación", Order = 90, Description = "Recuperación que valida el barrido en el panel (anexo: 16).")]
-	[Range(1, 200)]
-	public int RecoveryTicks { get => _cfg.V2.RecoveryTicks; set { _cfg.V2.RecoveryTicks = Math.Clamp(value, 1, 200); Recalcular(); } }
-
-	[Display(Name = "Margen del stop (ticks)", GroupName = "21. Recuperación", Order = 100, Description = "Más allá de la zona, estructura o POC; también para FALLIDO.")]
-	[Range(0, 40)]
-	public int StopBufferTicks { get => _cfg.V2.StopBufferTicks; set { _cfg.V2.StopBufferTicks = Math.Clamp(value, 0, 40); Recalcular(); } }
 
 	// --- 22. Estados y alertas -------------------------------------------------------------------------------
 
@@ -364,15 +300,7 @@ public partial class SessionSweepsPro
 	[Range(0.5, 10)]
 	public decimal MinRR { get => _cfg.V2.MinRR; set { _cfg.V2.MinRR = Math.Clamp(value, 0.5m, 10m); Recalcular(); } }
 
-	[Display(Name = "Stop máximo (ticks)", GroupName = "24. Modelos", Order = 70, Description = "")]
-	[Range(4, 400)]
-	public int MaxStopTicks { get => _cfg.V2.MaxStopTicks; set { _cfg.V2.MaxStopTicks = Math.Clamp(value, 4, 400); Recalcular(); } }
-
-	[Display(Name = "MOD3: super big trade (contratos)", GroupName = "24. Modelos", Order = 80, Description = "El documento no fija el valor: calibrar con el CSV.")]
-	[Range(10, 100000)]
-	public int SuperBigTradeMinContracts { get => _cfg.V2.SuperBigTradeMinContracts; set { _cfg.V2.SuperBigTradeMinContracts = Math.Clamp(value, 10, 100000); Recalcular(); } }
-
-	[Display(Name = "Modo del stop", GroupName = "24. Modelos", Order = 90, Description = "")]
+	[Display(Name = "Modo del stop", GroupName = "24. Modelos", Order = 70, Description = "")]
 	public ModoStop StopMode { get => _cfg.V2.StopMode; set { _cfg.V2.StopMode = value; Recalcular(); } }
 
 	// --- 25. Riesgo ------------------------------------------------------------------------------------------
@@ -476,4 +404,571 @@ public partial class SessionSweepsPro
 
 	[Display(Name = "Divergencias del CVD en el precio", GroupName = "28. Panel y dibujo", Order = 120, Description = "Tramos entre pivotes, sin líneas verticales.")]
 	public bool ShowCvdDivergences { get => _v.ShowCvdDivergences; set { _v.ShowCvdDivergences = value; RedrawChart(); } }
+
+	// --- 30. Instrumentos ------------------------------------------------------------------------------------
+
+	[Display(Name = "Alias de símbolos", GroupName = "30. Instrumentos", Order = 10, Description = "Si el proveedor usa otro nombre: ENQ=NQ;EP=ES. Sin reconocer: INSTRUMENTO NO SOPORTADO (sin señales).")]
+	public string AliasSimbolos { get => _cfg.V2.AliasSimbolos; set { _cfg.V2.AliasSimbolos = value ?? ""; Recalcular(); } }
+
+	[Display(Name = "AUTO: fracción del minuto típico", GroupName = "30. Instrumentos", Order = 20, Description = "Contratos por barra AUTO = mediana del volumen de 1 minuto en RTH × esta fracción (normalizada: igual para todos).")]
+	[Range(0.05, 2)]
+	public decimal VolumePerBarFraction { get => _cfg.V2.VolumePerBarFraction; set { _cfg.V2.VolumePerBarFraction = Math.Clamp(value, 0.05m, 2m); Recalcular(); } }
+
+	// --- 31. Perfil NQ ---------------------------------------------------------------------------------------
+
+	[Display(Name = "NQ: Contratos por barra: modo", GroupName = "31. Perfil NQ", Order = 10, Description = "AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo.")]
+	public ModoVolumenBarra NQ_VolumePerBarMode { get => _cfg.Perfiles.NQ.VolumePerBarMode; set { _cfg.Perfiles.NQ.VolumePerBarMode = value; Recalcular(); } }
+
+	[Display(Name = "NQ: Contratos por barra (manual / provisional)", GroupName = "31. Perfil NQ", Order = 20, Description = "En modo AUTO solo se usa si no hay datos de RTH.")]
+	[Range(10, 100000)]
+	public int NQ_VolumePerBar { get => _cfg.Perfiles.NQ.VolumePerBar; set { _cfg.Perfiles.NQ.VolumePerBar = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "NQ: AUTO: mínimo de contratos por barra", GroupName = "31. Perfil NQ", Order = 30, Description = "Límite de seguridad del valor AUTO.")]
+	[Range(10, 100000)]
+	public int NQ_VolumePerBarMin { get => _cfg.Perfiles.NQ.VolumePerBarMin; set { _cfg.Perfiles.NQ.VolumePerBarMin = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "NQ: AUTO: máximo de contratos por barra", GroupName = "31. Perfil NQ", Order = 40, Description = "Límite de seguridad del valor AUTO.")]
+	[Range(10, 100000)]
+	public int NQ_VolumePerBarMax { get => _cfg.Perfiles.NQ.VolumePerBarMax; set { _cfg.Perfiles.NQ.VolumePerBarMax = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "NQ: Calibración: sesiones a usar", GroupName = "31. Perfil NQ", Order = 50, Description = "Últimas sesiones con RTH del historial cargado.")]
+	[Range(1, 250)]
+	public int NQ_CalibrationLookbackSessions { get => _cfg.Perfiles.NQ.CalibrationLookbackSessions; set { _cfg.Perfiles.NQ.CalibrationLookbackSessions = Math.Clamp(value, 1, 250); Recalcular(); } }
+
+	[Display(Name = "NQ: Calibración: sesiones mínimas", GroupName = "31. Perfil NQ", Order = 60, Description = "Con menos: CALIBRACIÓN INSUFICIENTE (valores PROVISIONAL).")]
+	[Range(1, 250)]
+	public int NQ_MinimumCalibrationSessions { get => _cfg.Perfiles.NQ.MinimumCalibrationSessions; set { _cfg.Perfiles.NQ.MinimumCalibrationSessions = Math.Clamp(value, 1, 250); Recalcular(); } }
+
+	[Display(Name = "NQ: Calibración: franja horaria (min)", GroupName = "31. Perfil NQ", Order = 70, Description = "Medianas por franja para el volumen relativo.")]
+	[Range(5, 120)]
+	public int NQ_TimeOfDayBucketMinutes { get => _cfg.Perfiles.NQ.TimeOfDayBucketMinutes; set { _cfg.Perfiles.NQ.TimeOfDayBucketMinutes = Math.Clamp(value, 5, 120); Recalcular(); } }
+
+	[Display(Name = "NQ: Volumen más allá: piso (contratos)", GroupName = "31. Perfil NQ", Order = 80, Description = "Mínimo absoluto de contratos más allá del nivel.")]
+	[Range(0, 100000)]
+	public int NQ_MinVolBeyondFloor { get => _cfg.Perfiles.NQ.MinVolBeyondFloor; set { _cfg.Perfiles.NQ.MinVolBeyondFloor = Math.Clamp(value, 0, 100000); Recalcular(); } }
+
+	[Display(Name = "NQ: Super big trade (contratos)", GroupName = "31. Perfil NQ", Order = 90, Description = "Orden agresiva grande para el contexto de iceberg roto.")]
+	[Range(1, 100000)]
+	public int NQ_SuperBigTradeMinContracts { get => _cfg.Perfiles.NQ.SuperBigTradeMinContracts; set { _cfg.Perfiles.NQ.SuperBigTradeMinContracts = Math.Clamp(value, 1, 100000); Recalcular(); } }
+
+	[Display(Name = "NQ: Imbalance: volumen mínimo (contratos)", GroupName = "31. Perfil NQ", Order = 100, Description = "Del lado dominante.")]
+	[Range(1, 100000)]
+	public int NQ_ImbalanceMinVolume { get => _cfg.Perfiles.NQ.ImbalanceMinVolume; set { _cfg.Perfiles.NQ.ImbalanceMinVolume = Math.Clamp(value, 1, 100000); Recalcular(); } }
+
+	[Display(Name = "NQ: Subasta terminada: contratos máximos", GroupName = "31. Perfil NQ", Order = 110, Description = "En el extremo.")]
+	[Range(0, 1000)]
+	public int NQ_FinishedAuctionMaxContracts { get => _cfg.Perfiles.NQ.FinishedAuctionMaxContracts; set { _cfg.Perfiles.NQ.FinishedAuctionMaxContracts = Math.Clamp(value, 0, 1000); Recalcular(); } }
+
+	[Display(Name = "NQ: Imbalance: ratio", GroupName = "31. Perfil NQ", Order = 120, Description = "Diagonal (3 = 300 %).")]
+	[Range(1.5, 10)]
+	public decimal NQ_ImbalanceRatio { get => _cfg.Perfiles.NQ.ImbalanceRatio; set { _cfg.Perfiles.NQ.ImbalanceRatio = Math.Clamp(value, 1.5m, 10m); Recalcular(); } }
+
+	[Display(Name = "NQ: Stacked: niveles mínimos", GroupName = "31. Perfil NQ", Order = 130, Description = "Contiguos.")]
+	[Range(2, 10)]
+	public int NQ_StackedMinLevels { get => _cfg.Perfiles.NQ.StackedMinLevels; set { _cfg.Perfiles.NQ.StackedMinLevels = Math.Clamp(value, 2, 10); Recalcular(); } }
+
+	[Display(Name = "NQ: Agresor mínimo (fracción)", GroupName = "31. Perfil NQ", Order = 140, Description = "Parte del volumen más allá del lado agresor.")]
+	[Range(0.5, 1)]
+	public decimal NQ_AggressorShareMin { get => _cfg.Perfiles.NQ.AggressorShareMin; set { _cfg.Perfiles.NQ.AggressorShareMin = Math.Clamp(value, 0.5m, 1m); Recalcular(); } }
+
+	[Display(Name = "NQ: Ráfaga: × velocidad mediana", GroupName = "31. Perfil NQ", Order = 150, Description = "Velocidad de 5 s respecto a la mediana de este instrumento.")]
+	[Range(1, 10)]
+	public decimal NQ_BurstSpeedMult { get => _cfg.Perfiles.NQ.BurstSpeedMult; set { _cfg.Perfiles.NQ.BurstSpeedMult = Math.Clamp(value, 1m, 10m); Recalcular(); } }
+
+	[Display(Name = "NQ: F3: delta % mínimo", GroupName = "31. Perfil NQ", Order = 160, Description = "Delta / volumen de la barra de desplazamiento.")]
+	[Range(0, 1)]
+	public decimal NQ_F3DeltaPctMin { get => _cfg.Perfiles.NQ.F3DeltaPctMin; set { _cfg.Perfiles.NQ.F3DeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "NQ: Continuación: delta % mínimo", GroupName = "31. Perfil NQ", Order = 170, Description = "")]
+	[Range(0, 1)]
+	public decimal NQ_ContDeltaPctMin { get => _cfg.Perfiles.NQ.ContDeltaPctMin; set { _cfg.Perfiles.NQ.ContDeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "NQ: Divergencia de delta mínima", GroupName = "31. Perfil NQ", Order = 180, Description = "Delta % contra el movimiento.")]
+	[Range(0, 1)]
+	public decimal NQ_DivergenceDeltaPctMin { get => _cfg.Perfiles.NQ.DivergenceDeltaPctMin; set { _cfg.Perfiles.NQ.DivergenceDeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "NQ: Penetración mínima (ticks)", GroupName = "31. Perfil NQ", Order = 190, Description = "Ticks de ESTE instrumento más allá del nivel.")]
+	[Range(1, 200)]
+	public int NQ_MinPenetrationTicks { get => _cfg.Perfiles.NQ.MinPenetrationTicks; set { _cfg.Perfiles.NQ.MinPenetrationTicks = Math.Clamp(value, 1, 200); Recalcular(); } }
+
+	[Display(Name = "NQ: Barrido máximo (ticks)", GroupName = "31. Perfil NQ", Order = 200, Description = "Más allá: se vigila la ruptura.")]
+	[Range(2, 1000)]
+	public int NQ_MaxSweepTicks { get => _cfg.Perfiles.NQ.MaxSweepTicks; set { _cfg.Perfiles.NQ.MaxSweepTicks = Math.Clamp(value, 2, 1000); Recalcular(); } }
+
+	[Display(Name = "NQ: Recuperación 1m/5m (ticks)", GroupName = "31. Perfil NQ", Order = 210, Description = "Recuperación que valida el barrido.")]
+	[Range(1, 1000)]
+	public int NQ_RecoveryTicks { get => _cfg.Perfiles.NQ.RecoveryTicks; set { _cfg.Perfiles.NQ.RecoveryTicks = Math.Clamp(value, 1, 1000); Recalcular(); } }
+
+	[Display(Name = "NQ: Margen del stop (ticks)", GroupName = "31. Perfil NQ", Order = 220, Description = "Más allá de la zona, estructura o extremo.")]
+	[Range(0, 200)]
+	public int NQ_StopBufferTicks { get => _cfg.Perfiles.NQ.StopBufferTicks; set { _cfg.Perfiles.NQ.StopBufferTicks = Math.Clamp(value, 0, 200); Recalcular(); } }
+
+	[Display(Name = "NQ: Stop máximo (ticks)", GroupName = "31. Perfil NQ", Order = 230, Description = "Con más: NO EJECUTABLE.")]
+	[Range(2, 2000)]
+	public int NQ_MaxStopTicks { get => _cfg.Perfiles.NQ.MaxStopTicks; set { _cfg.Perfiles.NQ.MaxStopTicks = Math.Clamp(value, 2, 2000); Recalcular(); } }
+
+	// --- 32. Perfil ES ---------------------------------------------------------------------------------------
+
+	[Display(Name = "ES: Contratos por barra: modo", GroupName = "32. Perfil ES", Order = 10, Description = "AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo. Valor inicial PROVISIONAL: calibrar.")]
+	public ModoVolumenBarra ES_VolumePerBarMode { get => _cfg.Perfiles.ES.VolumePerBarMode; set { _cfg.Perfiles.ES.VolumePerBarMode = value; Recalcular(); } }
+
+	[Display(Name = "ES: Contratos por barra (manual / provisional)", GroupName = "32. Perfil ES", Order = 20, Description = "En modo AUTO solo se usa si no hay datos de RTH. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(10, 100000)]
+	public int ES_VolumePerBar { get => _cfg.Perfiles.ES.VolumePerBar; set { _cfg.Perfiles.ES.VolumePerBar = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "ES: AUTO: mínimo de contratos por barra", GroupName = "32. Perfil ES", Order = 30, Description = "Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(10, 100000)]
+	public int ES_VolumePerBarMin { get => _cfg.Perfiles.ES.VolumePerBarMin; set { _cfg.Perfiles.ES.VolumePerBarMin = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "ES: AUTO: máximo de contratos por barra", GroupName = "32. Perfil ES", Order = 40, Description = "Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(10, 100000)]
+	public int ES_VolumePerBarMax { get => _cfg.Perfiles.ES.VolumePerBarMax; set { _cfg.Perfiles.ES.VolumePerBarMax = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "ES: Calibración: sesiones a usar", GroupName = "32. Perfil ES", Order = 50, Description = "Últimas sesiones con RTH del historial cargado. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 250)]
+	public int ES_CalibrationLookbackSessions { get => _cfg.Perfiles.ES.CalibrationLookbackSessions; set { _cfg.Perfiles.ES.CalibrationLookbackSessions = Math.Clamp(value, 1, 250); Recalcular(); } }
+
+	[Display(Name = "ES: Calibración: sesiones mínimas", GroupName = "32. Perfil ES", Order = 60, Description = "Con menos: CALIBRACIÓN INSUFICIENTE (valores PROVISIONAL). Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 250)]
+	public int ES_MinimumCalibrationSessions { get => _cfg.Perfiles.ES.MinimumCalibrationSessions; set { _cfg.Perfiles.ES.MinimumCalibrationSessions = Math.Clamp(value, 1, 250); Recalcular(); } }
+
+	[Display(Name = "ES: Calibración: franja horaria (min)", GroupName = "32. Perfil ES", Order = 70, Description = "Medianas por franja para el volumen relativo. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(5, 120)]
+	public int ES_TimeOfDayBucketMinutes { get => _cfg.Perfiles.ES.TimeOfDayBucketMinutes; set { _cfg.Perfiles.ES.TimeOfDayBucketMinutes = Math.Clamp(value, 5, 120); Recalcular(); } }
+
+	[Display(Name = "ES: Volumen más allá: piso (contratos)", GroupName = "32. Perfil ES", Order = 80, Description = "Mínimo absoluto de contratos más allá del nivel. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 100000)]
+	public int ES_MinVolBeyondFloor { get => _cfg.Perfiles.ES.MinVolBeyondFloor; set { _cfg.Perfiles.ES.MinVolBeyondFloor = Math.Clamp(value, 0, 100000); Recalcular(); } }
+
+	[Display(Name = "ES: Super big trade (contratos)", GroupName = "32. Perfil ES", Order = 90, Description = "Orden agresiva grande para el contexto de iceberg roto. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 100000)]
+	public int ES_SuperBigTradeMinContracts { get => _cfg.Perfiles.ES.SuperBigTradeMinContracts; set { _cfg.Perfiles.ES.SuperBigTradeMinContracts = Math.Clamp(value, 1, 100000); Recalcular(); } }
+
+	[Display(Name = "ES: Imbalance: volumen mínimo (contratos)", GroupName = "32. Perfil ES", Order = 100, Description = "Del lado dominante. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 100000)]
+	public int ES_ImbalanceMinVolume { get => _cfg.Perfiles.ES.ImbalanceMinVolume; set { _cfg.Perfiles.ES.ImbalanceMinVolume = Math.Clamp(value, 1, 100000); Recalcular(); } }
+
+	[Display(Name = "ES: Subasta terminada: contratos máximos", GroupName = "32. Perfil ES", Order = 110, Description = "En el extremo. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1000)]
+	public int ES_FinishedAuctionMaxContracts { get => _cfg.Perfiles.ES.FinishedAuctionMaxContracts; set { _cfg.Perfiles.ES.FinishedAuctionMaxContracts = Math.Clamp(value, 0, 1000); Recalcular(); } }
+
+	[Display(Name = "ES: Imbalance: ratio", GroupName = "32. Perfil ES", Order = 120, Description = "Diagonal (3 = 300 %). Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1.5, 10)]
+	public decimal ES_ImbalanceRatio { get => _cfg.Perfiles.ES.ImbalanceRatio; set { _cfg.Perfiles.ES.ImbalanceRatio = Math.Clamp(value, 1.5m, 10m); Recalcular(); } }
+
+	[Display(Name = "ES: Stacked: niveles mínimos", GroupName = "32. Perfil ES", Order = 130, Description = "Contiguos. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(2, 10)]
+	public int ES_StackedMinLevels { get => _cfg.Perfiles.ES.StackedMinLevels; set { _cfg.Perfiles.ES.StackedMinLevels = Math.Clamp(value, 2, 10); Recalcular(); } }
+
+	[Display(Name = "ES: Agresor mínimo (fracción)", GroupName = "32. Perfil ES", Order = 140, Description = "Parte del volumen más allá del lado agresor. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0.5, 1)]
+	public decimal ES_AggressorShareMin { get => _cfg.Perfiles.ES.AggressorShareMin; set { _cfg.Perfiles.ES.AggressorShareMin = Math.Clamp(value, 0.5m, 1m); Recalcular(); } }
+
+	[Display(Name = "ES: Ráfaga: × velocidad mediana", GroupName = "32. Perfil ES", Order = 150, Description = "Velocidad de 5 s respecto a la mediana de este instrumento. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 10)]
+	public decimal ES_BurstSpeedMult { get => _cfg.Perfiles.ES.BurstSpeedMult; set { _cfg.Perfiles.ES.BurstSpeedMult = Math.Clamp(value, 1m, 10m); Recalcular(); } }
+
+	[Display(Name = "ES: F3: delta % mínimo", GroupName = "32. Perfil ES", Order = 160, Description = "Delta / volumen de la barra de desplazamiento. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1)]
+	public decimal ES_F3DeltaPctMin { get => _cfg.Perfiles.ES.F3DeltaPctMin; set { _cfg.Perfiles.ES.F3DeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "ES: Continuación: delta % mínimo", GroupName = "32. Perfil ES", Order = 170, Description = "Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1)]
+	public decimal ES_ContDeltaPctMin { get => _cfg.Perfiles.ES.ContDeltaPctMin; set { _cfg.Perfiles.ES.ContDeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "ES: Divergencia de delta mínima", GroupName = "32. Perfil ES", Order = 180, Description = "Delta % contra el movimiento. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1)]
+	public decimal ES_DivergenceDeltaPctMin { get => _cfg.Perfiles.ES.DivergenceDeltaPctMin; set { _cfg.Perfiles.ES.DivergenceDeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "ES: Penetración mínima (ticks)", GroupName = "32. Perfil ES", Order = 190, Description = "Ticks de ESTE instrumento más allá del nivel. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 200)]
+	public int ES_MinPenetrationTicks { get => _cfg.Perfiles.ES.MinPenetrationTicks; set { _cfg.Perfiles.ES.MinPenetrationTicks = Math.Clamp(value, 1, 200); Recalcular(); } }
+
+	[Display(Name = "ES: Barrido máximo (ticks)", GroupName = "32. Perfil ES", Order = 200, Description = "Más allá: se vigila la ruptura. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(2, 1000)]
+	public int ES_MaxSweepTicks { get => _cfg.Perfiles.ES.MaxSweepTicks; set { _cfg.Perfiles.ES.MaxSweepTicks = Math.Clamp(value, 2, 1000); Recalcular(); } }
+
+	[Display(Name = "ES: Recuperación 1m/5m (ticks)", GroupName = "32. Perfil ES", Order = 210, Description = "Recuperación que valida el barrido. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 1000)]
+	public int ES_RecoveryTicks { get => _cfg.Perfiles.ES.RecoveryTicks; set { _cfg.Perfiles.ES.RecoveryTicks = Math.Clamp(value, 1, 1000); Recalcular(); } }
+
+	[Display(Name = "ES: Margen del stop (ticks)", GroupName = "32. Perfil ES", Order = 220, Description = "Más allá de la zona, estructura o extremo. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 200)]
+	public int ES_StopBufferTicks { get => _cfg.Perfiles.ES.StopBufferTicks; set { _cfg.Perfiles.ES.StopBufferTicks = Math.Clamp(value, 0, 200); Recalcular(); } }
+
+	[Display(Name = "ES: Stop máximo (ticks)", GroupName = "32. Perfil ES", Order = 230, Description = "Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(2, 2000)]
+	public int ES_MaxStopTicks { get => _cfg.Perfiles.ES.MaxStopTicks; set { _cfg.Perfiles.ES.MaxStopTicks = Math.Clamp(value, 2, 2000); Recalcular(); } }
+
+	// --- 33. Perfil YM ---------------------------------------------------------------------------------------
+
+	[Display(Name = "YM: Contratos por barra: modo", GroupName = "33. Perfil YM", Order = 10, Description = "AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo. Valor inicial PROVISIONAL: calibrar.")]
+	public ModoVolumenBarra YM_VolumePerBarMode { get => _cfg.Perfiles.YM.VolumePerBarMode; set { _cfg.Perfiles.YM.VolumePerBarMode = value; Recalcular(); } }
+
+	[Display(Name = "YM: Contratos por barra (manual / provisional)", GroupName = "33. Perfil YM", Order = 20, Description = "En modo AUTO solo se usa si no hay datos de RTH. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(10, 100000)]
+	public int YM_VolumePerBar { get => _cfg.Perfiles.YM.VolumePerBar; set { _cfg.Perfiles.YM.VolumePerBar = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "YM: AUTO: mínimo de contratos por barra", GroupName = "33. Perfil YM", Order = 30, Description = "Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(10, 100000)]
+	public int YM_VolumePerBarMin { get => _cfg.Perfiles.YM.VolumePerBarMin; set { _cfg.Perfiles.YM.VolumePerBarMin = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "YM: AUTO: máximo de contratos por barra", GroupName = "33. Perfil YM", Order = 40, Description = "Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(10, 100000)]
+	public int YM_VolumePerBarMax { get => _cfg.Perfiles.YM.VolumePerBarMax; set { _cfg.Perfiles.YM.VolumePerBarMax = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "YM: Calibración: sesiones a usar", GroupName = "33. Perfil YM", Order = 50, Description = "Últimas sesiones con RTH del historial cargado. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 250)]
+	public int YM_CalibrationLookbackSessions { get => _cfg.Perfiles.YM.CalibrationLookbackSessions; set { _cfg.Perfiles.YM.CalibrationLookbackSessions = Math.Clamp(value, 1, 250); Recalcular(); } }
+
+	[Display(Name = "YM: Calibración: sesiones mínimas", GroupName = "33. Perfil YM", Order = 60, Description = "Con menos: CALIBRACIÓN INSUFICIENTE (valores PROVISIONAL). Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 250)]
+	public int YM_MinimumCalibrationSessions { get => _cfg.Perfiles.YM.MinimumCalibrationSessions; set { _cfg.Perfiles.YM.MinimumCalibrationSessions = Math.Clamp(value, 1, 250); Recalcular(); } }
+
+	[Display(Name = "YM: Calibración: franja horaria (min)", GroupName = "33. Perfil YM", Order = 70, Description = "Medianas por franja para el volumen relativo. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(5, 120)]
+	public int YM_TimeOfDayBucketMinutes { get => _cfg.Perfiles.YM.TimeOfDayBucketMinutes; set { _cfg.Perfiles.YM.TimeOfDayBucketMinutes = Math.Clamp(value, 5, 120); Recalcular(); } }
+
+	[Display(Name = "YM: Volumen más allá: piso (contratos)", GroupName = "33. Perfil YM", Order = 80, Description = "Mínimo absoluto de contratos más allá del nivel. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 100000)]
+	public int YM_MinVolBeyondFloor { get => _cfg.Perfiles.YM.MinVolBeyondFloor; set { _cfg.Perfiles.YM.MinVolBeyondFloor = Math.Clamp(value, 0, 100000); Recalcular(); } }
+
+	[Display(Name = "YM: Super big trade (contratos)", GroupName = "33. Perfil YM", Order = 90, Description = "Orden agresiva grande para el contexto de iceberg roto. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 100000)]
+	public int YM_SuperBigTradeMinContracts { get => _cfg.Perfiles.YM.SuperBigTradeMinContracts; set { _cfg.Perfiles.YM.SuperBigTradeMinContracts = Math.Clamp(value, 1, 100000); Recalcular(); } }
+
+	[Display(Name = "YM: Imbalance: volumen mínimo (contratos)", GroupName = "33. Perfil YM", Order = 100, Description = "Del lado dominante. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 100000)]
+	public int YM_ImbalanceMinVolume { get => _cfg.Perfiles.YM.ImbalanceMinVolume; set { _cfg.Perfiles.YM.ImbalanceMinVolume = Math.Clamp(value, 1, 100000); Recalcular(); } }
+
+	[Display(Name = "YM: Subasta terminada: contratos máximos", GroupName = "33. Perfil YM", Order = 110, Description = "En el extremo. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1000)]
+	public int YM_FinishedAuctionMaxContracts { get => _cfg.Perfiles.YM.FinishedAuctionMaxContracts; set { _cfg.Perfiles.YM.FinishedAuctionMaxContracts = Math.Clamp(value, 0, 1000); Recalcular(); } }
+
+	[Display(Name = "YM: Imbalance: ratio", GroupName = "33. Perfil YM", Order = 120, Description = "Diagonal (3 = 300 %). Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1.5, 10)]
+	public decimal YM_ImbalanceRatio { get => _cfg.Perfiles.YM.ImbalanceRatio; set { _cfg.Perfiles.YM.ImbalanceRatio = Math.Clamp(value, 1.5m, 10m); Recalcular(); } }
+
+	[Display(Name = "YM: Stacked: niveles mínimos", GroupName = "33. Perfil YM", Order = 130, Description = "Contiguos. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(2, 10)]
+	public int YM_StackedMinLevels { get => _cfg.Perfiles.YM.StackedMinLevels; set { _cfg.Perfiles.YM.StackedMinLevels = Math.Clamp(value, 2, 10); Recalcular(); } }
+
+	[Display(Name = "YM: Agresor mínimo (fracción)", GroupName = "33. Perfil YM", Order = 140, Description = "Parte del volumen más allá del lado agresor. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0.5, 1)]
+	public decimal YM_AggressorShareMin { get => _cfg.Perfiles.YM.AggressorShareMin; set { _cfg.Perfiles.YM.AggressorShareMin = Math.Clamp(value, 0.5m, 1m); Recalcular(); } }
+
+	[Display(Name = "YM: Ráfaga: × velocidad mediana", GroupName = "33. Perfil YM", Order = 150, Description = "Velocidad de 5 s respecto a la mediana de este instrumento. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 10)]
+	public decimal YM_BurstSpeedMult { get => _cfg.Perfiles.YM.BurstSpeedMult; set { _cfg.Perfiles.YM.BurstSpeedMult = Math.Clamp(value, 1m, 10m); Recalcular(); } }
+
+	[Display(Name = "YM: F3: delta % mínimo", GroupName = "33. Perfil YM", Order = 160, Description = "Delta / volumen de la barra de desplazamiento. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1)]
+	public decimal YM_F3DeltaPctMin { get => _cfg.Perfiles.YM.F3DeltaPctMin; set { _cfg.Perfiles.YM.F3DeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "YM: Continuación: delta % mínimo", GroupName = "33. Perfil YM", Order = 170, Description = "Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1)]
+	public decimal YM_ContDeltaPctMin { get => _cfg.Perfiles.YM.ContDeltaPctMin; set { _cfg.Perfiles.YM.ContDeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "YM: Divergencia de delta mínima", GroupName = "33. Perfil YM", Order = 180, Description = "Delta % contra el movimiento. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1)]
+	public decimal YM_DivergenceDeltaPctMin { get => _cfg.Perfiles.YM.DivergenceDeltaPctMin; set { _cfg.Perfiles.YM.DivergenceDeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "YM: Penetración mínima (ticks)", GroupName = "33. Perfil YM", Order = 190, Description = "Ticks de ESTE instrumento más allá del nivel. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 200)]
+	public int YM_MinPenetrationTicks { get => _cfg.Perfiles.YM.MinPenetrationTicks; set { _cfg.Perfiles.YM.MinPenetrationTicks = Math.Clamp(value, 1, 200); Recalcular(); } }
+
+	[Display(Name = "YM: Barrido máximo (ticks)", GroupName = "33. Perfil YM", Order = 200, Description = "Más allá: se vigila la ruptura. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(2, 1000)]
+	public int YM_MaxSweepTicks { get => _cfg.Perfiles.YM.MaxSweepTicks; set { _cfg.Perfiles.YM.MaxSweepTicks = Math.Clamp(value, 2, 1000); Recalcular(); } }
+
+	[Display(Name = "YM: Recuperación 1m/5m (ticks)", GroupName = "33. Perfil YM", Order = 210, Description = "Recuperación que valida el barrido. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 1000)]
+	public int YM_RecoveryTicks { get => _cfg.Perfiles.YM.RecoveryTicks; set { _cfg.Perfiles.YM.RecoveryTicks = Math.Clamp(value, 1, 1000); Recalcular(); } }
+
+	[Display(Name = "YM: Margen del stop (ticks)", GroupName = "33. Perfil YM", Order = 220, Description = "Más allá de la zona, estructura o extremo. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 200)]
+	public int YM_StopBufferTicks { get => _cfg.Perfiles.YM.StopBufferTicks; set { _cfg.Perfiles.YM.StopBufferTicks = Math.Clamp(value, 0, 200); Recalcular(); } }
+
+	[Display(Name = "YM: Stop máximo (ticks)", GroupName = "33. Perfil YM", Order = 230, Description = "Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(2, 2000)]
+	public int YM_MaxStopTicks { get => _cfg.Perfiles.YM.MaxStopTicks; set { _cfg.Perfiles.YM.MaxStopTicks = Math.Clamp(value, 2, 2000); Recalcular(); } }
+
+	// --- 34. Perfil MNQ --------------------------------------------------------------------------------------
+
+	[Display(Name = "MNQ: Contratos por barra: modo", GroupName = "34. Perfil MNQ", Order = 10, Description = "AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo. Valor inicial PROVISIONAL: calibrar.")]
+	public ModoVolumenBarra MNQ_VolumePerBarMode { get => _cfg.Perfiles.MNQ.VolumePerBarMode; set { _cfg.Perfiles.MNQ.VolumePerBarMode = value; Recalcular(); } }
+
+	[Display(Name = "MNQ: Contratos por barra (manual / provisional)", GroupName = "34. Perfil MNQ", Order = 20, Description = "En modo AUTO solo se usa si no hay datos de RTH. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(10, 100000)]
+	public int MNQ_VolumePerBar { get => _cfg.Perfiles.MNQ.VolumePerBar; set { _cfg.Perfiles.MNQ.VolumePerBar = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "MNQ: AUTO: mínimo de contratos por barra", GroupName = "34. Perfil MNQ", Order = 30, Description = "Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(10, 100000)]
+	public int MNQ_VolumePerBarMin { get => _cfg.Perfiles.MNQ.VolumePerBarMin; set { _cfg.Perfiles.MNQ.VolumePerBarMin = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "MNQ: AUTO: máximo de contratos por barra", GroupName = "34. Perfil MNQ", Order = 40, Description = "Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(10, 100000)]
+	public int MNQ_VolumePerBarMax { get => _cfg.Perfiles.MNQ.VolumePerBarMax; set { _cfg.Perfiles.MNQ.VolumePerBarMax = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "MNQ: Calibración: sesiones a usar", GroupName = "34. Perfil MNQ", Order = 50, Description = "Últimas sesiones con RTH del historial cargado. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 250)]
+	public int MNQ_CalibrationLookbackSessions { get => _cfg.Perfiles.MNQ.CalibrationLookbackSessions; set { _cfg.Perfiles.MNQ.CalibrationLookbackSessions = Math.Clamp(value, 1, 250); Recalcular(); } }
+
+	[Display(Name = "MNQ: Calibración: sesiones mínimas", GroupName = "34. Perfil MNQ", Order = 60, Description = "Con menos: CALIBRACIÓN INSUFICIENTE (valores PROVISIONAL). Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 250)]
+	public int MNQ_MinimumCalibrationSessions { get => _cfg.Perfiles.MNQ.MinimumCalibrationSessions; set { _cfg.Perfiles.MNQ.MinimumCalibrationSessions = Math.Clamp(value, 1, 250); Recalcular(); } }
+
+	[Display(Name = "MNQ: Calibración: franja horaria (min)", GroupName = "34. Perfil MNQ", Order = 70, Description = "Medianas por franja para el volumen relativo. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(5, 120)]
+	public int MNQ_TimeOfDayBucketMinutes { get => _cfg.Perfiles.MNQ.TimeOfDayBucketMinutes; set { _cfg.Perfiles.MNQ.TimeOfDayBucketMinutes = Math.Clamp(value, 5, 120); Recalcular(); } }
+
+	[Display(Name = "MNQ: Volumen más allá: piso (contratos)", GroupName = "34. Perfil MNQ", Order = 80, Description = "Mínimo absoluto de contratos más allá del nivel. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 100000)]
+	public int MNQ_MinVolBeyondFloor { get => _cfg.Perfiles.MNQ.MinVolBeyondFloor; set { _cfg.Perfiles.MNQ.MinVolBeyondFloor = Math.Clamp(value, 0, 100000); Recalcular(); } }
+
+	[Display(Name = "MNQ: Super big trade (contratos)", GroupName = "34. Perfil MNQ", Order = 90, Description = "Orden agresiva grande para el contexto de iceberg roto. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 100000)]
+	public int MNQ_SuperBigTradeMinContracts { get => _cfg.Perfiles.MNQ.SuperBigTradeMinContracts; set { _cfg.Perfiles.MNQ.SuperBigTradeMinContracts = Math.Clamp(value, 1, 100000); Recalcular(); } }
+
+	[Display(Name = "MNQ: Imbalance: volumen mínimo (contratos)", GroupName = "34. Perfil MNQ", Order = 100, Description = "Del lado dominante. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 100000)]
+	public int MNQ_ImbalanceMinVolume { get => _cfg.Perfiles.MNQ.ImbalanceMinVolume; set { _cfg.Perfiles.MNQ.ImbalanceMinVolume = Math.Clamp(value, 1, 100000); Recalcular(); } }
+
+	[Display(Name = "MNQ: Subasta terminada: contratos máximos", GroupName = "34. Perfil MNQ", Order = 110, Description = "En el extremo. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1000)]
+	public int MNQ_FinishedAuctionMaxContracts { get => _cfg.Perfiles.MNQ.FinishedAuctionMaxContracts; set { _cfg.Perfiles.MNQ.FinishedAuctionMaxContracts = Math.Clamp(value, 0, 1000); Recalcular(); } }
+
+	[Display(Name = "MNQ: Imbalance: ratio", GroupName = "34. Perfil MNQ", Order = 120, Description = "Diagonal (3 = 300 %). Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1.5, 10)]
+	public decimal MNQ_ImbalanceRatio { get => _cfg.Perfiles.MNQ.ImbalanceRatio; set { _cfg.Perfiles.MNQ.ImbalanceRatio = Math.Clamp(value, 1.5m, 10m); Recalcular(); } }
+
+	[Display(Name = "MNQ: Stacked: niveles mínimos", GroupName = "34. Perfil MNQ", Order = 130, Description = "Contiguos. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(2, 10)]
+	public int MNQ_StackedMinLevels { get => _cfg.Perfiles.MNQ.StackedMinLevels; set { _cfg.Perfiles.MNQ.StackedMinLevels = Math.Clamp(value, 2, 10); Recalcular(); } }
+
+	[Display(Name = "MNQ: Agresor mínimo (fracción)", GroupName = "34. Perfil MNQ", Order = 140, Description = "Parte del volumen más allá del lado agresor. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0.5, 1)]
+	public decimal MNQ_AggressorShareMin { get => _cfg.Perfiles.MNQ.AggressorShareMin; set { _cfg.Perfiles.MNQ.AggressorShareMin = Math.Clamp(value, 0.5m, 1m); Recalcular(); } }
+
+	[Display(Name = "MNQ: Ráfaga: × velocidad mediana", GroupName = "34. Perfil MNQ", Order = 150, Description = "Velocidad de 5 s respecto a la mediana de este instrumento. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 10)]
+	public decimal MNQ_BurstSpeedMult { get => _cfg.Perfiles.MNQ.BurstSpeedMult; set { _cfg.Perfiles.MNQ.BurstSpeedMult = Math.Clamp(value, 1m, 10m); Recalcular(); } }
+
+	[Display(Name = "MNQ: F3: delta % mínimo", GroupName = "34. Perfil MNQ", Order = 160, Description = "Delta / volumen de la barra de desplazamiento. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1)]
+	public decimal MNQ_F3DeltaPctMin { get => _cfg.Perfiles.MNQ.F3DeltaPctMin; set { _cfg.Perfiles.MNQ.F3DeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "MNQ: Continuación: delta % mínimo", GroupName = "34. Perfil MNQ", Order = 170, Description = "Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1)]
+	public decimal MNQ_ContDeltaPctMin { get => _cfg.Perfiles.MNQ.ContDeltaPctMin; set { _cfg.Perfiles.MNQ.ContDeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "MNQ: Divergencia de delta mínima", GroupName = "34. Perfil MNQ", Order = 180, Description = "Delta % contra el movimiento. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1)]
+	public decimal MNQ_DivergenceDeltaPctMin { get => _cfg.Perfiles.MNQ.DivergenceDeltaPctMin; set { _cfg.Perfiles.MNQ.DivergenceDeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "MNQ: Penetración mínima (ticks)", GroupName = "34. Perfil MNQ", Order = 190, Description = "Ticks de ESTE instrumento más allá del nivel. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 200)]
+	public int MNQ_MinPenetrationTicks { get => _cfg.Perfiles.MNQ.MinPenetrationTicks; set { _cfg.Perfiles.MNQ.MinPenetrationTicks = Math.Clamp(value, 1, 200); Recalcular(); } }
+
+	[Display(Name = "MNQ: Barrido máximo (ticks)", GroupName = "34. Perfil MNQ", Order = 200, Description = "Más allá: se vigila la ruptura. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(2, 1000)]
+	public int MNQ_MaxSweepTicks { get => _cfg.Perfiles.MNQ.MaxSweepTicks; set { _cfg.Perfiles.MNQ.MaxSweepTicks = Math.Clamp(value, 2, 1000); Recalcular(); } }
+
+	[Display(Name = "MNQ: Recuperación 1m/5m (ticks)", GroupName = "34. Perfil MNQ", Order = 210, Description = "Recuperación que valida el barrido. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 1000)]
+	public int MNQ_RecoveryTicks { get => _cfg.Perfiles.MNQ.RecoveryTicks; set { _cfg.Perfiles.MNQ.RecoveryTicks = Math.Clamp(value, 1, 1000); Recalcular(); } }
+
+	[Display(Name = "MNQ: Margen del stop (ticks)", GroupName = "34. Perfil MNQ", Order = 220, Description = "Más allá de la zona, estructura o extremo. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 200)]
+	public int MNQ_StopBufferTicks { get => _cfg.Perfiles.MNQ.StopBufferTicks; set { _cfg.Perfiles.MNQ.StopBufferTicks = Math.Clamp(value, 0, 200); Recalcular(); } }
+
+	[Display(Name = "MNQ: Stop máximo (ticks)", GroupName = "34. Perfil MNQ", Order = 230, Description = "Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(2, 2000)]
+	public int MNQ_MaxStopTicks { get => _cfg.Perfiles.MNQ.MaxStopTicks; set { _cfg.Perfiles.MNQ.MaxStopTicks = Math.Clamp(value, 2, 2000); Recalcular(); } }
+
+	// --- 35. Perfil MES --------------------------------------------------------------------------------------
+
+	[Display(Name = "MES: Contratos por barra: modo", GroupName = "35. Perfil MES", Order = 10, Description = "AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo. Valor inicial PROVISIONAL: calibrar.")]
+	public ModoVolumenBarra MES_VolumePerBarMode { get => _cfg.Perfiles.MES.VolumePerBarMode; set { _cfg.Perfiles.MES.VolumePerBarMode = value; Recalcular(); } }
+
+	[Display(Name = "MES: Contratos por barra (manual / provisional)", GroupName = "35. Perfil MES", Order = 20, Description = "En modo AUTO solo se usa si no hay datos de RTH. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(10, 100000)]
+	public int MES_VolumePerBar { get => _cfg.Perfiles.MES.VolumePerBar; set { _cfg.Perfiles.MES.VolumePerBar = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "MES: AUTO: mínimo de contratos por barra", GroupName = "35. Perfil MES", Order = 30, Description = "Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(10, 100000)]
+	public int MES_VolumePerBarMin { get => _cfg.Perfiles.MES.VolumePerBarMin; set { _cfg.Perfiles.MES.VolumePerBarMin = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "MES: AUTO: máximo de contratos por barra", GroupName = "35. Perfil MES", Order = 40, Description = "Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(10, 100000)]
+	public int MES_VolumePerBarMax { get => _cfg.Perfiles.MES.VolumePerBarMax; set { _cfg.Perfiles.MES.VolumePerBarMax = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "MES: Calibración: sesiones a usar", GroupName = "35. Perfil MES", Order = 50, Description = "Últimas sesiones con RTH del historial cargado. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 250)]
+	public int MES_CalibrationLookbackSessions { get => _cfg.Perfiles.MES.CalibrationLookbackSessions; set { _cfg.Perfiles.MES.CalibrationLookbackSessions = Math.Clamp(value, 1, 250); Recalcular(); } }
+
+	[Display(Name = "MES: Calibración: sesiones mínimas", GroupName = "35. Perfil MES", Order = 60, Description = "Con menos: CALIBRACIÓN INSUFICIENTE (valores PROVISIONAL). Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 250)]
+	public int MES_MinimumCalibrationSessions { get => _cfg.Perfiles.MES.MinimumCalibrationSessions; set { _cfg.Perfiles.MES.MinimumCalibrationSessions = Math.Clamp(value, 1, 250); Recalcular(); } }
+
+	[Display(Name = "MES: Calibración: franja horaria (min)", GroupName = "35. Perfil MES", Order = 70, Description = "Medianas por franja para el volumen relativo. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(5, 120)]
+	public int MES_TimeOfDayBucketMinutes { get => _cfg.Perfiles.MES.TimeOfDayBucketMinutes; set { _cfg.Perfiles.MES.TimeOfDayBucketMinutes = Math.Clamp(value, 5, 120); Recalcular(); } }
+
+	[Display(Name = "MES: Volumen más allá: piso (contratos)", GroupName = "35. Perfil MES", Order = 80, Description = "Mínimo absoluto de contratos más allá del nivel. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 100000)]
+	public int MES_MinVolBeyondFloor { get => _cfg.Perfiles.MES.MinVolBeyondFloor; set { _cfg.Perfiles.MES.MinVolBeyondFloor = Math.Clamp(value, 0, 100000); Recalcular(); } }
+
+	[Display(Name = "MES: Super big trade (contratos)", GroupName = "35. Perfil MES", Order = 90, Description = "Orden agresiva grande para el contexto de iceberg roto. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 100000)]
+	public int MES_SuperBigTradeMinContracts { get => _cfg.Perfiles.MES.SuperBigTradeMinContracts; set { _cfg.Perfiles.MES.SuperBigTradeMinContracts = Math.Clamp(value, 1, 100000); Recalcular(); } }
+
+	[Display(Name = "MES: Imbalance: volumen mínimo (contratos)", GroupName = "35. Perfil MES", Order = 100, Description = "Del lado dominante. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 100000)]
+	public int MES_ImbalanceMinVolume { get => _cfg.Perfiles.MES.ImbalanceMinVolume; set { _cfg.Perfiles.MES.ImbalanceMinVolume = Math.Clamp(value, 1, 100000); Recalcular(); } }
+
+	[Display(Name = "MES: Subasta terminada: contratos máximos", GroupName = "35. Perfil MES", Order = 110, Description = "En el extremo. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1000)]
+	public int MES_FinishedAuctionMaxContracts { get => _cfg.Perfiles.MES.FinishedAuctionMaxContracts; set { _cfg.Perfiles.MES.FinishedAuctionMaxContracts = Math.Clamp(value, 0, 1000); Recalcular(); } }
+
+	[Display(Name = "MES: Imbalance: ratio", GroupName = "35. Perfil MES", Order = 120, Description = "Diagonal (3 = 300 %). Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1.5, 10)]
+	public decimal MES_ImbalanceRatio { get => _cfg.Perfiles.MES.ImbalanceRatio; set { _cfg.Perfiles.MES.ImbalanceRatio = Math.Clamp(value, 1.5m, 10m); Recalcular(); } }
+
+	[Display(Name = "MES: Stacked: niveles mínimos", GroupName = "35. Perfil MES", Order = 130, Description = "Contiguos. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(2, 10)]
+	public int MES_StackedMinLevels { get => _cfg.Perfiles.MES.StackedMinLevels; set { _cfg.Perfiles.MES.StackedMinLevels = Math.Clamp(value, 2, 10); Recalcular(); } }
+
+	[Display(Name = "MES: Agresor mínimo (fracción)", GroupName = "35. Perfil MES", Order = 140, Description = "Parte del volumen más allá del lado agresor. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0.5, 1)]
+	public decimal MES_AggressorShareMin { get => _cfg.Perfiles.MES.AggressorShareMin; set { _cfg.Perfiles.MES.AggressorShareMin = Math.Clamp(value, 0.5m, 1m); Recalcular(); } }
+
+	[Display(Name = "MES: Ráfaga: × velocidad mediana", GroupName = "35. Perfil MES", Order = 150, Description = "Velocidad de 5 s respecto a la mediana de este instrumento. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 10)]
+	public decimal MES_BurstSpeedMult { get => _cfg.Perfiles.MES.BurstSpeedMult; set { _cfg.Perfiles.MES.BurstSpeedMult = Math.Clamp(value, 1m, 10m); Recalcular(); } }
+
+	[Display(Name = "MES: F3: delta % mínimo", GroupName = "35. Perfil MES", Order = 160, Description = "Delta / volumen de la barra de desplazamiento. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1)]
+	public decimal MES_F3DeltaPctMin { get => _cfg.Perfiles.MES.F3DeltaPctMin; set { _cfg.Perfiles.MES.F3DeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "MES: Continuación: delta % mínimo", GroupName = "35. Perfil MES", Order = 170, Description = "Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1)]
+	public decimal MES_ContDeltaPctMin { get => _cfg.Perfiles.MES.ContDeltaPctMin; set { _cfg.Perfiles.MES.ContDeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "MES: Divergencia de delta mínima", GroupName = "35. Perfil MES", Order = 180, Description = "Delta % contra el movimiento. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1)]
+	public decimal MES_DivergenceDeltaPctMin { get => _cfg.Perfiles.MES.DivergenceDeltaPctMin; set { _cfg.Perfiles.MES.DivergenceDeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "MES: Penetración mínima (ticks)", GroupName = "35. Perfil MES", Order = 190, Description = "Ticks de ESTE instrumento más allá del nivel. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 200)]
+	public int MES_MinPenetrationTicks { get => _cfg.Perfiles.MES.MinPenetrationTicks; set { _cfg.Perfiles.MES.MinPenetrationTicks = Math.Clamp(value, 1, 200); Recalcular(); } }
+
+	[Display(Name = "MES: Barrido máximo (ticks)", GroupName = "35. Perfil MES", Order = 200, Description = "Más allá: se vigila la ruptura. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(2, 1000)]
+	public int MES_MaxSweepTicks { get => _cfg.Perfiles.MES.MaxSweepTicks; set { _cfg.Perfiles.MES.MaxSweepTicks = Math.Clamp(value, 2, 1000); Recalcular(); } }
+
+	[Display(Name = "MES: Recuperación 1m/5m (ticks)", GroupName = "35. Perfil MES", Order = 210, Description = "Recuperación que valida el barrido. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 1000)]
+	public int MES_RecoveryTicks { get => _cfg.Perfiles.MES.RecoveryTicks; set { _cfg.Perfiles.MES.RecoveryTicks = Math.Clamp(value, 1, 1000); Recalcular(); } }
+
+	[Display(Name = "MES: Margen del stop (ticks)", GroupName = "35. Perfil MES", Order = 220, Description = "Más allá de la zona, estructura o extremo. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 200)]
+	public int MES_StopBufferTicks { get => _cfg.Perfiles.MES.StopBufferTicks; set { _cfg.Perfiles.MES.StopBufferTicks = Math.Clamp(value, 0, 200); Recalcular(); } }
+
+	[Display(Name = "MES: Stop máximo (ticks)", GroupName = "35. Perfil MES", Order = 230, Description = "Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(2, 2000)]
+	public int MES_MaxStopTicks { get => _cfg.Perfiles.MES.MaxStopTicks; set { _cfg.Perfiles.MES.MaxStopTicks = Math.Clamp(value, 2, 2000); Recalcular(); } }
+
+	// --- 36. Perfil MYM --------------------------------------------------------------------------------------
+
+	[Display(Name = "MYM: Contratos por barra: modo", GroupName = "36. Perfil MYM", Order = 10, Description = "AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo. Valor inicial PROVISIONAL: calibrar.")]
+	public ModoVolumenBarra MYM_VolumePerBarMode { get => _cfg.Perfiles.MYM.VolumePerBarMode; set { _cfg.Perfiles.MYM.VolumePerBarMode = value; Recalcular(); } }
+
+	[Display(Name = "MYM: Contratos por barra (manual / provisional)", GroupName = "36. Perfil MYM", Order = 20, Description = "En modo AUTO solo se usa si no hay datos de RTH. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(10, 100000)]
+	public int MYM_VolumePerBar { get => _cfg.Perfiles.MYM.VolumePerBar; set { _cfg.Perfiles.MYM.VolumePerBar = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "MYM: AUTO: mínimo de contratos por barra", GroupName = "36. Perfil MYM", Order = 30, Description = "Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(10, 100000)]
+	public int MYM_VolumePerBarMin { get => _cfg.Perfiles.MYM.VolumePerBarMin; set { _cfg.Perfiles.MYM.VolumePerBarMin = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "MYM: AUTO: máximo de contratos por barra", GroupName = "36. Perfil MYM", Order = 40, Description = "Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(10, 100000)]
+	public int MYM_VolumePerBarMax { get => _cfg.Perfiles.MYM.VolumePerBarMax; set { _cfg.Perfiles.MYM.VolumePerBarMax = Math.Clamp(value, 10, 100000); Recalcular(); } }
+
+	[Display(Name = "MYM: Calibración: sesiones a usar", GroupName = "36. Perfil MYM", Order = 50, Description = "Últimas sesiones con RTH del historial cargado. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 250)]
+	public int MYM_CalibrationLookbackSessions { get => _cfg.Perfiles.MYM.CalibrationLookbackSessions; set { _cfg.Perfiles.MYM.CalibrationLookbackSessions = Math.Clamp(value, 1, 250); Recalcular(); } }
+
+	[Display(Name = "MYM: Calibración: sesiones mínimas", GroupName = "36. Perfil MYM", Order = 60, Description = "Con menos: CALIBRACIÓN INSUFICIENTE (valores PROVISIONAL). Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 250)]
+	public int MYM_MinimumCalibrationSessions { get => _cfg.Perfiles.MYM.MinimumCalibrationSessions; set { _cfg.Perfiles.MYM.MinimumCalibrationSessions = Math.Clamp(value, 1, 250); Recalcular(); } }
+
+	[Display(Name = "MYM: Calibración: franja horaria (min)", GroupName = "36. Perfil MYM", Order = 70, Description = "Medianas por franja para el volumen relativo. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(5, 120)]
+	public int MYM_TimeOfDayBucketMinutes { get => _cfg.Perfiles.MYM.TimeOfDayBucketMinutes; set { _cfg.Perfiles.MYM.TimeOfDayBucketMinutes = Math.Clamp(value, 5, 120); Recalcular(); } }
+
+	[Display(Name = "MYM: Volumen más allá: piso (contratos)", GroupName = "36. Perfil MYM", Order = 80, Description = "Mínimo absoluto de contratos más allá del nivel. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 100000)]
+	public int MYM_MinVolBeyondFloor { get => _cfg.Perfiles.MYM.MinVolBeyondFloor; set { _cfg.Perfiles.MYM.MinVolBeyondFloor = Math.Clamp(value, 0, 100000); Recalcular(); } }
+
+	[Display(Name = "MYM: Super big trade (contratos)", GroupName = "36. Perfil MYM", Order = 90, Description = "Orden agresiva grande para el contexto de iceberg roto. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 100000)]
+	public int MYM_SuperBigTradeMinContracts { get => _cfg.Perfiles.MYM.SuperBigTradeMinContracts; set { _cfg.Perfiles.MYM.SuperBigTradeMinContracts = Math.Clamp(value, 1, 100000); Recalcular(); } }
+
+	[Display(Name = "MYM: Imbalance: volumen mínimo (contratos)", GroupName = "36. Perfil MYM", Order = 100, Description = "Del lado dominante. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 100000)]
+	public int MYM_ImbalanceMinVolume { get => _cfg.Perfiles.MYM.ImbalanceMinVolume; set { _cfg.Perfiles.MYM.ImbalanceMinVolume = Math.Clamp(value, 1, 100000); Recalcular(); } }
+
+	[Display(Name = "MYM: Subasta terminada: contratos máximos", GroupName = "36. Perfil MYM", Order = 110, Description = "En el extremo. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1000)]
+	public int MYM_FinishedAuctionMaxContracts { get => _cfg.Perfiles.MYM.FinishedAuctionMaxContracts; set { _cfg.Perfiles.MYM.FinishedAuctionMaxContracts = Math.Clamp(value, 0, 1000); Recalcular(); } }
+
+	[Display(Name = "MYM: Imbalance: ratio", GroupName = "36. Perfil MYM", Order = 120, Description = "Diagonal (3 = 300 %). Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1.5, 10)]
+	public decimal MYM_ImbalanceRatio { get => _cfg.Perfiles.MYM.ImbalanceRatio; set { _cfg.Perfiles.MYM.ImbalanceRatio = Math.Clamp(value, 1.5m, 10m); Recalcular(); } }
+
+	[Display(Name = "MYM: Stacked: niveles mínimos", GroupName = "36. Perfil MYM", Order = 130, Description = "Contiguos. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(2, 10)]
+	public int MYM_StackedMinLevels { get => _cfg.Perfiles.MYM.StackedMinLevels; set { _cfg.Perfiles.MYM.StackedMinLevels = Math.Clamp(value, 2, 10); Recalcular(); } }
+
+	[Display(Name = "MYM: Agresor mínimo (fracción)", GroupName = "36. Perfil MYM", Order = 140, Description = "Parte del volumen más allá del lado agresor. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0.5, 1)]
+	public decimal MYM_AggressorShareMin { get => _cfg.Perfiles.MYM.AggressorShareMin; set { _cfg.Perfiles.MYM.AggressorShareMin = Math.Clamp(value, 0.5m, 1m); Recalcular(); } }
+
+	[Display(Name = "MYM: Ráfaga: × velocidad mediana", GroupName = "36. Perfil MYM", Order = 150, Description = "Velocidad de 5 s respecto a la mediana de este instrumento. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 10)]
+	public decimal MYM_BurstSpeedMult { get => _cfg.Perfiles.MYM.BurstSpeedMult; set { _cfg.Perfiles.MYM.BurstSpeedMult = Math.Clamp(value, 1m, 10m); Recalcular(); } }
+
+	[Display(Name = "MYM: F3: delta % mínimo", GroupName = "36. Perfil MYM", Order = 160, Description = "Delta / volumen de la barra de desplazamiento. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1)]
+	public decimal MYM_F3DeltaPctMin { get => _cfg.Perfiles.MYM.F3DeltaPctMin; set { _cfg.Perfiles.MYM.F3DeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "MYM: Continuación: delta % mínimo", GroupName = "36. Perfil MYM", Order = 170, Description = "Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1)]
+	public decimal MYM_ContDeltaPctMin { get => _cfg.Perfiles.MYM.ContDeltaPctMin; set { _cfg.Perfiles.MYM.ContDeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "MYM: Divergencia de delta mínima", GroupName = "36. Perfil MYM", Order = 180, Description = "Delta % contra el movimiento. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 1)]
+	public decimal MYM_DivergenceDeltaPctMin { get => _cfg.Perfiles.MYM.DivergenceDeltaPctMin; set { _cfg.Perfiles.MYM.DivergenceDeltaPctMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
+
+	[Display(Name = "MYM: Penetración mínima (ticks)", GroupName = "36. Perfil MYM", Order = 190, Description = "Ticks de ESTE instrumento más allá del nivel. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 200)]
+	public int MYM_MinPenetrationTicks { get => _cfg.Perfiles.MYM.MinPenetrationTicks; set { _cfg.Perfiles.MYM.MinPenetrationTicks = Math.Clamp(value, 1, 200); Recalcular(); } }
+
+	[Display(Name = "MYM: Barrido máximo (ticks)", GroupName = "36. Perfil MYM", Order = 200, Description = "Más allá: se vigila la ruptura. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(2, 1000)]
+	public int MYM_MaxSweepTicks { get => _cfg.Perfiles.MYM.MaxSweepTicks; set { _cfg.Perfiles.MYM.MaxSweepTicks = Math.Clamp(value, 2, 1000); Recalcular(); } }
+
+	[Display(Name = "MYM: Recuperación 1m/5m (ticks)", GroupName = "36. Perfil MYM", Order = 210, Description = "Recuperación que valida el barrido. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 1000)]
+	public int MYM_RecoveryTicks { get => _cfg.Perfiles.MYM.RecoveryTicks; set { _cfg.Perfiles.MYM.RecoveryTicks = Math.Clamp(value, 1, 1000); Recalcular(); } }
+
+	[Display(Name = "MYM: Margen del stop (ticks)", GroupName = "36. Perfil MYM", Order = 220, Description = "Más allá de la zona, estructura o extremo. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(0, 200)]
+	public int MYM_StopBufferTicks { get => _cfg.Perfiles.MYM.StopBufferTicks; set { _cfg.Perfiles.MYM.StopBufferTicks = Math.Clamp(value, 0, 200); Recalcular(); } }
+
+	[Display(Name = "MYM: Stop máximo (ticks)", GroupName = "36. Perfil MYM", Order = 230, Description = "Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(2, 2000)]
+	public int MYM_MaxStopTicks { get => _cfg.Perfiles.MYM.MaxStopTicks; set { _cfg.Perfiles.MYM.MaxStopTicks = Math.Clamp(value, 2, 2000); Recalcular(); } }
 }

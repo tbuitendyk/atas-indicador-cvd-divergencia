@@ -13,7 +13,7 @@ public sealed partial class MotorSweeps
 		Barras = BarrasV.Barras,
 		P = P2,
 		Tick = Cfg.TamanoTick,
-		ContratosPorBarra = P2.ContratosPorBarra(Mnq),
+		ContratosPorBarra = P2.ContratosPorBarra(),
 		Fuentes = Fuentes,
 		Medianas = i => BarrasV.Medianas(i),
 		M5 = ContextoV2.M5,

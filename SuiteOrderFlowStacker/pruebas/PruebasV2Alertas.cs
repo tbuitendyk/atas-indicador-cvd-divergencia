@@ -51,17 +51,17 @@ internal static class PruebasV2Alertas
 		var p0 = new ParametrosV2 { NewsTimes = "" };
 		var despacho = new DespachoAlertasV2();
 		c.Check("cero alertas al recargar: las novedades del historial se descartan",
-			despacho.Procesar(novedadesB, enVivo: false, p0, "NQ", b.M.Precio, false).Count.ToString(), "0");
-		var vivas = despacho.Procesar(novedadesA, enVivo: true, p0, "NQ", a.M.Precio, false);
+			despacho.Procesar(novedadesB, enVivo: false, p0, "NQ", b.M.Precio, RaizInstrumento.NQ).Count.ToString(), "0");
+		var vivas = despacho.Procesar(novedadesA, enVivo: true, p0, "NQ", a.M.Precio, RaizInstrumento.NQ);
 		c.Check("en vivo, la misma ruptura sí avisa (RUPTURA arma MOD4)", vivas.Any(x => x.Texto.Contains("MOD4-C RUPTURA-RETROCESO armado", StringComparison.Ordinal)) ? "sí" : string.Join(" / ", vivas.Select(x => x.Texto)), "sí");
-		c.Check("una vez por evento: repetir las mismas novedades no vuelve a sonar", despacho.Procesar(novedadesA, enVivo: true, p0, "NQ", a.M.Precio, false).Count.ToString(), "0");
+		c.Check("una vez por evento: repetir las mismas novedades no vuelve a sonar", despacho.Procesar(novedadesA, enVivo: true, p0, "NQ", a.M.Precio, RaizInstrumento.NQ).Count.ToString(), "0");
 
 		c.Seccion("S10 Alertas (13): estado mínimo, NOTICIA, una vez por evento");
 		var p = new ParametrosV2 { NewsTimes = "" };
 		var nivel = new NivelLiquidez { Id = 1, Precio = 21380, Lado = Lado.Sellside, Origen = "Dia anterior", Grupo = "dia" };
 		EvaluacionBarrido Ev(EstadoBarrido estado, bool noticia = false) => new() { Id = 99, Nivel = nivel, Signo = -1, L = 21380, Estado = estado, Total = 72, Noticia = noticia, T0Utc = Utc(new DateTime(2026, 10, 30, 9, 50, 0)) };
 		NovedadV2 N(string tipo, EvaluacionBarrido e, SetupModelo? s = null) => new() { Tipo = tipo, Evaluacion = e, Setup = s, Utc = Utc(new DateTime(2026, 10, 30, 9, 55, 0)), Texto = tipo };
-		AlertaV2? Al(NovedadV2 n) => PoliticaAlertasV2.Evaluar(n, p, "NQ", x => x.ToString("#,##0.00", System.Globalization.CultureInfo.InvariantCulture), false);
+		AlertaV2? Al(NovedadV2 n) => PoliticaAlertasV2.Evaluar(n, p, "NQ", x => x.ToString("#,##0.00", System.Globalization.CultureInfo.InvariantCulture), RaizInstrumento.NQ);
 
 		c.Check("TRAMPA B con mínimo TRAMPA A: no suena", Al(N("CONFIRMADO", Ev(EstadoBarrido.TrampaB))) is null ? "no" : "sí", "no");
 		c.Check("TRAMPA A: suena (clasificación)", Al(N("CONFIRMADO", Ev(EstadoBarrido.TrampaA)))?.Categoria ?? "no", "Clasificacion");
@@ -71,7 +71,7 @@ internal static class PruebasV2Alertas
 			"Clasificacion Modelos Fallidos Fallidos");
 		c.Check("con NOTICIA nunca", Al(N("CONFIRMADO", Ev(EstadoBarrido.TrampaPremium, noticia: true))) is null ? "nada" : "suena", "nada");
 		var pn = new ParametrosV2 { NewsTimes = "09:55", NewsBlockMin = 5 };
-		c.Check("dentro del bloqueo de una hora de noticia tampoco", PoliticaAlertasV2.Evaluar(N("CONFIRMADO", Ev(EstadoBarrido.TrampaPremium)), pn, "NQ", x => "", false) is null ? "nada" : "suena", "nada");
+		c.Check("dentro del bloqueo de una hora de noticia tampoco", PoliticaAlertasV2.Evaluar(N("CONFIRMADO", Ev(EstadoBarrido.TrampaPremium)), pn, "NQ", x => "", RaizInstrumento.NQ) is null ? "nada" : "suena", "nada");
 		c.Check("la clave es la misma para el mismo evento (una vez por evento)", Al(N("FALLIDO", Ev(EstadoBarrido.Fallido)))?.Clave == Al(N("FALLIDO", Ev(EstadoBarrido.Fallido)))?.Clave ? "sí" : "no", "sí");
 		c.Check("modelos invalidados o cerrados: solo panel y CSV", $"{Al(N("MODELO CERRADO", Ev(EstadoBarrido.TrampaA))) is null} {Al(N("MODELO INVALIDADO", Ev(EstadoBarrido.TrampaA))) is null}", "True True");
 

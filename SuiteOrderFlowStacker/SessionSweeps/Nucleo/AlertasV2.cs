@@ -14,7 +14,7 @@ public sealed class DespachoAlertasV2
 {
 	private readonly HashSet<string> _vistas = new();
 
-	public List<AlertaV2> Procesar(IEnumerable<NovedadV2> novedades, bool enVivo, ParametrosV2 p, string simbolo, Func<decimal, string> precio, bool mnq)
+	public List<AlertaV2> Procesar(IEnumerable<NovedadV2> novedades, bool enVivo, ParametrosV2 p, string simbolo, Func<decimal, string> precio, RaizInstrumento raiz)
 	{
 		var r = new List<AlertaV2>();
 
@@ -26,7 +26,7 @@ public sealed class DespachoAlertasV2
 
 		foreach (var n in novedades)
 		{
-			if (PoliticaAlertasV2.Evaluar(n, p, simbolo, precio, mnq) is { } a && _vistas.Add(a.Clave))
+			if (PoliticaAlertasV2.Evaluar(n, p, simbolo, precio, raiz) is { } a && _vistas.Add(a.Clave))
 				r.Add(a);
 		}
 
@@ -47,7 +47,7 @@ public static class PoliticaAlertasV2
 	public const string Entrada = "Entrada";
 	public const string Fallidos = "Fallidos";
 
-	public static AlertaV2? Evaluar(NovedadV2 n, ParametrosV2 p, string simbolo, Func<decimal, string> precio, bool mnq)
+	public static AlertaV2? Evaluar(NovedadV2 n, ParametrosV2 p, string simbolo, Func<decimal, string> precio, RaizInstrumento raiz)
 	{
 		var e = n.Evaluacion;
 
@@ -76,7 +76,7 @@ public static class PoliticaAlertasV2
 			case "GATILLO VÁLIDO" when n.Setup is { } s:
 				var externa = s.Barrido?.Nivel.Grupo is "dia" or "semana";
 				return new AlertaV2(clave, Entrada, $"{simbolo} {hora} · {n.Texto}", externa, externa ? Asunto(s, simbolo) : null,
-					externa ? Cuerpo(s, simbolo, precio, mnq, n.Utc) : null);
+					externa ? Cuerpo(s, simbolo, precio, raiz, n.Utc) : null);
 
 			default:
 				return null;
@@ -87,7 +87,7 @@ public static class PoliticaAlertasV2
 		$"Sessions Sweeps Pro · {simbolo} · {s.Etiqueta} {(s.Signo > 0 ? "LARGO" : "CORTO")} · {s.Barrido?.Nombre ?? s.Zona.Tipo}";
 
 	/// <summary>Correo de una toma de liquidez externa válida: contexto, entrada, SL, TP y plan de riesgo.</summary>
-	public static string Cuerpo(SetupModelo s, string simbolo, Func<decimal, string> precio, bool mnq, DateTime utc)
+	public static string Cuerpo(SetupModelo s, string simbolo, Func<decimal, string> precio, RaizInstrumento raiz, DateTime utc)
 	{
 		var e = s.Barrido;
 		var sb = new StringBuilder();
@@ -110,7 +110,7 @@ public static class PoliticaAlertasV2
 		sb.AppendLine($"TP2     {(s.Tp2 is { } d ? precio(d) : "-")}");
 
 		if (s.Riesgo is { } plan)
-			sb.AppendLine(plan.Texto(mnq));
+			sb.AppendLine(plan.Texto(raiz));
 
 		if (s.Gatillo is { Razones.Count: > 0 } g)
 		{

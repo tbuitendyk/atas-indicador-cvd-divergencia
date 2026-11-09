@@ -143,6 +143,9 @@ public sealed class ConfiguracionSweeps
 	/// <summary>Parámetros de Session Sweeps Pro v2.0 (sección 15).</summary>
 	public ParametrosV2 V2 { get; } = new();
 
+	/// <summary>Un perfil por familia de contrato (NQ, ES, YM, MNQ, MES, MYM): nunca se comparten sus umbrales.</summary>
+	public PerfilesInstrumento Perfiles { get; } = new();
+
 	public const string Asia = "Asia", Londres = "Londres", Premercado = "Premercado", NyAm = "NY AM", NyPm = "NY PM";
 
 	public decimal TamanoTick { get; set; } = 0.25m;

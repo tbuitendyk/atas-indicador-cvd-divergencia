@@ -218,11 +218,11 @@ internal static class PruebasV2Modelos
 
 		c.Seccion("S7 T29: RiskCalculator y micro-impulso");
 		var p = new ParametrosV2 { RiskMode = ModoRiesgo.Monto, RiskAmountUSD = 200 };
-		var nq = CalculadoraRiesgo.Calcular(p, 21400, 21395, Tick, mnq: false);
-		var mnq = CalculadoraRiesgo.Calcular(p, 21400, 21395, Tick, mnq: true);
+		var nq = CalculadoraRiesgo.Calcular(p, 21400, 21395, Tick, Instrumentos.Referencia[RaizInstrumento.NQ].ValorTick);
+		var mnq = CalculadoraRiesgo.Calcular(p, 21400, 21395, Tick, Instrumentos.Referencia[RaizInstrumento.MNQ].ValorTick);
 		c.Check("T29 200 USD y stop de 20 ticks: 2 NQ / 20 MNQ", $"{nq.StopTicks} {nq.Contratos} {mnq.Contratos}", "20 2 20");
-		var poco = CalculadoraRiesgo.Calcular(new ParametrosV2 { RiskAmountUSD = 50 }, 21400, 21395, Tick, mnq: false);
-		c.Check("50 USD con stop de 20 ticks en NQ: RIESGO INSUFICIENTE: usar MNQ", poco.Texto(false).StartsWith("RIESGO INSUFICIENTE: usar MNQ").ToString(), "True");
+		var poco = CalculadoraRiesgo.Calcular(new ParametrosV2 { RiskAmountUSD = 50 }, 21400, 21395, Tick, Instrumentos.Referencia[RaizInstrumento.NQ].ValorTick);
+		c.Check("50 USD con stop de 20 ticks en NQ: RIESGO INSUFICIENTE: usar MNQ", poco.Texto(RaizInstrumento.NQ).StartsWith("RIESGO INSUFICIENTE: usar MNQ").ToString(), "True");
 		var pct = CalculadoraRiesgo.Riesgo(new ParametrosV2 { RiskMode = ModoRiesgo.Porcentaje, RiskPct = 0.5m, AccountSize = 50000 });
 		c.Check("modo porcentaje: 0,5 % de 50.000 = 250 USD", F(pct), "250");
 

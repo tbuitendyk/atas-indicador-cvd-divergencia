@@ -50,8 +50,14 @@ public sealed class PesoFuente
 public sealed class ParametrosV2
 {
 	// General
+	/// <summary>Efectivo: lo pone el perfil del instrumento (no se configura aquí).</summary>
 	public int VolumePerBar { get; set; } = 500;
-	public int VolumePerBarMnq { get; set; } = 1000;
+
+	/// <summary>Alias de símbolos (2.2): "ENQ=NQ;EP=ES".</summary>
+	public string AliasSimbolos { get; set; } = "";
+
+	/// <summary>VolumePerBar AUTO = mediana del volumen de 1 minuto en RTH × esta fracción (unas 3 barras por minuto típico).</summary>
+	public decimal VolumePerBarFraction { get; set; } = 0.33m;
 	public int MedianLookbackBars { get; set; } = 30;
 	public int PreT0DeltaSec { get; set; } = 60;
 	public int PanelRefreshMs { get; set; } = 250;
@@ -175,6 +181,6 @@ public sealed class ParametrosV2
 	public bool CvdShowMicro { get; set; } = true;
 	public int CvdMaxLookbackBars { get; set; } = 120;
 
-	/// <summary>Contratos por barra según el instrumento.</summary>
-	public int ContratosPorBarra(bool mnq) => Math.Max(10, mnq ? VolumePerBarMnq : VolumePerBar);
+	/// <summary>Contratos por barra efectivos (los pone el perfil del instrumento: manual, AUTO o provisional).</summary>
+	public int ContratosPorBarra() => Math.Max(10, VolumePerBar);
 }

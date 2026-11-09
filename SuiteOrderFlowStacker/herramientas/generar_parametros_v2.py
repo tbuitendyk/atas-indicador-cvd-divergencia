@@ -183,6 +183,72 @@ GRUPOS = [
 ]
 
 
+# --- Perfiles por instrumento (2.4): estos umbrales NO son generales; cada familia tiene los suyos -----------------------
+POR_INSTRUMENTO = {"VolumePerBar", "VolumePerBarMnq", "MinVolBeyondFloor", "SuperBigTradeMinContracts", "ImbalanceMinVolume",
+                   "ImbalanceRatio", "StackedMinLevels", "AggressorShareMin", "BurstSpeedMult", "F3DeltaPctMin", "ContDeltaPctMin",
+                   "DivergenceDeltaPctMin", "FinishedAuctionMaxContracts", "StopBufferTicks", "MaxStopTicks", "MinPenetrationTicks",
+                   "MaxSweepTicks", "RecoveryTicks"}
+GRUPOS = [(g, [x for x in ps if x[0] not in POR_INSTRUMENTO]) for g, ps in GRUPOS]
+
+RAICES = ["NQ", "ES", "YM", "MNQ", "MES", "MYM"]
+
+# (campo, tipo, nombre, descripción, mínimo, máximo)
+CAMPOS = [
+    ("VolumePerBarMode", "enum:ModoVolumenBarra", "Contratos por barra: modo",
+     "AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo.", None, None),
+    ("VolumePerBar", "int", "Contratos por barra (manual / provisional)", "En modo AUTO solo se usa si no hay datos de RTH.", 10, 100000),
+    ("VolumePerBarMin", "int", "AUTO: mínimo de contratos por barra", "Límite de seguridad del valor AUTO.", 10, 100000),
+    ("VolumePerBarMax", "int", "AUTO: máximo de contratos por barra", "Límite de seguridad del valor AUTO.", 10, 100000),
+    ("CalibrationLookbackSessions", "int", "Calibración: sesiones a usar", "Últimas sesiones con RTH del historial cargado.", 1, 250),
+    ("MinimumCalibrationSessions", "int", "Calibración: sesiones mínimas", "Con menos: CALIBRACIÓN INSUFICIENTE (valores PROVISIONAL).", 1, 250),
+    ("TimeOfDayBucketMinutes", "int", "Calibración: franja horaria (min)", "Medianas por franja para el volumen relativo.", 5, 120),
+    ("MinVolBeyondFloor", "int", "Volumen más allá: piso (contratos)", "Mínimo absoluto de contratos más allá del nivel.", 0, 100000),
+    ("SuperBigTradeMinContracts", "int", "Super big trade (contratos)", "Orden agresiva grande para el contexto de iceberg roto.", 1, 100000),
+    ("ImbalanceMinVolume", "int", "Imbalance: volumen mínimo (contratos)", "Del lado dominante.", 1, 100000),
+    ("FinishedAuctionMaxContracts", "int", "Subasta terminada: contratos máximos", "En el extremo.", 0, 1000),
+    ("ImbalanceRatio", "decimal", "Imbalance: ratio", "Diagonal (3 = 300 %).", 1.5, 10),
+    ("StackedMinLevels", "int", "Stacked: niveles mínimos", "Contiguos.", 2, 10),
+    ("AggressorShareMin", "decimal", "Agresor mínimo (fracción)", "Parte del volumen más allá del lado agresor.", 0.5, 1),
+    ("BurstSpeedMult", "decimal", "Ráfaga: × velocidad mediana", "Velocidad de 5 s respecto a la mediana de este instrumento.", 1, 10),
+    ("F3DeltaPctMin", "decimal", "F3: delta % mínimo", "Delta / volumen de la barra de desplazamiento.", 0, 1),
+    ("ContDeltaPctMin", "decimal", "Continuación: delta % mínimo", "", 0, 1),
+    ("DivergenceDeltaPctMin", "decimal", "Divergencia de delta mínima", "Delta % contra el movimiento.", 0, 1),
+    ("MinPenetrationTicks", "int", "Penetración mínima (ticks)", "Ticks de ESTE instrumento más allá del nivel.", 1, 200),
+    ("MaxSweepTicks", "int", "Barrido máximo (ticks)", "Más allá: se vigila la ruptura.", 2, 1000),
+    ("RecoveryTicks", "int", "Recuperación 1m/5m (ticks)", "Recuperación que valida el barrido.", 1, 1000),
+    ("StopBufferTicks", "int", "Margen del stop (ticks)", "Más allá de la zona, estructura o extremo.", 0, 200),
+    ("MaxStopTicks", "int", "Stop máximo (ticks)", "Con más: NO EJECUTABLE.", 2, 2000),
+]
+
+# Valores por defecto: espejo de PerfilInstrumento.PorDefecto (una prueba los compara con el código).
+BASE = {"VolumePerBarMode": "ModoVolumenBarra.AutoPorInstrumento", "VolumePerBar": "500", "VolumePerBarMin": "50", "VolumePerBarMax": "5000",
+        "CalibrationLookbackSessions": "20", "MinimumCalibrationSessions": "20", "TimeOfDayBucketMinutes": "15", "MinVolBeyondFloor": "50",
+        "SuperBigTradeMinContracts": "150", "ImbalanceMinVolume": "5", "FinishedAuctionMaxContracts": "2", "ImbalanceRatio": "3.0",
+        "StackedMinLevels": "3", "AggressorShareMin": "0.65", "BurstSpeedMult": "2.5", "F3DeltaPctMin": "0.25", "ContDeltaPctMin": "0.30",
+        "DivergenceDeltaPctMin": "0.15", "MinPenetrationTicks": "2", "MaxSweepTicks": "24", "RecoveryTicks": "16", "StopBufferTicks": "3",
+        "MaxStopTicks": "40"}
+ES_ = {"VolumePerBar": "1500", "MinVolBeyondFloor": "150", "SuperBigTradeMinContracts": "400", "ImbalanceMinVolume": "15",
+       "FinishedAuctionMaxContracts": "5", "MinPenetrationTicks": "1", "MaxSweepTicks": "8", "RecoveryTicks": "6", "StopBufferTicks": "2", "MaxStopTicks": "16"}
+YM_ = {"VolumePerBar": "150", "MinVolBeyondFloor": "15", "SuperBigTradeMinContracts": "40", "ImbalanceMinVolume": "2",
+       "FinishedAuctionMaxContracts": "1", "MinPenetrationTicks": "1", "MaxSweepTicks": "12", "RecoveryTicks": "8", "StopBufferTicks": "2", "MaxStopTicks": "25"}
+MNQ_ = {"VolumePerBar": "1000", "MinVolBeyondFloor": "100", "SuperBigTradeMinContracts": "300", "ImbalanceMinVolume": "10", "FinishedAuctionMaxContracts": "4"}
+DEFECTOS_PERFIL = {r: {**BASE, **extra} for r, extra in
+                   [("NQ", {}), ("ES", ES_), ("YM", YM_), ("MNQ", MNQ_), ("MES", ES_), ("MYM", YM_)]}
+
+GRUPOS.append(("30. Instrumentos", [
+    ("AliasSimbolos", "string", P + "AliasSimbolos", "Alias de símbolos",
+     "Si el proveedor usa otro nombre: ENQ=NQ;EP=ES. Sin reconocer: INSTRUMENTO NO SOPORTADO (sin señales).", None, None, True),
+    ("VolumePerBarFraction", "decimal", P + "VolumePerBarFraction", "AUTO: fracción del minuto típico",
+     "Contratos por barra AUTO = mediana del volumen de 1 minuto en RTH × esta fracción (normalizada: igual para todos).", 0.05, 2, True),
+]))
+
+for i, r in enumerate(RAICES):
+    nota = "" if r == "NQ" else " Valor inicial PROVISIONAL: calibrar."
+    GRUPOS.append((f"{31 + i}. Perfil {r}", [
+        (f"{r}_{campo}", tipo, f"_cfg.Perfiles.{r}.{campo}", f"{r}: {nombre}", (desc + nota).strip(), mn, mx, True)
+        for campo, tipo, nombre, desc, mn, mx in CAMPOS]))
+
+
 def numero(v, decimal_):
     if decimal_:
         return f"{v}m"
@@ -229,6 +295,9 @@ def defectos():
     for fuente in ("Iceberg", "Stops", "Sweeps", "Stacked", "Imbalance", "Absorption"):
         d[P + fuente + ".Enabled"] = "true"
         d[P + fuente + ".Weight"] = "1.0m"
+    for r, valores in DEFECTOS_PERFIL.items():
+        for campo, valor in valores.items():
+            d[f"_cfg.Perfiles.{r}.{campo}"] = valor
     with open(os.path.join(RAIZ, "SessionSweeps", "Atas", "SessionSweepsPro.V2.cs"), encoding="utf-8") as f:
         texto = f.read()
     bloque = texto[texto.index("class VisualV2"):texto.index("private const int MaximoRecalculosPorFuentes")]

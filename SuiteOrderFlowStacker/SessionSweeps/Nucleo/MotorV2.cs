@@ -123,7 +123,13 @@ public sealed partial class MotorSweeps
 	/// <summary>Trades guardados (los pone la carcasa; null = solo APROX desde el footprint).</summary>
 	public AlmacenTicks? Almacen { get; set; }
 
-	public bool Mnq { get; set; }
+	/// <summary>
+	/// Instrumento del gráfico (2.2): raíz, contrato, especificación, calibración. La carcasa siempre lo pone; el valor por
+	/// defecto (NQ validado) es solo para las pruebas.
+	/// </summary>
+	public EstadoInstrumento Instrumento { get; set; } = EstadoInstrumento.Crear("NQ", "", 0.25m, null, 500);
+
+	public RaizInstrumento Raiz => Instrumento.Raiz;
 
 	/// <summary>Minutos reconstruidos desde el footprint (sin trades) en la última vela procesada.</summary>
 	public bool UltimoMinutoAprox { get; private set; }
@@ -134,7 +140,7 @@ public sealed partial class MotorSweeps
 	{
 		BarrasV.AlCerrar ??= BarraCerradaV2;
 		BarrasV.Tick = Cfg.TamanoTick;
-		BarrasV.ContratosPorBarra = P2.ContratosPorBarra(Mnq);
+		BarrasV.ContratosPorBarra = P2.ContratosPorBarra();
 		BarrasV.MedianLookbackBars = P2.MedianLookbackBars;
 	}
 

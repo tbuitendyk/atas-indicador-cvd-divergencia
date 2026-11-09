@@ -100,7 +100,7 @@ public sealed partial class MotorSweeps
 		if (Setups.LastOrDefault(s => s.Riesgo is not null) is { Riesgo: { } plan } con)
 		{
 			var rr2 = con.Tp2 is { } t2 && con.Entrada is { } en && con.Stop is { } st && en != st ? Math.Abs(t2 - en) / Math.Abs(en - st) : 0;
-			L.Add(LineaPanel.De(new Segmento(plan.Texto(Mnq), plan.Insuficiente ? ColorPanel.Rojo : ColorPanel.Blanco, plan.Insuficiente)));
+			L.Add(LineaPanel.De(new Segmento(plan.Texto(Raiz), plan.Insuficiente ? ColorPanel.Rojo : ColorPanel.Blanco, plan.Insuficiente)));
 			L.Add(LineaPanel.De(new Segmento($"R:R TP1 {con.Gatillo?.RewardRisk:0.0} · TP2 {rr2:0.0} · Entrada {Precio(con.Entrada ?? 0)} · SL {Precio(con.Stop ?? 0)}")));
 		}
 
@@ -115,6 +115,12 @@ public sealed partial class MotorSweeps
 		L.Add(LineaPanel.Linea());
 		L.Add(LineaPanel.Seccion("8. CALIDAD Y TRAZABILIDAD"));
 		var hoy = Zonas.DiaOperativo(_ahoraV2 == default ? DateTime.UtcNow : _ahoraV2);
+		var ins = Instrumento;
+		L.Add(LineaPanel.De(new Segmento($"Instrumento: {(ins.Soportado ? $"{ins.Raiz} ({ins.Contrato})" : ins.Contrato)} · "),
+			ins.Bloqueo is { } bloqueo ? new Segmento(bloqueo, ColorPanel.Rojo, true)
+				: new Segmento($"tick {ins.Spec?.Tick} · {(ins.TickValidado ? $"{ins.ValorTick:0.##} USD/tick" : Instrumentos.NoValidado)} · {ins.VolumenPorBarra} contratos/barra · {ins.Perfil}" +
+					$"{(ins.Calibracion is { } cal ? $" ({cal.Sesiones} sesiones)" : "")}{(ins.Provisional ? " · PROVISIONAL" : "")}",
+					ins.TickValidado && !ins.Provisional ? ColorPanel.Blanco : ColorPanel.Naranja)));
 		L.Add(LineaPanel.De(new Segmento($"Módulo activo: {o.Version} · eventos del día: {Evaluaciones.Count(x => Zonas.DiaOperativo(x.T0Utc) == hoy)}")));
 		L.Add(LineaPanel.De(new Segmento($"Datos: {(UltimoMinutoAprox ? "APROX (footprint 1m)" : "TICKS")} · {(o.Mbo ? "MBO" : "INFERIDO")} · CSV {o.ArchivoCsv}")));
 		L.Add(LineaPanel.De(new Segmento("Fuentes: " + string.Join(" · ", Enum.GetValues<FuenteSuite>().Where(f => f != FuenteSuite.SessionSweeps)

@@ -6,9 +6,23 @@ using System.Globalization;
 /// <summary>Plan de riesgo (11.2-6) de una entrada.</summary>
 public readonly record struct PlanRiesgo(decimal RiesgoUsd, int Contratos, int StopTicks, decimal ValorTick, bool Insuficiente)
 {
-	public string Texto(bool mnq) => Insuficiente
-		? $"RIESGO INSUFICIENTE: usar MNQ (riesgo {RiesgoUsd:0} USD, stop {StopTicks} ticks)"
-		: $"Riesgo {RiesgoUsd.ToString("0", CultureInfo.InvariantCulture)} USD | {Contratos} {(mnq ? "MNQ" : "NQ")} | stop {StopTicks} ticks";
+	/// <summary>Sin valor del tick validado (2.3) no se calculan contratos.</summary>
+	public bool NoValidado => ValorTick <= 0;
+
+	public string Texto(RaizInstrumento raiz)
+	{
+		if (NoValidado)
+			return $"{Instrumentos.NoValidado}: sin cálculo de contratos (stop {StopTicks} ticks)";
+
+		var micro = Instrumentos.Micro(raiz);
+
+		if (Insuficiente)
+			return micro != raiz
+				? $"RIESGO INSUFICIENTE: usar {micro} (riesgo {RiesgoUsd:0} USD, stop {StopTicks} ticks)"
+				: $"RIESGO INSUFICIENTE para 1 {raiz} (riesgo {RiesgoUsd:0} USD, stop {StopTicks} ticks)";
+
+		return $"Riesgo {RiesgoUsd.ToString("0", CultureInfo.InvariantCulture)} USD | {Contratos} {raiz} | stop {StopTicks} ticks";
+	}
 }
 
 /// <summary>
@@ -17,7 +31,6 @@ public readonly record struct PlanRiesgo(decimal RiesgoUsd, int Contratos, int S
 /// </summary>
 public static class CalculadoraRiesgo
 {
-	public static decimal ValorTick(bool mnq) => mnq ? 0.50m : 5m;
 
 	public static decimal Riesgo(ParametrosV2 p, decimal? saldoAtas = null)
 	{
@@ -25,13 +38,13 @@ public static class CalculadoraRiesgo
 		return p.RiskMode == ModoRiesgo.Monto ? p.RiskAmountUSD : Math.Round(cuenta * p.RiskPct / 100m, 2);
 	}
 
-	public static PlanRiesgo Calcular(ParametrosV2 p, decimal entrada, decimal stop, decimal tick, bool mnq, decimal? saldoAtas = null)
+	/// <summary>Contratos con el valor del tick del instrumento (0 = no validado: sin contratos).</summary>
+	public static PlanRiesgo Calcular(ParametrosV2 p, decimal entrada, decimal stop, decimal tick, decimal valorTick, decimal? saldoAtas = null)
 	{
 		var stopTicks = tick > 0 ? (int)Math.Round(Math.Abs(entrada - stop) / tick) : 0;
 		var riesgo = Riesgo(p, saldoAtas);
-		var valor = ValorTick(mnq);
-		var contratos = stopTicks > 0 ? (int)Math.Floor(riesgo / (stopTicks * valor)) : 0;
-		return new PlanRiesgo(riesgo, contratos, stopTicks, valor, contratos < 1);
+		var contratos = stopTicks > 0 && valorTick > 0 ? (int)Math.Floor(riesgo / (stopTicks * valorTick)) : 0;
+		return new PlanRiesgo(riesgo, contratos, stopTicks, Math.Max(0, valorTick), valorTick > 0 && contratos < 1);
 	}
 
 	/// <summary>¿Se permite un añadido? El riesgo abierto total no puede pasar de MaxOpenRiskPct de la cuenta.</summary>

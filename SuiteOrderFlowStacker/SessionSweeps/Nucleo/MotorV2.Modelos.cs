@@ -96,6 +96,10 @@ public sealed partial class MotorSweeps
 			PermiteContinuidad = continuidad, DependeSoloDeLvn = z.Tipo == "LVN", Estado = EstadoModelo.Armado
 		};
 
+		// Instrumento no soportado (2.2): sin señales automáticas; el setup queda a la vista, invalidado.
+		if (Instrumento.Bloqueo is { } bloqueo)
+			(s.Estado, s.Motivo) = (EstadoModelo.Invalidado, bloqueo);
+
 		Setups.Add(s);
 
 		if (Setups.Count > 400)
@@ -481,7 +485,7 @@ public sealed partial class MotorSweeps
 	private void Entrar(SetupModelo s, AnalisisGatillo a, BarraVolumen b)
 	{
 		var utc = b.FinUtc;
-		var plan = CalculadoraRiesgo.Calcular(P2, a.Entrada!.Value, a.Stop!.Value, Cfg.TamanoTick, Mnq, SaldoAtas);
+		var plan = CalculadoraRiesgo.Calcular(P2, a.Entrada!.Value, a.Stop!.Value, Cfg.TamanoTick, Instrumento.ValorTick, SaldoAtas);
 
 		// Una posición por dirección; un añadido solo si el riesgo abierto total lo permite (MaxOpenRiskPct).
 		var abiertas = Setups.Where(x => x.Abierta && x.Signo == s.Signo).ToList();
@@ -500,7 +504,7 @@ public sealed partial class MotorSweeps
 		s.Zona.Resultado = "ENTRADA";
 		Micro.Reiniciar();
 		Novedad(s.Barrido, "GATILLO VÁLIDO", utc,
-			$"{s.Etiqueta} {(s.Signo > 0 ? "LARGO" : "CORTO")} | {a.Respuesta} | Entrada {Precio(a.Entrada.Value)} SL {Precio(a.Stop.Value)} TP1 {Precio(a.Tp1!.Value)} | {plan.Texto(Mnq)}", s);
+			$"{s.Etiqueta} {(s.Signo > 0 ? "LARGO" : "CORTO")} | {a.Respuesta} | Entrada {Precio(a.Entrada.Value)} SL {Precio(a.Stop.Value)} TP1 {Precio(a.Tp1!.Value)} | {plan.Texto(Raiz)}", s);
 	}
 
 	/// <summary>Gestión simulada: MAE/MFE, stop, TP1 (después actúa el micro-impulso) y TP2.</summary>

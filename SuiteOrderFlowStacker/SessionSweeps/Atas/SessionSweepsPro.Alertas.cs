@@ -78,7 +78,7 @@ public partial class SessionSweepsPro
 			}
 		}
 
-		foreach (var a in _despacho.Procesar(novedades, _enVivo, _cfg.V2, motor.Simbolo, motor.Precio, motor.Mnq))
+		foreach (var a in _despacho.Procesar(novedades, _enVivo && motor.Instrumento.Bloqueo is null, _cfg.V2, motor.Simbolo, motor.Precio, motor.Raiz))
 		{
 
 			var sonar = a.Categoria switch

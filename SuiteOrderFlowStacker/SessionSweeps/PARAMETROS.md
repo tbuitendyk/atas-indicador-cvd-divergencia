@@ -8,8 +8,6 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 
 | Parámetro | En ATAS | Defecto | Rango | Descripción |
 |---|---|---|---|---|
-| `VolumePerBar` | Contratos por barra (NQ) | 500 | 10-100000 | Cada barra de volumen cierra al llegar a estos contratos. NQ: 500 (calibrar con el CSV). |
-| `VolumePerBarMnq` | Contratos por barra (MNQ) | 1000 | 10-100000 | El MNQ negocia más contratos: 1000 como punto de partida. |
 | `MedianLookbackBars` | Barras para las medianas | 30 | 5-500 | Medianas de duración, rango y volumen (solo barras de RTH). Recomendado: 30. |
 | `PreT0DeltaSec` | Delta previo a T0 (s) | 60 | 5-600 | Segundos antes de la ruptura para el delta previo. Recomendado: 60. |
 | `PanelRefreshMs` | Refresco del panel (ms) | 250 | 100-5000 | Cada cuánto se redibuja el panel flotante. Recomendado: 250. |
@@ -51,21 +49,15 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 
 | Parámetro | En ATAS | Defecto | Rango | Descripción |
 |---|---|---|---|---|
-| `MinPenetrationTicks` | Penetración mínima (ticks) | 2 | 1-40 | Ticks más allá del nivel para que cuente como barrido. |
-| `MaxSweepTicks` | Barrido máximo (ticks) | 24 | 4-200 | Más allá de esto deja de ser un barrido y se vigila la ruptura. |
-| `BurstSpeedMult` | Ráfaga: × velocidad mediana | 2.5 | 1-10 | Velocidad de 5 s respecto a la mediana para una ráfaga de stops. |
 | `FastBarDurationMult` | Barra rápida: × duración mediana | 0.5 | 0.1-1 | Barra de volumen que dura menos de esto = rápida. |
-| `AggressorShareMin` | Agresor mínimo (fracción) | 0.65 | 0.5-1 | Parte del volumen más allá del nivel del lado agresor (0,65 = 65 %). |
 | `StopsEventWindowSec` | Ventana de eventos de stops (s) | 30 | 1-300 | Alrededor de T0. |
 | `VolBeyondRelMult` | Volumen más allá: × medio de barridos | 1.5 | 0.5-10 | Respecto a los últimos barridos. |
 | `SweepHistoryCount` | Barridos para la media | 20 | 3-200 | Barridos anteriores para el volumen relativo. |
-| `MinVolBeyondFloor` | Volumen más allá: piso (contratos) | 50 | 0-100000 | Mínimo absoluto. |
 
 ## 20. Absorción
 
 | Parámetro | En ATAS | Defecto | Rango | Descripción |
 |---|---|---|---|---|
-| `DivergenceDeltaPctMin` | Divergencia de delta mínima | 0.15 | 0-1 | Delta % de la barra contra el movimiento (0,15 = 15 %). |
 | `IcebergMaxDistTicks` | Iceberg: distancia máxima (ticks) | 2 | 0-20 | Del extremo del barrido. |
 | `F2MinBars` | F2: barras mínimas | 2 | 1-20 | Compresión tras el extremo. |
 | `F2MaxBars` | F2: barras máximas | 5 | 1-30 |  |
@@ -73,10 +65,6 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `CompressionRangeMult` | Compresión: × rango mediano | 0.5 | 0.1-2 |  |
 | `CompressionMaxTicks` | Compresión: máximo (ticks) | 8 | 1-60 |  |
 | `ValueAreaPct` | Área de valor (fracción) | 0.70 | 0.5-0.95 | 0,70 = 70 % del volumen. |
-| `FinishedAuctionMaxContracts` | Subasta terminada: contratos máximos | 2 | 0-50 | En el extremo. |
-| `StackedMinLevels` | Stacked: niveles mínimos | 3 | 2-10 | Contiguos. |
-| `ImbalanceRatio` | Imbalance: ratio | 3.0 | 1.5-10 | Diagonal (3 = 300 %). |
-| `ImbalanceMinVolume` | Imbalance: volumen mínimo | 5 | 1-1000 | Del lado dominante. |
 
 ## 21. Recuperación
 
@@ -87,11 +75,7 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `CompositeMaxBars` | Vela compuesta: barras máximas | 7 | 2-30 |  |
 | `ZoneMaxBars` | Zona: barras máximas | 10 | 2-60 |  |
 | `F3RangeMult` | F3: × rango mediano | 1.5 | 0.5-10 | Barra de desplazamiento. |
-| `F3DeltaPctMin` | F3: delta % mínimo | 0.25 | 0-1 |  |
-| `ContDeltaPctMin` | Continuación: delta % mínimo | 0.30 | 0-1 |  |
 | `DeltaFlipMin` | Giro de delta mínimo | 0.20 | 0-1 |  |
-| `RecoveryTicks` | Recuperación 1m/5m (ticks) | 16 | 1-200 | Recuperación que valida el barrido en el panel (anexo: 16). |
-| `StopBufferTicks` | Margen del stop (ticks) | 3 | 0-40 | Más allá de la zona, estructura o POC; también para FALLIDO. |
 
 ## 22. Estados y alertas
 
@@ -134,8 +118,6 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `Mod4MaxRetracePct` | MOD4: retroceso máximo | 0.618 | 0.1-1 | Fracción de la pierna (0,618). |
 | `Mod4MaxAttempts` | MOD4: intentos máximos | 2 | 1-10 | Entradas por ruptura. |
 | `MinRR` | R:R mínimo | 1.5 | 0.5-10 |  |
-| `MaxStopTicks` | Stop máximo (ticks) | 40 | 4-400 |  |
-| `SuperBigTradeMinContracts` | MOD3: super big trade (contratos) | 150 | 10-100000 | El documento no fija el valor: calibrar con el CSV. |
 | `StopMode` | Modo del stop | ZonaEstructura |  |  |
 
 ## 25. Riesgo
@@ -184,3 +166,178 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `ShowLvnLines` | LVN del Thermal | Sí |  | Las zonas que llegan del Thermal (activas y mitigadas). |
 | `ShowManualTriggerBoxes` | Cajas del gatillo manual | No |  | Las dibuja el Thermal que las pidió; actívelo solo si el Thermal está en otro gráfico. |
 | `ShowCvdDivergences` | Divergencias del CVD en el precio | Sí |  | Tramos entre pivotes, sin líneas verticales. |
+
+## 30. Instrumentos
+
+| Parámetro | En ATAS | Defecto | Rango | Descripción |
+|---|---|---|---|---|
+| `AliasSimbolos` | Alias de símbolos |  |  | Si el proveedor usa otro nombre: ENQ=NQ;EP=ES. Sin reconocer: INSTRUMENTO NO SOPORTADO (sin señales). |
+| `VolumePerBarFraction` | AUTO: fracción del minuto típico | 0.33 | 0.05-2 | Contratos por barra AUTO = mediana del volumen de 1 minuto en RTH × esta fracción (normalizada: igual para todos). |
+
+## 31. Perfil NQ
+
+| Parámetro | En ATAS | Defecto | Rango | Descripción |
+|---|---|---|---|---|
+| `NQ_VolumePerBarMode` | NQ: Contratos por barra: modo | AutoPorInstrumento |  | AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo. |
+| `NQ_VolumePerBar` | NQ: Contratos por barra (manual / provisional) | 500 | 10-100000 | En modo AUTO solo se usa si no hay datos de RTH. |
+| `NQ_VolumePerBarMin` | NQ: AUTO: mínimo de contratos por barra | 50 | 10-100000 | Límite de seguridad del valor AUTO. |
+| `NQ_VolumePerBarMax` | NQ: AUTO: máximo de contratos por barra | 5000 | 10-100000 | Límite de seguridad del valor AUTO. |
+| `NQ_CalibrationLookbackSessions` | NQ: Calibración: sesiones a usar | 20 | 1-250 | Últimas sesiones con RTH del historial cargado. |
+| `NQ_MinimumCalibrationSessions` | NQ: Calibración: sesiones mínimas | 20 | 1-250 | Con menos: CALIBRACIÓN INSUFICIENTE (valores PROVISIONAL). |
+| `NQ_TimeOfDayBucketMinutes` | NQ: Calibración: franja horaria (min) | 15 | 5-120 | Medianas por franja para el volumen relativo. |
+| `NQ_MinVolBeyondFloor` | NQ: Volumen más allá: piso (contratos) | 50 | 0-100000 | Mínimo absoluto de contratos más allá del nivel. |
+| `NQ_SuperBigTradeMinContracts` | NQ: Super big trade (contratos) | 150 | 1-100000 | Orden agresiva grande para el contexto de iceberg roto. |
+| `NQ_ImbalanceMinVolume` | NQ: Imbalance: volumen mínimo (contratos) | 5 | 1-100000 | Del lado dominante. |
+| `NQ_FinishedAuctionMaxContracts` | NQ: Subasta terminada: contratos máximos | 2 | 0-1000 | En el extremo. |
+| `NQ_ImbalanceRatio` | NQ: Imbalance: ratio | 3.0 | 1.5-10 | Diagonal (3 = 300 %). |
+| `NQ_StackedMinLevels` | NQ: Stacked: niveles mínimos | 3 | 2-10 | Contiguos. |
+| `NQ_AggressorShareMin` | NQ: Agresor mínimo (fracción) | 0.65 | 0.5-1 | Parte del volumen más allá del lado agresor. |
+| `NQ_BurstSpeedMult` | NQ: Ráfaga: × velocidad mediana | 2.5 | 1-10 | Velocidad de 5 s respecto a la mediana de este instrumento. |
+| `NQ_F3DeltaPctMin` | NQ: F3: delta % mínimo | 0.25 | 0-1 | Delta / volumen de la barra de desplazamiento. |
+| `NQ_ContDeltaPctMin` | NQ: Continuación: delta % mínimo | 0.30 | 0-1 |  |
+| `NQ_DivergenceDeltaPctMin` | NQ: Divergencia de delta mínima | 0.15 | 0-1 | Delta % contra el movimiento. |
+| `NQ_MinPenetrationTicks` | NQ: Penetración mínima (ticks) | 2 | 1-200 | Ticks de ESTE instrumento más allá del nivel. |
+| `NQ_MaxSweepTicks` | NQ: Barrido máximo (ticks) | 24 | 2-1000 | Más allá: se vigila la ruptura. |
+| `NQ_RecoveryTicks` | NQ: Recuperación 1m/5m (ticks) | 16 | 1-1000 | Recuperación que valida el barrido. |
+| `NQ_StopBufferTicks` | NQ: Margen del stop (ticks) | 3 | 0-200 | Más allá de la zona, estructura o extremo. |
+| `NQ_MaxStopTicks` | NQ: Stop máximo (ticks) | 40 | 2-2000 | Con más: NO EJECUTABLE. |
+
+## 32. Perfil ES
+
+| Parámetro | En ATAS | Defecto | Rango | Descripción |
+|---|---|---|---|---|
+| `ES_VolumePerBarMode` | ES: Contratos por barra: modo | AutoPorInstrumento |  | AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo. Valor inicial PROVISIONAL: calibrar. |
+| `ES_VolumePerBar` | ES: Contratos por barra (manual / provisional) | 1500 | 10-100000 | En modo AUTO solo se usa si no hay datos de RTH. Valor inicial PROVISIONAL: calibrar. |
+| `ES_VolumePerBarMin` | ES: AUTO: mínimo de contratos por barra | 50 | 10-100000 | Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar. |
+| `ES_VolumePerBarMax` | ES: AUTO: máximo de contratos por barra | 5000 | 10-100000 | Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar. |
+| `ES_CalibrationLookbackSessions` | ES: Calibración: sesiones a usar | 20 | 1-250 | Últimas sesiones con RTH del historial cargado. Valor inicial PROVISIONAL: calibrar. |
+| `ES_MinimumCalibrationSessions` | ES: Calibración: sesiones mínimas | 20 | 1-250 | Con menos: CALIBRACIÓN INSUFICIENTE (valores PROVISIONAL). Valor inicial PROVISIONAL: calibrar. |
+| `ES_TimeOfDayBucketMinutes` | ES: Calibración: franja horaria (min) | 15 | 5-120 | Medianas por franja para el volumen relativo. Valor inicial PROVISIONAL: calibrar. |
+| `ES_MinVolBeyondFloor` | ES: Volumen más allá: piso (contratos) | 150 | 0-100000 | Mínimo absoluto de contratos más allá del nivel. Valor inicial PROVISIONAL: calibrar. |
+| `ES_SuperBigTradeMinContracts` | ES: Super big trade (contratos) | 400 | 1-100000 | Orden agresiva grande para el contexto de iceberg roto. Valor inicial PROVISIONAL: calibrar. |
+| `ES_ImbalanceMinVolume` | ES: Imbalance: volumen mínimo (contratos) | 15 | 1-100000 | Del lado dominante. Valor inicial PROVISIONAL: calibrar. |
+| `ES_FinishedAuctionMaxContracts` | ES: Subasta terminada: contratos máximos | 5 | 0-1000 | En el extremo. Valor inicial PROVISIONAL: calibrar. |
+| `ES_ImbalanceRatio` | ES: Imbalance: ratio | 3.0 | 1.5-10 | Diagonal (3 = 300 %). Valor inicial PROVISIONAL: calibrar. |
+| `ES_StackedMinLevels` | ES: Stacked: niveles mínimos | 3 | 2-10 | Contiguos. Valor inicial PROVISIONAL: calibrar. |
+| `ES_AggressorShareMin` | ES: Agresor mínimo (fracción) | 0.65 | 0.5-1 | Parte del volumen más allá del lado agresor. Valor inicial PROVISIONAL: calibrar. |
+| `ES_BurstSpeedMult` | ES: Ráfaga: × velocidad mediana | 2.5 | 1-10 | Velocidad de 5 s respecto a la mediana de este instrumento. Valor inicial PROVISIONAL: calibrar. |
+| `ES_F3DeltaPctMin` | ES: F3: delta % mínimo | 0.25 | 0-1 | Delta / volumen de la barra de desplazamiento. Valor inicial PROVISIONAL: calibrar. |
+| `ES_ContDeltaPctMin` | ES: Continuación: delta % mínimo | 0.30 | 0-1 | Valor inicial PROVISIONAL: calibrar. |
+| `ES_DivergenceDeltaPctMin` | ES: Divergencia de delta mínima | 0.15 | 0-1 | Delta % contra el movimiento. Valor inicial PROVISIONAL: calibrar. |
+| `ES_MinPenetrationTicks` | ES: Penetración mínima (ticks) | 1 | 1-200 | Ticks de ESTE instrumento más allá del nivel. Valor inicial PROVISIONAL: calibrar. |
+| `ES_MaxSweepTicks` | ES: Barrido máximo (ticks) | 8 | 2-1000 | Más allá: se vigila la ruptura. Valor inicial PROVISIONAL: calibrar. |
+| `ES_RecoveryTicks` | ES: Recuperación 1m/5m (ticks) | 6 | 1-1000 | Recuperación que valida el barrido. Valor inicial PROVISIONAL: calibrar. |
+| `ES_StopBufferTicks` | ES: Margen del stop (ticks) | 2 | 0-200 | Más allá de la zona, estructura o extremo. Valor inicial PROVISIONAL: calibrar. |
+| `ES_MaxStopTicks` | ES: Stop máximo (ticks) | 16 | 2-2000 | Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar. |
+
+## 33. Perfil YM
+
+| Parámetro | En ATAS | Defecto | Rango | Descripción |
+|---|---|---|---|---|
+| `YM_VolumePerBarMode` | YM: Contratos por barra: modo | AutoPorInstrumento |  | AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo. Valor inicial PROVISIONAL: calibrar. |
+| `YM_VolumePerBar` | YM: Contratos por barra (manual / provisional) | 150 | 10-100000 | En modo AUTO solo se usa si no hay datos de RTH. Valor inicial PROVISIONAL: calibrar. |
+| `YM_VolumePerBarMin` | YM: AUTO: mínimo de contratos por barra | 50 | 10-100000 | Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar. |
+| `YM_VolumePerBarMax` | YM: AUTO: máximo de contratos por barra | 5000 | 10-100000 | Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar. |
+| `YM_CalibrationLookbackSessions` | YM: Calibración: sesiones a usar | 20 | 1-250 | Últimas sesiones con RTH del historial cargado. Valor inicial PROVISIONAL: calibrar. |
+| `YM_MinimumCalibrationSessions` | YM: Calibración: sesiones mínimas | 20 | 1-250 | Con menos: CALIBRACIÓN INSUFICIENTE (valores PROVISIONAL). Valor inicial PROVISIONAL: calibrar. |
+| `YM_TimeOfDayBucketMinutes` | YM: Calibración: franja horaria (min) | 15 | 5-120 | Medianas por franja para el volumen relativo. Valor inicial PROVISIONAL: calibrar. |
+| `YM_MinVolBeyondFloor` | YM: Volumen más allá: piso (contratos) | 15 | 0-100000 | Mínimo absoluto de contratos más allá del nivel. Valor inicial PROVISIONAL: calibrar. |
+| `YM_SuperBigTradeMinContracts` | YM: Super big trade (contratos) | 40 | 1-100000 | Orden agresiva grande para el contexto de iceberg roto. Valor inicial PROVISIONAL: calibrar. |
+| `YM_ImbalanceMinVolume` | YM: Imbalance: volumen mínimo (contratos) | 2 | 1-100000 | Del lado dominante. Valor inicial PROVISIONAL: calibrar. |
+| `YM_FinishedAuctionMaxContracts` | YM: Subasta terminada: contratos máximos | 1 | 0-1000 | En el extremo. Valor inicial PROVISIONAL: calibrar. |
+| `YM_ImbalanceRatio` | YM: Imbalance: ratio | 3.0 | 1.5-10 | Diagonal (3 = 300 %). Valor inicial PROVISIONAL: calibrar. |
+| `YM_StackedMinLevels` | YM: Stacked: niveles mínimos | 3 | 2-10 | Contiguos. Valor inicial PROVISIONAL: calibrar. |
+| `YM_AggressorShareMin` | YM: Agresor mínimo (fracción) | 0.65 | 0.5-1 | Parte del volumen más allá del lado agresor. Valor inicial PROVISIONAL: calibrar. |
+| `YM_BurstSpeedMult` | YM: Ráfaga: × velocidad mediana | 2.5 | 1-10 | Velocidad de 5 s respecto a la mediana de este instrumento. Valor inicial PROVISIONAL: calibrar. |
+| `YM_F3DeltaPctMin` | YM: F3: delta % mínimo | 0.25 | 0-1 | Delta / volumen de la barra de desplazamiento. Valor inicial PROVISIONAL: calibrar. |
+| `YM_ContDeltaPctMin` | YM: Continuación: delta % mínimo | 0.30 | 0-1 | Valor inicial PROVISIONAL: calibrar. |
+| `YM_DivergenceDeltaPctMin` | YM: Divergencia de delta mínima | 0.15 | 0-1 | Delta % contra el movimiento. Valor inicial PROVISIONAL: calibrar. |
+| `YM_MinPenetrationTicks` | YM: Penetración mínima (ticks) | 1 | 1-200 | Ticks de ESTE instrumento más allá del nivel. Valor inicial PROVISIONAL: calibrar. |
+| `YM_MaxSweepTicks` | YM: Barrido máximo (ticks) | 12 | 2-1000 | Más allá: se vigila la ruptura. Valor inicial PROVISIONAL: calibrar. |
+| `YM_RecoveryTicks` | YM: Recuperación 1m/5m (ticks) | 8 | 1-1000 | Recuperación que valida el barrido. Valor inicial PROVISIONAL: calibrar. |
+| `YM_StopBufferTicks` | YM: Margen del stop (ticks) | 2 | 0-200 | Más allá de la zona, estructura o extremo. Valor inicial PROVISIONAL: calibrar. |
+| `YM_MaxStopTicks` | YM: Stop máximo (ticks) | 25 | 2-2000 | Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar. |
+
+## 34. Perfil MNQ
+
+| Parámetro | En ATAS | Defecto | Rango | Descripción |
+|---|---|---|---|---|
+| `MNQ_VolumePerBarMode` | MNQ: Contratos por barra: modo | AutoPorInstrumento |  | AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_VolumePerBar` | MNQ: Contratos por barra (manual / provisional) | 1000 | 10-100000 | En modo AUTO solo se usa si no hay datos de RTH. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_VolumePerBarMin` | MNQ: AUTO: mínimo de contratos por barra | 50 | 10-100000 | Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_VolumePerBarMax` | MNQ: AUTO: máximo de contratos por barra | 5000 | 10-100000 | Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_CalibrationLookbackSessions` | MNQ: Calibración: sesiones a usar | 20 | 1-250 | Últimas sesiones con RTH del historial cargado. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_MinimumCalibrationSessions` | MNQ: Calibración: sesiones mínimas | 20 | 1-250 | Con menos: CALIBRACIÓN INSUFICIENTE (valores PROVISIONAL). Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_TimeOfDayBucketMinutes` | MNQ: Calibración: franja horaria (min) | 15 | 5-120 | Medianas por franja para el volumen relativo. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_MinVolBeyondFloor` | MNQ: Volumen más allá: piso (contratos) | 100 | 0-100000 | Mínimo absoluto de contratos más allá del nivel. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_SuperBigTradeMinContracts` | MNQ: Super big trade (contratos) | 300 | 1-100000 | Orden agresiva grande para el contexto de iceberg roto. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_ImbalanceMinVolume` | MNQ: Imbalance: volumen mínimo (contratos) | 10 | 1-100000 | Del lado dominante. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_FinishedAuctionMaxContracts` | MNQ: Subasta terminada: contratos máximos | 4 | 0-1000 | En el extremo. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_ImbalanceRatio` | MNQ: Imbalance: ratio | 3.0 | 1.5-10 | Diagonal (3 = 300 %). Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_StackedMinLevels` | MNQ: Stacked: niveles mínimos | 3 | 2-10 | Contiguos. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_AggressorShareMin` | MNQ: Agresor mínimo (fracción) | 0.65 | 0.5-1 | Parte del volumen más allá del lado agresor. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_BurstSpeedMult` | MNQ: Ráfaga: × velocidad mediana | 2.5 | 1-10 | Velocidad de 5 s respecto a la mediana de este instrumento. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_F3DeltaPctMin` | MNQ: F3: delta % mínimo | 0.25 | 0-1 | Delta / volumen de la barra de desplazamiento. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_ContDeltaPctMin` | MNQ: Continuación: delta % mínimo | 0.30 | 0-1 | Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_DivergenceDeltaPctMin` | MNQ: Divergencia de delta mínima | 0.15 | 0-1 | Delta % contra el movimiento. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_MinPenetrationTicks` | MNQ: Penetración mínima (ticks) | 2 | 1-200 | Ticks de ESTE instrumento más allá del nivel. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_MaxSweepTicks` | MNQ: Barrido máximo (ticks) | 24 | 2-1000 | Más allá: se vigila la ruptura. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_RecoveryTicks` | MNQ: Recuperación 1m/5m (ticks) | 16 | 1-1000 | Recuperación que valida el barrido. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_StopBufferTicks` | MNQ: Margen del stop (ticks) | 3 | 0-200 | Más allá de la zona, estructura o extremo. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_MaxStopTicks` | MNQ: Stop máximo (ticks) | 40 | 2-2000 | Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar. |
+
+## 35. Perfil MES
+
+| Parámetro | En ATAS | Defecto | Rango | Descripción |
+|---|---|---|---|---|
+| `MES_VolumePerBarMode` | MES: Contratos por barra: modo | AutoPorInstrumento |  | AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo. Valor inicial PROVISIONAL: calibrar. |
+| `MES_VolumePerBar` | MES: Contratos por barra (manual / provisional) | 1500 | 10-100000 | En modo AUTO solo se usa si no hay datos de RTH. Valor inicial PROVISIONAL: calibrar. |
+| `MES_VolumePerBarMin` | MES: AUTO: mínimo de contratos por barra | 50 | 10-100000 | Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar. |
+| `MES_VolumePerBarMax` | MES: AUTO: máximo de contratos por barra | 5000 | 10-100000 | Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar. |
+| `MES_CalibrationLookbackSessions` | MES: Calibración: sesiones a usar | 20 | 1-250 | Últimas sesiones con RTH del historial cargado. Valor inicial PROVISIONAL: calibrar. |
+| `MES_MinimumCalibrationSessions` | MES: Calibración: sesiones mínimas | 20 | 1-250 | Con menos: CALIBRACIÓN INSUFICIENTE (valores PROVISIONAL). Valor inicial PROVISIONAL: calibrar. |
+| `MES_TimeOfDayBucketMinutes` | MES: Calibración: franja horaria (min) | 15 | 5-120 | Medianas por franja para el volumen relativo. Valor inicial PROVISIONAL: calibrar. |
+| `MES_MinVolBeyondFloor` | MES: Volumen más allá: piso (contratos) | 150 | 0-100000 | Mínimo absoluto de contratos más allá del nivel. Valor inicial PROVISIONAL: calibrar. |
+| `MES_SuperBigTradeMinContracts` | MES: Super big trade (contratos) | 400 | 1-100000 | Orden agresiva grande para el contexto de iceberg roto. Valor inicial PROVISIONAL: calibrar. |
+| `MES_ImbalanceMinVolume` | MES: Imbalance: volumen mínimo (contratos) | 15 | 1-100000 | Del lado dominante. Valor inicial PROVISIONAL: calibrar. |
+| `MES_FinishedAuctionMaxContracts` | MES: Subasta terminada: contratos máximos | 5 | 0-1000 | En el extremo. Valor inicial PROVISIONAL: calibrar. |
+| `MES_ImbalanceRatio` | MES: Imbalance: ratio | 3.0 | 1.5-10 | Diagonal (3 = 300 %). Valor inicial PROVISIONAL: calibrar. |
+| `MES_StackedMinLevels` | MES: Stacked: niveles mínimos | 3 | 2-10 | Contiguos. Valor inicial PROVISIONAL: calibrar. |
+| `MES_AggressorShareMin` | MES: Agresor mínimo (fracción) | 0.65 | 0.5-1 | Parte del volumen más allá del lado agresor. Valor inicial PROVISIONAL: calibrar. |
+| `MES_BurstSpeedMult` | MES: Ráfaga: × velocidad mediana | 2.5 | 1-10 | Velocidad de 5 s respecto a la mediana de este instrumento. Valor inicial PROVISIONAL: calibrar. |
+| `MES_F3DeltaPctMin` | MES: F3: delta % mínimo | 0.25 | 0-1 | Delta / volumen de la barra de desplazamiento. Valor inicial PROVISIONAL: calibrar. |
+| `MES_ContDeltaPctMin` | MES: Continuación: delta % mínimo | 0.30 | 0-1 | Valor inicial PROVISIONAL: calibrar. |
+| `MES_DivergenceDeltaPctMin` | MES: Divergencia de delta mínima | 0.15 | 0-1 | Delta % contra el movimiento. Valor inicial PROVISIONAL: calibrar. |
+| `MES_MinPenetrationTicks` | MES: Penetración mínima (ticks) | 1 | 1-200 | Ticks de ESTE instrumento más allá del nivel. Valor inicial PROVISIONAL: calibrar. |
+| `MES_MaxSweepTicks` | MES: Barrido máximo (ticks) | 8 | 2-1000 | Más allá: se vigila la ruptura. Valor inicial PROVISIONAL: calibrar. |
+| `MES_RecoveryTicks` | MES: Recuperación 1m/5m (ticks) | 6 | 1-1000 | Recuperación que valida el barrido. Valor inicial PROVISIONAL: calibrar. |
+| `MES_StopBufferTicks` | MES: Margen del stop (ticks) | 2 | 0-200 | Más allá de la zona, estructura o extremo. Valor inicial PROVISIONAL: calibrar. |
+| `MES_MaxStopTicks` | MES: Stop máximo (ticks) | 16 | 2-2000 | Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar. |
+
+## 36. Perfil MYM
+
+| Parámetro | En ATAS | Defecto | Rango | Descripción |
+|---|---|---|---|---|
+| `MYM_VolumePerBarMode` | MYM: Contratos por barra: modo | AutoPorInstrumento |  | AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_VolumePerBar` | MYM: Contratos por barra (manual / provisional) | 150 | 10-100000 | En modo AUTO solo se usa si no hay datos de RTH. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_VolumePerBarMin` | MYM: AUTO: mínimo de contratos por barra | 50 | 10-100000 | Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_VolumePerBarMax` | MYM: AUTO: máximo de contratos por barra | 5000 | 10-100000 | Límite de seguridad del valor AUTO. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_CalibrationLookbackSessions` | MYM: Calibración: sesiones a usar | 20 | 1-250 | Últimas sesiones con RTH del historial cargado. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_MinimumCalibrationSessions` | MYM: Calibración: sesiones mínimas | 20 | 1-250 | Con menos: CALIBRACIÓN INSUFICIENTE (valores PROVISIONAL). Valor inicial PROVISIONAL: calibrar. |
+| `MYM_TimeOfDayBucketMinutes` | MYM: Calibración: franja horaria (min) | 15 | 5-120 | Medianas por franja para el volumen relativo. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_MinVolBeyondFloor` | MYM: Volumen más allá: piso (contratos) | 15 | 0-100000 | Mínimo absoluto de contratos más allá del nivel. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_SuperBigTradeMinContracts` | MYM: Super big trade (contratos) | 40 | 1-100000 | Orden agresiva grande para el contexto de iceberg roto. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_ImbalanceMinVolume` | MYM: Imbalance: volumen mínimo (contratos) | 2 | 1-100000 | Del lado dominante. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_FinishedAuctionMaxContracts` | MYM: Subasta terminada: contratos máximos | 1 | 0-1000 | En el extremo. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_ImbalanceRatio` | MYM: Imbalance: ratio | 3.0 | 1.5-10 | Diagonal (3 = 300 %). Valor inicial PROVISIONAL: calibrar. |
+| `MYM_StackedMinLevels` | MYM: Stacked: niveles mínimos | 3 | 2-10 | Contiguos. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_AggressorShareMin` | MYM: Agresor mínimo (fracción) | 0.65 | 0.5-1 | Parte del volumen más allá del lado agresor. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_BurstSpeedMult` | MYM: Ráfaga: × velocidad mediana | 2.5 | 1-10 | Velocidad de 5 s respecto a la mediana de este instrumento. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_F3DeltaPctMin` | MYM: F3: delta % mínimo | 0.25 | 0-1 | Delta / volumen de la barra de desplazamiento. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_ContDeltaPctMin` | MYM: Continuación: delta % mínimo | 0.30 | 0-1 | Valor inicial PROVISIONAL: calibrar. |
+| `MYM_DivergenceDeltaPctMin` | MYM: Divergencia de delta mínima | 0.15 | 0-1 | Delta % contra el movimiento. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_MinPenetrationTicks` | MYM: Penetración mínima (ticks) | 1 | 1-200 | Ticks de ESTE instrumento más allá del nivel. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_MaxSweepTicks` | MYM: Barrido máximo (ticks) | 12 | 2-1000 | Más allá: se vigila la ruptura. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_RecoveryTicks` | MYM: Recuperación 1m/5m (ticks) | 8 | 1-1000 | Recuperación que valida el barrido. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_StopBufferTicks` | MYM: Margen del stop (ticks) | 2 | 0-200 | Más allá de la zona, estructura o extremo. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_MaxStopTicks` | MYM: Stop máximo (ticks) | 25 | 2-2000 | Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar. |

@@ -36,8 +36,8 @@ Plan: [PLAN_V3.md](PLAN_V3.md) · especificación: [PROMPT_V3.md](PROMPT_V3.md) 
 |---|---|---|
 | S1 Plan | **hecha** | PLAN_V3.md |
 | S2 Nombre visible | **hecha** | En ATAS: **Sessions Sweeps Pro (Suite)** y **Sessions Sweeps CVD (Suite)**; panel SESSIONS SWEEPS PRO; correo, ventana, Thermal y mensajes. Las clases no cambian de nombre: las plantillas guardadas de ATAS siguen funcionando (sin migración). |
-| S3 Perfiles e instrumento | pendiente | |
-| S4 Parámetros por instrumento y calibración | pendiente | |
+| S3 Perfiles e instrumento | **hecha** | `Nucleo/Instrumentos.cs`: NQ, ES, YM, MNQ, MES, MYM (alias configurables, la raíz más larga gana), especificación CME y validación del tick de ATAS (`VALOR DE CONTRATO NO VALIDADO`: sin contratos), `INSTRUMENTO NO SOPORTADO`: setups invalidados y sin alertas. Riesgo con el valor del tick del instrumento ("usar MES/MYM/MNQ"). |
+| S4 Parámetros por instrumento y calibración | **hecha** | Grupos 31-36 "Perfil NQ/ES/YM/MNQ/MES/MYM" (23 valores cada uno; ES, YM y micros PROVISIONAL, nunca copiados de NQ). Calibración con las velas de 1 min RTH cargadas: medianas de volumen y \|delta\| (también por franja), VolumePerBar AUTO = mediana × 0,33 con límites; CALIBRADO / CALIBRACIÓN INSUFICIENTE / CONFIGURACIÓN MANUAL; guardada por familia en `%APPDATA%\\ATAS\\OrderFlowSuite\\SessionsSweeps\\perfiles`. Pruebas 1-7, 9, 10, 30, 34. |
 | S5 Bus, latidos, EdgeZone | pendiente | |
 | S6 Trackers: panel propio apagado, diagnóstico, VALIDACION_TRACKERS.md | pendiente | |
 | S7 Paneles (cabecera + 17 recuadros, Thermal) | pendiente | |
