@@ -37,7 +37,7 @@ public partial class ThermalVolumeProfileLVN
 	private string Instrumento => InstrumentInfo?.Instrument ?? "";
 
 	/// <summary>Rango del perfil (modo y fechas): si cambia, es un rango nuevo.</summary>
-	private string IdentidadRango() => $"{_rangeMode}|{_startDateTime:O}|{_endDateTime:O}|{_lastNBars}|{_sessionStart}|{_sessionEnd}";
+	private string IdentidadRango() => $"{_rangeMode}|{_startDateTime:O}|{_endDateTime:O}|{_lastNBars}|{_sessionStart}|{_sessionEnd}|{PiernaActiva}|{PiernaDesdeUtc:O}|{PiernaHastaUtc:O}";
 
 	/// <summary>Al empezar un cálculo (vela 0): si el rango cambió, se borran las líneas (opción) y se publica RangeReset.</summary>
 	private void SuiteAlReiniciar()
@@ -55,10 +55,12 @@ public partial class ThermalVolumeProfileLVN
 
 		_identidadRango = identidad;
 		_seguidorLvn.Reiniciar();
+		_seguidorEdge.Reiniciar();
 		(_ultimaSeguida, _seguidorCargado) = (-1, false);
 
+		// Solo las del instrumento de este gráfico (las de otros quedan guardadas).
 		if (ClearLinesOnNewRange && !_conservarLineas)
-			_manualLvnPrices = "";
+			_manualLvnPrices = LvnManualesTexto.Escribir(ManualesGuardados().Where(m => m.Instrumento != Instrumento));
 
 		_conservarLineas = false;
 		var anterior = _rangoId++;
@@ -120,11 +122,13 @@ public partial class ThermalVolumeProfileLVN
 			{
 				var c = GetCandle(i);
 				_seguidorLvn.Precio(c.High, c.Low, c.Close);
+				_seguidorEdge.Precio(c.High, c.Low, c.Close);
 			}
 		}
 
 		// La primera vez (fin de la carga) el perfil sale de velas cerradas: se confirma en el acto.
 		_seguidorLvn.Actualizar(r.Lvns, cerrada, ahora, _seguidorCargado ? LvnConfirmUpdates : 1, LvnHysteresisPct);
+		SuitePublicarEdges(r, cerrada, ahora, _seguidorCargado ? LvnConfirmUpdates : 1);
 		(_ultimaSeguida, _seguidorCargado) = (ultima, true);
 
 		var actuales = new Dictionary<long, LvnZone>();

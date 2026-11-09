@@ -122,6 +122,19 @@ public enum MetodoLvn
 	PorcentajePocHeredado
 }
 
+/// <summary>Dibujo de los EDGE (v3, 8): separado del cálculo.</summary>
+public enum DibujoEdge
+{
+	[Display(Name = "Línea")]
+	Linea,
+
+	[Display(Name = "Franja")]
+	Franja,
+
+	[Display(Name = "Línea y franja")]
+	LineaYFranja
+}
+
 public enum DibujosLvn
 {
 	[Display(Name = "Línea")]
@@ -241,6 +254,27 @@ public sealed class ParametrosTermicos
 	public int LvnMinScore { get; set; } = 30;
 	public int LvnNarrowTicks { get; set; } = 8;
 	public int ManualSnapTicks { get; set; } = 4;
+
+	// EDGE v3 (8): en el perfil fino, con los parámetros en ticks del instrumento (no en filas de dibujo).
+#if SUITE
+	public bool EdgeEnPerfilFino { get; set; } = true;
+#else
+	public bool EdgeEnPerfilFino { get; set; }
+#endif
+	public int EdgeWindowTicks { get; set; } = 4;
+	public int EdgeConfirmTicks { get; set; } = 6;
+	public double EdgeSmoothSigmaTicks { get; set; } = 1.0;
+
+	/// <summary>Copia con los parámetros de EDGE en filas de un perfil de 'ticksPorFila' ticks.</summary>
+	public ParametrosTermicos EnFilas(int ticksPorFila)
+	{
+		var c = (ParametrosTermicos)MemberwiseClone();
+		var tpf = Math.Max(1, ticksPorFila);
+		c.EdgeWindowRows = Math.Max(1, (int)Math.Round(EdgeWindowTicks / (double)tpf));
+		c.EdgeConfirmRows = Math.Max(1, (int)Math.Round(EdgeConfirmTicks / (double)tpf));
+		c.EdgeSmoothSigma = EdgeSmoothSigmaTicks / tpf;
+		return c;
+	}
 }
 
 public sealed class EdgeTermico
@@ -254,6 +288,9 @@ public sealed class EdgeTermico
 	public bool Absorbido;
 
 	public string Etiqueta(Func<decimal, string> formato) => $"EDGE {(Superior ? "ARRIBA" : "ABAJO")} {formato(Precio)}";
+
+	/// <summary>v3 (8): TECHO_HVN = el HVN debajo y el bajo volumen arriba; PISO_HVN = el HVN encima y el bajo volumen abajo.</summary>
+	public string Lado => Superior ? "TECHO_HVN" : "PISO_HVN";
 }
 
 public sealed class SpikeTermico
@@ -316,6 +353,9 @@ public sealed class ResultadoTermico
 
 	/// <summary>Perfil fino de detección (v3), si se calculó.</summary>
 	public Perfil? Fino;
+
+	/// <summary>EDGE calculados en el perfil fino con parámetros en ticks (v3, 8): no cambian con el agrupamiento del dibujo.</summary>
+	public List<EdgeTermico> EdgesFino = new();
 
 	public decimal PrecioPoc => Perfil.PrecioFila(Poc);
 
@@ -574,7 +614,7 @@ public static partial class MotorTermico
 	/// (null = el mismo perfil). Los LVN manuales cuentan como LVN y tienen prioridad sobre los automáticos.
 	/// </summary>
 	public static ResultadoTermico Analizar(Perfil perfil, Perfil? detectores, ParametrosTermicos c, ZonaBusqueda? zona,
-		IReadOnlyList<decimal>? lvnManuales = null, Perfil? fino = null)
+		IReadOnlyList<decimal>? lvnManuales = null, Perfil? fino = null, IReadOnlyList<(decimal Centro, decimal Bajo, decimal Alto)>? manualesZona = null)
 	{
 		var r = new ResultadoTermico { Perfil = perfil, Detectores = detectores ?? perfil };
 
@@ -605,9 +645,15 @@ public static partial class MotorTermico
 
 		// 6. LVN: el nuevo detector trabaja en el perfil fino (si lo hay); el heredado, en el de los detectores.
 		r.Lvns = c.LvnMethod == MetodoLvn.ValleEntrePicos && fino is { Filas: > 4 }
-			? DetectarLvnValles(fino, c, Zona(c.LVNUseZone), lvnManuales)
+			? DetectarLvnValles(fino, c, Zona(c.LVNUseZone), lvnManuales, manualesZona)
 			: DetectarLvn(d, c, Zona(c.LVNUseZone), lvnManuales);
 		r.Fino = fino;
+
+		if (c.EnableEdge && c.EdgeEnPerfilFino && fino is { Filas: > 4 })
+		{
+			r.EdgesFino = DetectarEdges(fino, c.EnFilas(fino.TicksPorFila), Zona(c.EdgeUseZone))
+				.OrderByDescending(e => e.Score).Take(Math.Max(0, c.MaxEdges)).OrderByDescending(e => e.Precio).ToList();
+		}
 
 		// Lo que se dibuja: EDGE no absorbidos por un clúster y espigas fuera de los clústeres (si se pide).
 		r.Edges = c.EnableEdge
@@ -1243,6 +1289,20 @@ public static class Rangos
 	public static int UltimaHasta(Func<int, DateTime> tiempo, int total, DateTime t) => PrimeraDesde(tiempo, total, t.AddTicks(1)) - 1;
 
 	/// <summary>
+	/// Rango de una PIERNA congelada (v3, 7.8): las velas cerradas entre su inicio y su fin. Es fijo: velas nuevas no lo
+	/// cambian, así el perfil congelado no suma volumen nuevo.
+	/// </summary>
+	public static (int Desde, int Hasta)? Pierna(Func<int, DateTime> tiempo, int total, DateTime desdeUtc, DateTime hastaUtc)
+	{
+		if (hastaUtc <= desdeUtc || total < 2)
+			return null;
+
+		var desde = PrimeraDesde(tiempo, total, desdeUtc);
+		var hasta = Math.Min(total - 2, UltimaHasta(tiempo, total, hastaUtc));
+		return desde <= hasta ? (desde, hasta) : null;
+	}
+
+	/// <summary>
 	/// Velas del perfil [desde, hasta] (UTC en 'tiempo'). Sin UseCurrentBarAsEnd, los modos que llegan al presente se
 	/// quedan en la última vela cerrada (el perfil no cambia en vivo). Devuelve null si el rango queda vacío.
 	/// </summary>
@@ -1479,9 +1539,12 @@ public static partial class MotorTermico
 	/// Puntuación 0-100 (7.6, solo ranking): profundidad hasta 40, estrecho hasta 15, volumen muy bajo hasta 15; los 15 de
 	/// "no tocado" los suma el estabilizador y los 15 de FVG Sessions Sweeps Pro.
 	/// </summary>
-	public static List<LvnTermico> DetectarLvnValles(Perfil fino, ParametrosTermicos c, ZonaBusqueda? zona, IReadOnlyList<decimal>? manuales)
+	public static List<LvnTermico> DetectarLvnValles(Perfil fino, ParametrosTermicos c, ZonaBusqueda? zona, IReadOnlyList<decimal>? manuales,
+		IReadOnlyList<(decimal Centro, decimal Bajo, decimal Alto)>? manualesZona = null)
 	{
-		var resultado = c.ShowManualLVN ? ManualesAjustados(fino, manuales, c.ManualSnapTicks) : new List<LvnTermico>();
+		var resultado = !c.ShowManualLVN ? new List<LvnTermico>()
+			: manualesZona is not null ? ManualesAjustados(fino, manualesZona, c.ManualSnapTicks)
+			: ManualesAjustados(fino, manuales, c.ManualSnapTicks);
 
 		if (!c.EnableLVN || fino.Filas < 5)
 			return resultado;
@@ -1631,11 +1694,37 @@ public static partial class MotorTermico
 	/// LVN manuales (7.9): cada uno se ajusta al mínimo de volumen real a +/- snap ticks en el perfil fino; si se mueve,
 	/// se conserva el precio original. Sin perfil fino, quedan donde se marcaron.
 	/// </summary>
-	public static List<LvnTermico> ManualesAjustados(Perfil fino, IReadOnlyList<decimal>? manuales, int snapTicks)
+	public static List<LvnTermico> ManualesAjustados(Perfil fino, IReadOnlyList<decimal>? manuales, int snapTicks) =>
+		ManualesAjustados(fino, (manuales ?? Array.Empty<decimal>()).Distinct().Select(p => (p, p, p)).ToList(), snapTicks);
+
+	/// <summary>
+	/// LVN manuales como punto o como zona (7.9): un punto se ajusta al mínimo real a +/- snap ticks; una zona (arrastre
+	/// vertical) conserva sus límites y su centro va al mínimo real dentro de ella.
+	/// </summary>
+	public static List<LvnTermico> ManualesAjustados(Perfil fino, IReadOnlyList<(decimal Centro, decimal Bajo, decimal Alto)> manuales, int snapTicks)
 	{
 		var r = new List<LvnTermico>();
 
-		foreach (var precio in (manuales ?? Array.Empty<decimal>()).Distinct().OrderByDescending(x => x))
+		foreach (var zonaManual in manuales.Where(m => m.Alto > m.Bajo).OrderByDescending(m => m.Centro))
+		{
+			var (desde, hasta) = (fino.FilaDePrecio(zonaManual.Bajo), fino.FilaDePrecio(zonaManual.Alto));
+			var centro = fino.FilaDePrecio(zonaManual.Centro);
+
+			for (var f = Math.Max(0, desde); f <= Math.Min(fino.Filas - 1, hasta); f++)
+			{
+				if (centro < 0 || centro >= fino.Filas || fino.Valor[f] < fino.Valor[centro])
+					centro = f;
+			}
+
+			var precioCentro = centro >= 0 && centro < fino.Filas ? fino.PrecioFila(centro) : zonaManual.Centro;
+			r.Add(new LvnTermico
+			{
+				Fila = centro, Inferior = desde, Superior = hasta, Precio = precioCentro, Bajo = zonaManual.Bajo, Alto = zonaManual.Alto, Manual = true, Metodo = "MANUAL",
+				WidthTicks = (int)Math.Round((zonaManual.Alto - zonaManual.Bajo) / Math.Max(fino.Tick, 0.0000001m)) + 1
+			});
+		}
+
+		foreach (var precio in manuales.Where(m => m.Alto <= m.Bajo).Select(m => m.Centro).Distinct().OrderByDescending(x => x))
 		{
 			var fila = fino.FilaDePrecio(precio);
 			var mejor = fila;
@@ -1683,6 +1772,14 @@ public sealed class ZonaLvnEstable
 
 	public bool Provisional = true;
 	public int Confirmaciones, Ausencias;
+
+	/// <summary>Toques separados (entrar después de haber estado fuera): primer toque y toques repetidos son eventos distintos.</summary>
+	public int Toques;
+
+	public bool DentroAntes;
+
+	/// <summary>EDGE: TECHO_HVN o PISO_HVN (vacío en los LVN).</summary>
+	public string LadoEdge = "";
 	public DateTime CreadoUtc;
 	public DateTime? ConfirmadoUtc;
 	public bool Tocado;
@@ -1729,7 +1826,7 @@ public sealed class SeguidorLvn
 				z = new ZonaLvnEstable
 				{
 					Id = _siguiente++, Bajo = bajo, Alto = alto, Centro = d.Precio, Manual = d.Manual, CreadoUtc = ahoraUtc, PrecioOriginal = d.PrecioOriginal,
-					Provisional = !d.Manual, ConfirmadoUtc = d.Manual ? ahoraUtc : null
+					Provisional = !d.Manual, ConfirmadoUtc = d.Manual ? ahoraUtc : null, LadoEdge = d.Metodo is "TECHO_HVN" or "PISO_HVN" ? d.Metodo : ""
 				};
 				Zonas.Add(z);
 			}
@@ -1768,7 +1865,14 @@ public sealed class SeguidorLvn
 		{
 			var antes = _ultimoCierre == 0 ? 0 : z.Lado(_ultimoCierre);
 
-			if (bajo > z.Alto || alto < z.Bajo)
+			var toca = !(bajo > z.Alto || alto < z.Bajo);
+
+			if (toca && !z.DentroAntes)
+				z.Toques++;
+
+			z.DentroAntes = toca;
+
+			if (!toca)
 				continue;
 
 			if (!z.Tocado)
@@ -1783,6 +1887,127 @@ public sealed class SeguidorLvn
 		}
 
 		_ultimoCierre = cierre;
+	}
+}
+
+#endregion
+
+
+#region LVN manuales guardados (v3, 7.9) y conversión de pantalla a precio
+
+/// <summary>Un LVN manual guardado: Centro | Bajo | Alto | Instrumento | RangeId | Origen | HoraUtc.</summary>
+public sealed record LvnManualGuardado(decimal Centro, decimal Bajo, decimal Alto, string Instrumento, long RangoId, string Origen, DateTime HoraUtc)
+{
+	public bool EsZona => Alto > Bajo;
+}
+
+/// <summary>
+/// Formato de los LVN manuales (7.9): entradas separadas por ';' con sus campos separados por '|'. El formato antiguo
+/// (solo precios) se migra al leer: instrumento y rango actuales, origen MANUAL, hora de la migración.
+/// </summary>
+public static class LvnManualesTexto
+{
+	private static readonly System.Globalization.CultureInfo Inv = System.Globalization.CultureInfo.InvariantCulture;
+
+	public static List<LvnManualGuardado> Leer(string? texto, string instrumento, long rangoId, DateTime ahoraUtc)
+	{
+		var r = new List<LvnManualGuardado>();
+
+		foreach (var parte in (texto ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+		{
+			var c = parte.Split('|');
+
+			if (c.Length >= 7 && decimal.TryParse(c[0], System.Globalization.NumberStyles.Number, Inv, out var centro) &&
+			    decimal.TryParse(c[1], System.Globalization.NumberStyles.Number, Inv, out var bajo) &&
+			    decimal.TryParse(c[2], System.Globalization.NumberStyles.Number, Inv, out var alto) &&
+			    long.TryParse(c[4], System.Globalization.NumberStyles.Integer, Inv, out var rango))
+			{
+				var hora = DateTime.TryParse(c[6], Inv, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal, out var h)
+					? DateTime.SpecifyKind(h, DateTimeKind.Utc)
+					: ahoraUtc;
+				r.Add(new LvnManualGuardado(centro, Math.Min(bajo, alto), Math.Max(bajo, alto), c[3], rango, c[5].Length > 0 ? c[5] : "MANUAL", hora));
+			}
+			else if (c.Length == 1 && decimal.TryParse(parte.Replace(',', '.'), System.Globalization.NumberStyles.Number, Inv, out var precio))
+			{
+				// Formato antiguo (solo el precio): se migra.
+				r.Add(new LvnManualGuardado(precio, precio, precio, instrumento, rangoId, "MANUAL", ahoraUtc));
+			}
+		}
+
+		return r;
+	}
+
+	public static string Escribir(IEnumerable<LvnManualGuardado> lvns) => string.Join(";", lvns.Select(l =>
+		string.Join("|", l.Centro.ToString(Inv), l.Bajo.ToString(Inv), l.Alto.ToString(Inv), l.Instrumento, l.RangoId.ToString(Inv), l.Origen,
+			l.HoraUtc.ToString("yyyy-MM-ddTHH:mm:ssZ", Inv))));
+}
+
+/// <summary>Pantalla → precio (7.2, 7.9) invirtiendo la propia conversión de ATAS (respeta escalas no lineales).</summary>
+public static class Pantalla
+{
+	/// <summary>
+	/// El precio (múltiplo del tick) cuya Y de ATAS está más cerca de 'y'. Busca primero un intervalo que contenga 'y'
+	/// alrededor de 'referencia' y lo parte en dos; vale para cualquier escala en que la Y baje al subir el precio.
+	/// </summary>
+	public static decimal PrecioDeY(int y, Func<decimal, int> yDePrecio, decimal referencia, decimal tick)
+	{
+		if (tick <= 0)
+			return referencia;
+
+		long Ticks(decimal p) => (long)Math.Round(p / tick, MidpointRounding.AwayFromZero);
+		var r = Ticks(referencia);
+		long bajo = r, alto = r, paso = 4;
+
+		// Un precio más alto da una Y más pequeña (más arriba en la pantalla).
+		for (var i = 0; i < 60 && yDePrecio(bajo * tick) < y; i++, paso *= 2)
+			bajo = r - paso;
+
+		paso = 4;
+
+		for (var i = 0; i < 60 && yDePrecio(alto * tick) > y; i++, paso *= 2)
+			alto = r + paso;
+
+		while (alto - bajo > 1)
+		{
+			var medio = bajo + (alto - bajo) / 2;
+
+			if (yDePrecio(medio * tick) > y)
+				bajo = medio;
+			else
+				alto = medio;
+		}
+
+		return Math.Abs(yDePrecio(bajo * tick) - y) <= Math.Abs(yDePrecio(alto * tick) - y) ? bajo * tick : alto * tick;
+	}
+}
+
+#endregion
+
+
+#region EDGE v3: lado de un EDGE manual
+
+public static partial class MotorTermico
+{
+	/// <summary>
+	/// Lado de un EDGE marcado a mano (8): con el perfil fino, más volumen debajo que encima en 'ventana' ticks =
+	/// TECHO_HVN (el HVN queda debajo); si no, PISO_HVN.
+	/// </summary>
+	public static string LadoEdge(Perfil fino, decimal precio, int ventanaTicks)
+	{
+		var fila = fino.FilaDePrecio(precio);
+		var n = Math.Max(1, ventanaTicks / Math.Max(1, fino.TicksPorFila));
+		double abajo = 0, arriba = 0;
+
+		for (var k = 1; k <= n; k++)
+		{
+			if (fila - k >= 0 && fila - k < fino.Filas)
+				abajo += fino.Valor[fila - k];
+
+			if (fila + k >= 0 && fila + k < fino.Filas)
+				arriba += fino.Valor[fila + k];
+		}
+
+		return abajo >= arriba ? "TECHO_HVN" : "PISO_HVN";
 	}
 }
 

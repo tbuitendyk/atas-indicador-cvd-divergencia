@@ -300,13 +300,21 @@ public partial class ThermalVolumeProfileLVN
 		RedrawChart();
 	}
 
+	/// <summary>Botones del panel Thermal (4.2): Perfil, Rango, Pierna, Zona, LVN, Borrar LVN, Deshacer, EDGE, Gatillo, Borrar gatillo.</summary>
 	private IReadOnlyList<BotonPanel> BotonesThermal() => new List<BotonPanel>
 	{
 		new(() => "PERFIL: " + SiNo(ShowProfile), () => { ShowProfile = !ShowProfile; RedrawChart(); }, () => ShowProfile),
 		new(() => "RANGO", () => Elegir(Herramienta.Rango), () => _herramienta == Herramienta.Rango),
-		new(() => "ZONA LVN", () => Elegir(Herramienta.Zona), () => _herramienta == Herramienta.Zona),
-		new(() => "LÍNEAS LVN", () => Elegir(Herramienta.Lvn), () => _herramienta == Herramienta.Lvn),
+		new(() => PiernaActiva ? "PIERNA: DESCONGELAR" : "PIERNA", () => { if (PiernaActiva) SuiteDescongelar(); else Elegir(Herramienta.Pierna); },
+			() => _herramienta == Herramienta.Pierna || PiernaActiva),
+		new(() => "BORRAR PIERNA", SuiteBorrarPierna),
+		new(() => "ZONA", () => Elegir(Herramienta.Zona), () => _herramienta == Herramienta.Zona),
+		new(() => "LVN", () => Elegir(Herramienta.Lvn), () => _herramienta == Herramienta.Lvn),
+		new(() => "BORRAR LVN", SuiteBorrarLvn),
+		new(() => "DESHACER", SuiteDeshacerLvn),
+		new(() => "EDGE", () => Elegir(Herramienta.Edge), () => _herramienta == Herramienta.Edge),
 		new(() => "GATILLO", () => Elegir(Herramienta.Gatillo), () => _herramienta == Herramienta.Gatillo),
+		new(() => "BORRAR GATILLO", SuiteBorrarGatillo),
 		new(() => "Tipo: " + (_tipoManual switch { TipoAnalisisManual.VelaVolumen => "VELA", TipoAnalisisManual.VelaCompuesta => "COMPUESTA", _ => "AUTO" }),
 			() => _tipoManual = (TipoAnalisisManual)(((int)_tipoManual + 1) % 3)),
 		new(() => "Dirección: " + (_direccionManual switch { DireccionManual.Largo => "LARGO", DireccionManual.Corto => "CORTO", _ => "AUTO" }),
@@ -319,13 +327,6 @@ public partial class ThermalVolumeProfileLVN
 			RedrawChart();
 		}),
 		new(() => "Recalcular", () => SuiteReevaluar(DateTime.UtcNow, todas: true)),
-		new(() => "Borrar cajas", () =>
-		{
-			lock (_syncCajas)
-				_cajas.Clear();
-
-			RedrawChart();
-		}),
 		new(() => "FVG: " + SiNo(VisualActual()?.Fvg), () => CambiarVisual(v => new VisualSuite { Fvg = !v.Fvg, Interna = v.Interna, Externa = v.Externa })),
 		new(() => "Interna: " + SiNo(VisualActual()?.Interna), () => CambiarVisual(v => new VisualSuite { Fvg = v.Fvg, Interna = !v.Interna, Externa = v.Externa })),
 		new(() => "Externa: " + SiNo(VisualActual()?.Externa), () => CambiarVisual(v => new VisualSuite { Fvg = v.Fvg, Interna = v.Interna, Externa = !v.Externa }))
@@ -361,12 +362,21 @@ public partial class ThermalVolumeProfileLVN
 			_ => new Segmento("NO CARGADO (añádalo a un gráfico de 1 minuto)", ColorPanel.Amarillo)
 		}));
 
+		var edges = _seguidorEdge.Zonas.Count;
+		L.Add(LineaPanel.De(new Segmento($"EDGE: {(!_p.EnableEdge ? "DETECCIÓN APAGADA" : $"{edges} activos{(ShowEdgeLines ? "" : " · dibujo apagado (cálculo activo)")}")}",
+			_p.EnableEdge ? ColorPanel.Blanco : ColorPanel.Naranja)));
+
+		if (PiernaActiva)
+			L.Add(LineaPanel.De(new Segmento($"PERFIL CONGELADO: pierna {TiempoV2.HoraCdmx(PiernaDesdeUtc)} a {TiempoV2.HoraCdmx(PiernaHastaUtc)}", ColorPanel.AzulClaro, true)));
+
 		var ayuda = _herramienta switch
 		{
 			Herramienta.Rango => "RANGO: arrastre sobre el gráfico de inicio a fin",
 			Herramienta.Zona => "ZONA LVN: arrastre un rectángulo de precios",
-			Herramienta.Lvn => "LÍNEAS LVN: clic = nueva línea (válida para MOD2), clic sobre una = quitar",
+			Herramienta.Lvn => "LVN: clic = punto, arrastre vertical = zona, clic sobre uno = quitar (válidos para el Modelo B)",
 			Herramienta.Gatillo => "GATILLO: arrastre un recuadro sobre las velas del retroceso (ESC cancela)",
+			Herramienta.Pierna => "PIERNA: arrastre de inicio a fin de la pierna (se congela su perfil)",
+			Herramienta.Edge => "EDGE: clic = EDGE manual (lado por el perfil); clic sobre uno = quitar",
 			_ => "Elija una herramienta"
 		};
 		L.Add(LineaPanel.De(new Segmento(ayuda, _herramienta == Herramienta.Ninguna ? ColorPanel.Gris : ColorPanel.Naranja)));

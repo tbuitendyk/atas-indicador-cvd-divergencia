@@ -649,7 +649,15 @@ public partial class ThermalVolumeProfile : Indicator
 		}
 
 		var total = ultima + 1;
+#if SUITE
+		var rango = SuiteRangoPierna(total) ?? Rangos.Resolver(ParametrosDeRango(instrumento.TimeZoneOffset), Tiempo, total);
+		var manualesZona = SuiteManualesZona();
+		var manuales = manualesZona.Select(m => m.Centro).ToList();
+#else
 		var rango = Rangos.Resolver(ParametrosDeRango(instrumento.TimeZoneOffset), Tiempo, total);
+		IReadOnlyList<(decimal Centro, decimal Bajo, decimal Alto)>? manualesZona = null;
+		var manuales = Utilidades.LeerPrecios(_manualLvnPrices);
+#endif
 
 		if (rango is not { } r)
 		{
@@ -687,8 +695,8 @@ public partial class ThermalVolumeProfile : Indicator
 
 		_p.ValueAreaPercent = (double)_valueAreaPercent;
 		var resultado = conFiltro && detectores is null
-			? MotorTermico.Analizar(perfil, new Perfil { Tick = perfil.Tick, TicksPorFila = perfil.TicksPorFila }, _p, zona, Utilidades.LeerPrecios(_manualLvnPrices))
-			: MotorTermico.Analizar(perfil, detectores, _p, zona, Utilidades.LeerPrecios(_manualLvnPrices), conFiltro ? finoFiltro : finoPrincipal);
+			? MotorTermico.Analizar(perfil, new Perfil { Tick = perfil.Tick, TicksPorFila = perfil.TicksPorFila }, _p, zona, manuales)
+			: MotorTermico.Analizar(perfil, detectores, _p, zona, manuales, conFiltro ? finoFiltro : finoPrincipal, manualesZona);
 
 		_resultado = resultado;
 		_ultimoAnalisis = DateTime.UtcNow;
@@ -745,7 +753,8 @@ public partial class ThermalVolumeProfile : Indicator
 		}
 
 		// Perfil fino de detección (v3, 7.3), aparte del de dibujo: lo usan el detector de valles y el ajuste de los manuales.
-		if (_p.LvnMethod == MetodoLvn.ValleEntrePicos || (_p.ShowManualLVN && _p.ManualSnapTicks > 0 && !string.IsNullOrWhiteSpace(_manualLvnPrices)))
+		if (_p.LvnMethod == MetodoLvn.ValleEntrePicos || (_p.EnableEdge && _p.EdgeEnPerfilFino) ||
+		    (_p.ShowManualLVN && _p.ManualSnapTicks > 0 && !string.IsNullOrWhiteSpace(_manualLvnPrices)))
 			fino = MotorTermico.PerfilFino(p.Base, abierta, _profileType, _p);
 
 		return Perfil.Construir(p.Base, abierta, _profileType, _rowSizeTicks, _autoRowSize, _maxRows);
@@ -871,6 +880,7 @@ public partial class ThermalVolumeProfile : Indicator
 		DibujarSeleccion(context, area);
 #if SUITE
 		SuiteDibujar(context);
+		SuiteDibujarPierna(context, area);
 #endif
 
 		if (ShowToolbar)
@@ -1069,12 +1079,16 @@ public partial class ThermalVolumeProfile : Indicator
 			}
 		}
 
+#if SUITE
+		SuiteDibujarEdges(context, x1, x2, f);
+#else
 		foreach (var e in r.Edges)
 		{
 			var y = Y(e.Precio);
 			Linea(context, estilo.Edge, x1, x2, y);
 			Nota(EdgeLabels, y, e.Etiqueta(f), ADibujo(EdgeColor));
 		}
+#endif
 
 		// Espigas: línea punteada (tramos de 4 píxeles cada 8).
 		foreach (var s in r.Spikes)
@@ -1249,11 +1263,13 @@ public partial class ThermalVolumeProfile : Indicator
 		Rango,
 		Zona,
 		Lvn,
-		Gatillo
+		Gatillo,
+		Pierna,
+		Edge
 	}
 
 #if SUITE
-	private static readonly string[] Botones = { "PERFIL", "RANGO", "ZONA", "LVN", "GATILLO" };
+	private static readonly string[] Botones = { "PERFIL", "RANGO", "ZONA", "LVN", "GATILLO", "PIERNA", "EDGE" };
 #else
 	private static readonly string[] Botones = { "PERFIL", "RANGO", "ZONA", "LVN" };
 #endif
@@ -1288,6 +1304,8 @@ public partial class ThermalVolumeProfile : Indicator
 			Herramienta.Zona => "ZONA: arrastre un rectangulo de precios",
 			Herramienta.Lvn => "LVN: clic = nueva linea, clic sobre una = quitar",
 			Herramienta.Gatillo => "GATILLO: arrastre un recuadro sobre las velas (ESC cancela)",
+			Herramienta.Pierna => "PIERNA: arrastre de inicio a fin de la pierna (se congela su perfil)",
+			Herramienta.Edge => "EDGE: clic = EDGE manual; clic sobre uno = quitar",
 			_ => _estado
 		};
 
@@ -1301,7 +1319,7 @@ public partial class ThermalVolumeProfile : Indicator
 			return;
 
 		var pluma = new RenderPen(Color.Orange, 1);
-		var caja = _herramienta == Herramienta.Rango
+		var caja = _herramienta is Herramienta.Rango or Herramienta.Pierna
 			? new Rectangle(Math.Min(a.X, b.X), area.Top, Math.Abs(b.X - a.X), area.Height)
 			: new Rectangle(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y), Math.Abs(b.X - a.X), Math.Abs(b.Y - a.Y));
 
@@ -1348,16 +1366,33 @@ public partial class ThermalVolumeProfile : Indicator
 			if (ShowToolbar && _arrastre.Presionar(p))
 				return true;
 
+#if SUITE
+			if (_herramienta == Herramienta.Ninguna && SuiteClicCaja(p))
+				return true;
+
+			if (_herramienta == Herramienta.Edge)
+			{
+				SuiteEdgeManual(p);
+				return true;
+			}
+#endif
+
 			switch (_herramienta)
 			{
 				case Herramienta.Rango:
 				case Herramienta.Zona:
 				case Herramienta.Gatillo:
+				case Herramienta.Pierna:
 					_inicioSeleccion = _finSeleccion = p;
 					return true;
 
 				case Herramienta.Lvn:
+#if SUITE
+					// v3: clic = punto, arrastre vertical = zona (se resuelve al soltar).
+					_inicioSeleccion = _finSeleccion = p;
+#else
 					AlternarLvnManual(p);
+#endif
 					return true;
 			}
 		}
@@ -1422,6 +1457,14 @@ public partial class ThermalVolumeProfile : Indicator
 	/// <summary>RANGO fija las fechas del perfil; ZONA, la zona de búsqueda (precios y, para el filtro, fechas).</summary>
 	private void AplicarSeleccion(Point a, Point b)
 	{
+#if SUITE
+		if (_herramienta == Herramienta.Lvn)
+		{
+			SuiteLvnManual(a, b);
+			return;
+		}
+#endif
+
 		if ((Math.Abs(b.X - a.X) < 4 && Math.Abs(b.Y - a.Y) < 4) || InstrumentInfo is not { TickSize: > 0 } info || CurrentBar == 0)
 			return;
 
@@ -1431,6 +1474,12 @@ public partial class ThermalVolumeProfile : Indicator
 		var horaB = GetCandle(barB).Time + info.TimeZoneOffset;
 
 #if SUITE
+		if (_herramienta == Herramienta.Pierna)
+		{
+			SuitePierna(barA, barB);
+			return;
+		}
+
 		if (_herramienta == Herramienta.Gatillo)
 		{
 			SuiteGatillo(barA, barB, PrecioDeY(Math.Min(a.Y, b.Y)), PrecioDeY(Math.Max(a.Y, b.Y)));
@@ -1506,17 +1555,10 @@ public partial class ThermalVolumeProfile : Indicator
 	/// <summary>Precio de una coordenada Y (la escala de precios es lineal), redondeado al tick.</summary>
 	private decimal PrecioDeY(int y)
 	{
+		// v3 (7.2): se invierte la conversión de ATAS (GetYByPrice), así vale también con escalas no lineales.
 		var tick = InstrumentInfo?.TickSize is > 0 ? InstrumentInfo.TickSize : 0.25m;
 		var referencia = _resultado?.PrecioPoc ?? (CurrentBar > 0 ? GetCandle(CurrentBar - 1).Close : 0m);
-		var otro = referencia + 100 * tick;
-		var y1 = Y(referencia);
-		var y2 = Y(otro);
-
-		if (y1 == y2)
-			return referencia;
-
-		var precio = referencia + (y - y1) * (otro - referencia) / (y2 - y1);
-		return Math.Round(precio / tick, MidpointRounding.AwayFromZero) * tick;
+		return Pantalla.PrecioDeY(y, Y, referencia, tick);
 	}
 
 	/// <summary>Arrastre de la barra por su título, dentro del área del gráfico (posición guardada en los ajustes).</summary>

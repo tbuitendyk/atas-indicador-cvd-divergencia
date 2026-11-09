@@ -200,6 +200,11 @@ public sealed class EdgeZone : EventoSuite
 	public int Score { get; init; }
 	public bool Manual { get; init; }
 
+	/// <summary>Toques separados: 1 = primer toque; más = toques repetidos (eventos distintos, 8).</summary>
+	public int Toques { get; init; }
+
+	public bool Provisional { get; init; }
+
 	public override decimal PrecioReferencia => Precio;
 }
 
