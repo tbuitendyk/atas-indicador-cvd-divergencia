@@ -171,6 +171,13 @@ GRUPOS = [
          "Dentro de una macro, para afinar el punto de giro. NY NQ: 3.", 1, 30, False),
         ("CvdShowMicro", "bool", P + "CvdShowMicro", "Mostrar micro-divergencias", "", None, None, False),
         ("CvdMaxLookbackBars", "int", P + "CvdMaxLookbackBars", "Velas que se revisan", "", 20, 5000, False),
+        ("CvdReset", "enum:ReinicioCvd", P + "CvdReset", "Reinicio del CVD", "Día de futuros (18:00 NY) o apertura RTH (09:30 NY).", None, None, True),
+        ("CvdMatrixMacroStrength", "int", P + "CvdMatrixMacroStrength", "CVD Matrix: fuerza macro (velas)", "Filtro 1: swing amplio.", 2, 100, True),
+        ("CvdMatrixMicroStrength", "int", P + "CvdMatrixMicroStrength", "CVD Matrix: fuerza micro (velas)", "Filtro 2: swing corto.", 1, 30, True),
+        ("CvdMatrixMacroValidity", "int", P + "CvdMatrixMacroValidity", "CVD Matrix: vigencia macro (velas)", "", 1, 1000, True),
+        ("CvdMatrixMicroValidity", "int", P + "CvdMatrixMicroValidity", "CVD Matrix: vigencia micro (velas)", "", 1, 200, True),
+        ("CvdMatrixMinWickPct", "decimal", P + "CvdMatrixMinWickPct", "CVD Matrix: mecha mínima (% del rango)", "Filtro 3: absorción en la vela del swing.", 0, 100, True),
+        ("CvdMatrixMinWickVolumePct", "decimal", P + "CvdMatrixMinWickVolumePct", "CVD Matrix: volumen en la mecha (%)", "Filtro 3.", 0, 100, True),
     ]),
     ("28. Panel y dibujo", [
         ("MostrarPanel", "bool", "_v.MostrarPanel", "Panel flotante",
@@ -187,7 +194,6 @@ GRUPOS = [
         ("ShowLvnLines", "bool", "_v.ShowLvnLines", "LVN del Thermal", "Las zonas que llegan del Thermal (activas y mitigadas).", None, None, False),
         ("ShowManualTriggerBoxes", "bool", "_v.ShowManualTriggerBoxes", "Cajas del gatillo manual",
          "Las dibuja el Thermal que las pidió; actívelo solo si el Thermal está en otro gráfico.", None, None, False),
-        ("ShowCvdDivergences", "bool", "_v.ShowCvdDivergences", "Divergencias del CVD en el precio", "Tramos entre pivotes, sin líneas verticales.", None, None, False),
         ("ShowTrackerDiagnostics", "bool", "_v.ShowTrackerDiagnostics", "Diagnóstico de trackers",
          "Marca hueca fucsia (SSP ICE, STOP, SWEEP, STK, IMB) en cada evento que Sessions Sweeps recibe del bus, para compararlo con el dibujo original del tracker.", None, None, False),
     ]),
@@ -229,6 +235,7 @@ CAMPOS = [
     ("RecoveryTicks", "int", "Recuperación 1m/5m (ticks)", "Recuperación que valida el barrido.", 1, 1000),
     ("StopBufferTicks", "int", "Margen del stop (ticks)", "Más allá de la zona, estructura o extremo.", 0, 200),
     ("MaxStopTicks", "int", "Stop máximo (ticks)", "Con más: NO EJECUTABLE.", 2, 2000),
+    ("CvdMatrixDeltaFlip", "int", "CVD Matrix: delta del giro (contratos)", "Filtro 4: delta de la vela de giro tras el swing.", 1, 100000),
 ]
 
 # Valores por defecto: espejo de PerfilInstrumento.PorDefecto (una prueba los compara con el código).
@@ -237,12 +244,12 @@ BASE = {"VolumePerBarMode": "ModoVolumenBarra.AutoPorInstrumento", "VolumePerBar
         "SuperBigTradeMinContracts": "150", "ImbalanceMinVolume": "5", "FinishedAuctionMaxContracts": "2", "ImbalanceRatio": "3.0",
         "StackedMinLevels": "3", "AggressorShareMin": "0.65", "BurstSpeedMult": "2.5", "F3DeltaPctMin": "0.25", "ContDeltaPctMin": "0.30",
         "DivergenceDeltaPctMin": "0.15", "MinPenetrationTicks": "2", "MaxSweepTicks": "24", "RecoveryTicks": "16", "StopBufferTicks": "3",
-        "MaxStopTicks": "40"}
+        "MaxStopTicks": "40", "CvdMatrixDeltaFlip": "400"}
 ES_ = {"VolumePerBar": "1500", "MinVolBeyondFloor": "150", "SuperBigTradeMinContracts": "400", "ImbalanceMinVolume": "15",
-       "FinishedAuctionMaxContracts": "5", "MinPenetrationTicks": "1", "MaxSweepTicks": "8", "RecoveryTicks": "6", "StopBufferTicks": "2", "MaxStopTicks": "16"}
+       "FinishedAuctionMaxContracts": "5", "MinPenetrationTicks": "1", "MaxSweepTicks": "8", "RecoveryTicks": "6", "StopBufferTicks": "2", "MaxStopTicks": "16", "CvdMatrixDeltaFlip": "1000"}
 YM_ = {"VolumePerBar": "150", "MinVolBeyondFloor": "15", "SuperBigTradeMinContracts": "40", "ImbalanceMinVolume": "2",
-       "FinishedAuctionMaxContracts": "1", "MinPenetrationTicks": "1", "MaxSweepTicks": "12", "RecoveryTicks": "8", "StopBufferTicks": "2", "MaxStopTicks": "25"}
-MNQ_ = {"VolumePerBar": "1000", "MinVolBeyondFloor": "100", "SuperBigTradeMinContracts": "300", "ImbalanceMinVolume": "10", "FinishedAuctionMaxContracts": "4"}
+       "FinishedAuctionMaxContracts": "1", "MinPenetrationTicks": "1", "MaxSweepTicks": "12", "RecoveryTicks": "8", "StopBufferTicks": "2", "MaxStopTicks": "25", "CvdMatrixDeltaFlip": "100"}
+MNQ_ = {"VolumePerBar": "1000", "MinVolBeyondFloor": "100", "SuperBigTradeMinContracts": "300", "ImbalanceMinVolume": "10", "FinishedAuctionMaxContracts": "4", "CvdMatrixDeltaFlip": "800"}
 DEFECTOS_PERFIL = {r: {**BASE, **extra} for r, extra in
                    [("NQ", {}), ("ES", ES_), ("YM", YM_), ("MNQ", MNQ_), ("MES", ES_), ("MYM", YM_)]}
 

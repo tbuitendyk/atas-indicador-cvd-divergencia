@@ -139,8 +139,8 @@ internal static class PruebasV3Instrumentos
 			}
 		}
 
-		c.Check("los 6 perfiles × 23 valores coinciden con PARAMETROS.md (si falla: generar_parametros_v2.py)",
-			distintos.Count == 0 ? $"{revisados} iguales" : string.Join("; ", distintos.Take(5)), "138 iguales");
+		c.Check("los 6 perfiles × 24 valores coinciden con PARAMETROS.md (si falla: generar_parametros_v2.py)",
+			distintos.Count == 0 ? $"{revisados} iguales" : string.Join("; ", distintos.Take(5)), "144 iguales");
 	}
 }
 

@@ -420,7 +420,6 @@ public partial class SessionSweepsPro : Indicator
 		for (var i = Math.Max(0, _ultimaBarra); i < bar; i++)
 		{
 			_motor.Procesar(Entrada(i));
-			CvdPrecio(i);
 		}
 
 		_ultimaBarra = bar;
@@ -496,7 +495,11 @@ public partial class SessionSweepsPro : Indicator
 	private VelaEntrada Entrada(int bar)
 	{
 		var c = GetCandle(bar);
-		var e = new VelaEntrada { InicioUtc = c.Time, Open = c.Open, High = c.High, Low = c.Low, Close = c.Close, Volume = c.Volume, Delta = c.Delta, Ask = c.Ask, Bid = c.Bid };
+		var e = new VelaEntrada
+		{
+			InicioUtc = c.Time, Open = c.Open, High = c.High, Low = c.Low, Close = c.Close, Volume = c.Volume, Delta = c.Delta, Ask = c.Ask, Bid = c.Bid,
+			MaxDelta = c.MaxDelta, MinDelta = c.MinDelta
+		};
 		var niveles = c.GetAllPriceLevels();
 
 		if (niveles is not null)

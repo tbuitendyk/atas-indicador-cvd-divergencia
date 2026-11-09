@@ -211,6 +211,18 @@ public sealed class ParametrosV2
 	public int CvdMicroPivotBars { get; set; } = 3;
 	public bool CvdShowMicro { get; set; } = true;
 	public int CvdMaxLookbackBars { get; set; } = 120;
+	public ReinicioCvd CvdReset { get; set; } = ReinicioCvd.DiaFuturos;
+
+	// CVD Institutional Trigger Matrix (v3, 4.1): los cuatro filtros del Institutional CVD Trigger, aquí dentro.
+	public int CvdMatrixMacroStrength { get; set; } = 12;
+	public int CvdMatrixMicroStrength { get; set; } = 3;
+	public int CvdMatrixMacroValidity { get; set; } = 60;
+	public int CvdMatrixMicroValidity { get; set; } = 7;
+	public decimal CvdMatrixMinWickPct { get; set; } = 40;
+	public decimal CvdMatrixMinWickVolumePct { get; set; } = 30;
+
+	/// <summary>Efectivo: lo pone el perfil del instrumento (contratos de delta del giro).</summary>
+	public decimal CvdMatrixDeltaFlip { get; set; } = 400;
 
 	/// <summary>Contratos por barra efectivos (los pone el perfil del instrumento: manual, AUTO o provisional).</summary>
 	public int ContratosPorBarra() => Math.Max(10, VolumePerBar);

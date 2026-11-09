@@ -156,6 +156,9 @@ public sealed class PerfilInstrumento
 	public int StopBufferTicks { get; set; } = 3;
 	public int MaxStopTicks { get; set; } = 40;
 
+	/// <summary>CVD Trigger Matrix: delta (contratos) de la vela de giro.</summary>
+	public int CvdMatrixDeltaFlip { get; set; } = 400;
+
 	/// <summary>Valores iniciales de cada familia. NQ = la v2; el resto PROVISIONAL.</summary>
 	public static PerfilInstrumento PorDefecto(RaizInstrumento r)
 	{
@@ -167,16 +170,19 @@ public sealed class PerfilInstrumento
 			case RaizInstrumento.MES:
 				(p.VolumePerBar, p.MinVolBeyondFloor, p.SuperBigTradeMinContracts, p.ImbalanceMinVolume, p.FinishedAuctionMaxContracts) = (1500, 150, 400, 15, 5);
 				(p.MinPenetrationTicks, p.MaxSweepTicks, p.RecoveryTicks, p.StopBufferTicks, p.MaxStopTicks) = (1, 8, 6, 2, 16);
+				p.CvdMatrixDeltaFlip = 1000;
 				break;
 
 			case RaizInstrumento.YM:
 			case RaizInstrumento.MYM:
 				(p.VolumePerBar, p.MinVolBeyondFloor, p.SuperBigTradeMinContracts, p.ImbalanceMinVolume, p.FinishedAuctionMaxContracts) = (150, 15, 40, 2, 1);
 				(p.MinPenetrationTicks, p.MaxSweepTicks, p.RecoveryTicks, p.StopBufferTicks, p.MaxStopTicks) = (1, 12, 8, 2, 25);
+				p.CvdMatrixDeltaFlip = 100;
 				break;
 
 			case RaizInstrumento.MNQ:
 				(p.VolumePerBar, p.MinVolBeyondFloor, p.SuperBigTradeMinContracts, p.ImbalanceMinVolume, p.FinishedAuctionMaxContracts) = (1000, 100, 300, 10, 4);
+				p.CvdMatrixDeltaFlip = 800;
 				break;
 		}
 
@@ -193,6 +199,7 @@ public sealed class PerfilInstrumento
 		(p.F3DeltaPctMin, p.ContDeltaPctMin, p.DivergenceDeltaPctMin) = (F3DeltaPctMin, ContDeltaPctMin, DivergenceDeltaPctMin);
 		(p.MinPenetrationTicks, p.MaxSweepTicks, p.RecoveryTicks, p.StopBufferTicks, p.MaxStopTicks) =
 			(MinPenetrationTicks, MaxSweepTicks, RecoveryTicks, StopBufferTicks, MaxStopTicks);
+		p.CvdMatrixDeltaFlip = CvdMatrixDeltaFlip;
 	}
 }
 

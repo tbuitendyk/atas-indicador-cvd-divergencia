@@ -393,6 +393,33 @@ public partial class SessionSweepsPro
 	[Range(20, 5000)]
 	public int CvdMaxLookbackBars { get => _cfg.V2.CvdMaxLookbackBars; set { _cfg.V2.CvdMaxLookbackBars = Math.Clamp(value, 20, 5000); RedrawChart(); } }
 
+	[Display(Name = "Reinicio del CVD", GroupName = "27. CVD", Order = 50, Description = "Día de futuros (18:00 NY) o apertura RTH (09:30 NY).")]
+	public ReinicioCvd CvdReset { get => _cfg.V2.CvdReset; set { _cfg.V2.CvdReset = value; Recalcular(); } }
+
+	[Display(Name = "CVD Matrix: fuerza macro (velas)", GroupName = "27. CVD", Order = 60, Description = "Filtro 1: swing amplio.")]
+	[Range(2, 100)]
+	public int CvdMatrixMacroStrength { get => _cfg.V2.CvdMatrixMacroStrength; set { _cfg.V2.CvdMatrixMacroStrength = Math.Clamp(value, 2, 100); Recalcular(); } }
+
+	[Display(Name = "CVD Matrix: fuerza micro (velas)", GroupName = "27. CVD", Order = 70, Description = "Filtro 2: swing corto.")]
+	[Range(1, 30)]
+	public int CvdMatrixMicroStrength { get => _cfg.V2.CvdMatrixMicroStrength; set { _cfg.V2.CvdMatrixMicroStrength = Math.Clamp(value, 1, 30); Recalcular(); } }
+
+	[Display(Name = "CVD Matrix: vigencia macro (velas)", GroupName = "27. CVD", Order = 80, Description = "")]
+	[Range(1, 1000)]
+	public int CvdMatrixMacroValidity { get => _cfg.V2.CvdMatrixMacroValidity; set { _cfg.V2.CvdMatrixMacroValidity = Math.Clamp(value, 1, 1000); Recalcular(); } }
+
+	[Display(Name = "CVD Matrix: vigencia micro (velas)", GroupName = "27. CVD", Order = 90, Description = "")]
+	[Range(1, 200)]
+	public int CvdMatrixMicroValidity { get => _cfg.V2.CvdMatrixMicroValidity; set { _cfg.V2.CvdMatrixMicroValidity = Math.Clamp(value, 1, 200); Recalcular(); } }
+
+	[Display(Name = "CVD Matrix: mecha mínima (% del rango)", GroupName = "27. CVD", Order = 100, Description = "Filtro 3: absorción en la vela del swing.")]
+	[Range(0, 100)]
+	public decimal CvdMatrixMinWickPct { get => _cfg.V2.CvdMatrixMinWickPct; set { _cfg.V2.CvdMatrixMinWickPct = Math.Clamp(value, 0m, 100m); Recalcular(); } }
+
+	[Display(Name = "CVD Matrix: volumen en la mecha (%)", GroupName = "27. CVD", Order = 110, Description = "Filtro 3.")]
+	[Range(0, 100)]
+	public decimal CvdMatrixMinWickVolumePct { get => _cfg.V2.CvdMatrixMinWickVolumePct; set { _cfg.V2.CvdMatrixMinWickVolumePct = Math.Clamp(value, 0m, 100m); Recalcular(); } }
+
 	// --- 28. Panel y dibujo ----------------------------------------------------------------------------------
 
 	[Display(Name = "Panel flotante", GroupName = "28. Panel y dibujo", Order = 10, Description = "Ventana movible a cualquier lugar o monitor (Resumen / Detalle). Guarda su posición.")]
@@ -430,10 +457,7 @@ public partial class SessionSweepsPro
 	[Display(Name = "Cajas del gatillo manual", GroupName = "28. Panel y dibujo", Order = 110, Description = "Las dibuja el Thermal que las pidió; actívelo solo si el Thermal está en otro gráfico.")]
 	public bool ShowManualTriggerBoxes { get => _v.ShowManualTriggerBoxes; set { _v.ShowManualTriggerBoxes = value; RedrawChart(); } }
 
-	[Display(Name = "Divergencias del CVD en el precio", GroupName = "28. Panel y dibujo", Order = 120, Description = "Tramos entre pivotes, sin líneas verticales.")]
-	public bool ShowCvdDivergences { get => _v.ShowCvdDivergences; set { _v.ShowCvdDivergences = value; RedrawChart(); } }
-
-	[Display(Name = "Diagnóstico de trackers", GroupName = "28. Panel y dibujo", Order = 130, Description = "Marca hueca fucsia (SSP ICE, STOP, SWEEP, STK, IMB) en cada evento que Sessions Sweeps recibe del bus, para compararlo con el dibujo original del tracker.")]
+	[Display(Name = "Diagnóstico de trackers", GroupName = "28. Panel y dibujo", Order = 120, Description = "Marca hueca fucsia (SSP ICE, STOP, SWEEP, STK, IMB) en cada evento que Sessions Sweeps recibe del bus, para compararlo con el dibujo original del tracker.")]
 	public bool ShowTrackerDiagnostics { get => _v.ShowTrackerDiagnostics; set { _v.ShowTrackerDiagnostics = value; RedrawChart(); } }
 
 	// --- 30. Instrumentos ------------------------------------------------------------------------------------
@@ -538,6 +562,10 @@ public partial class SessionSweepsPro
 	[Range(2, 2000)]
 	public int NQ_MaxStopTicks { get => _cfg.Perfiles.NQ.MaxStopTicks; set { _cfg.Perfiles.NQ.MaxStopTicks = Math.Clamp(value, 2, 2000); Recalcular(); } }
 
+	[Display(Name = "NQ: CVD Matrix: delta del giro (contratos)", GroupName = "31. Perfil NQ", Order = 240, Description = "Filtro 4: delta de la vela de giro tras el swing.")]
+	[Range(1, 100000)]
+	public int NQ_CvdMatrixDeltaFlip { get => _cfg.Perfiles.NQ.CvdMatrixDeltaFlip; set { _cfg.Perfiles.NQ.CvdMatrixDeltaFlip = Math.Clamp(value, 1, 100000); Recalcular(); } }
+
 	// --- 32. Perfil ES ---------------------------------------------------------------------------------------
 
 	[Display(Name = "ES: Contratos por barra: modo", GroupName = "32. Perfil ES", Order = 10, Description = "AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo. Valor inicial PROVISIONAL: calibrar.")]
@@ -630,6 +658,10 @@ public partial class SessionSweepsPro
 	[Display(Name = "ES: Stop máximo (ticks)", GroupName = "32. Perfil ES", Order = 230, Description = "Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar.")]
 	[Range(2, 2000)]
 	public int ES_MaxStopTicks { get => _cfg.Perfiles.ES.MaxStopTicks; set { _cfg.Perfiles.ES.MaxStopTicks = Math.Clamp(value, 2, 2000); Recalcular(); } }
+
+	[Display(Name = "ES: CVD Matrix: delta del giro (contratos)", GroupName = "32. Perfil ES", Order = 240, Description = "Filtro 4: delta de la vela de giro tras el swing. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 100000)]
+	public int ES_CvdMatrixDeltaFlip { get => _cfg.Perfiles.ES.CvdMatrixDeltaFlip; set { _cfg.Perfiles.ES.CvdMatrixDeltaFlip = Math.Clamp(value, 1, 100000); Recalcular(); } }
 
 	// --- 33. Perfil YM ---------------------------------------------------------------------------------------
 
@@ -724,6 +756,10 @@ public partial class SessionSweepsPro
 	[Range(2, 2000)]
 	public int YM_MaxStopTicks { get => _cfg.Perfiles.YM.MaxStopTicks; set { _cfg.Perfiles.YM.MaxStopTicks = Math.Clamp(value, 2, 2000); Recalcular(); } }
 
+	[Display(Name = "YM: CVD Matrix: delta del giro (contratos)", GroupName = "33. Perfil YM", Order = 240, Description = "Filtro 4: delta de la vela de giro tras el swing. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 100000)]
+	public int YM_CvdMatrixDeltaFlip { get => _cfg.Perfiles.YM.CvdMatrixDeltaFlip; set { _cfg.Perfiles.YM.CvdMatrixDeltaFlip = Math.Clamp(value, 1, 100000); Recalcular(); } }
+
 	// --- 34. Perfil MNQ --------------------------------------------------------------------------------------
 
 	[Display(Name = "MNQ: Contratos por barra: modo", GroupName = "34. Perfil MNQ", Order = 10, Description = "AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo. Valor inicial PROVISIONAL: calibrar.")]
@@ -816,6 +852,10 @@ public partial class SessionSweepsPro
 	[Display(Name = "MNQ: Stop máximo (ticks)", GroupName = "34. Perfil MNQ", Order = 230, Description = "Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar.")]
 	[Range(2, 2000)]
 	public int MNQ_MaxStopTicks { get => _cfg.Perfiles.MNQ.MaxStopTicks; set { _cfg.Perfiles.MNQ.MaxStopTicks = Math.Clamp(value, 2, 2000); Recalcular(); } }
+
+	[Display(Name = "MNQ: CVD Matrix: delta del giro (contratos)", GroupName = "34. Perfil MNQ", Order = 240, Description = "Filtro 4: delta de la vela de giro tras el swing. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 100000)]
+	public int MNQ_CvdMatrixDeltaFlip { get => _cfg.Perfiles.MNQ.CvdMatrixDeltaFlip; set { _cfg.Perfiles.MNQ.CvdMatrixDeltaFlip = Math.Clamp(value, 1, 100000); Recalcular(); } }
 
 	// --- 35. Perfil MES --------------------------------------------------------------------------------------
 
@@ -910,6 +950,10 @@ public partial class SessionSweepsPro
 	[Range(2, 2000)]
 	public int MES_MaxStopTicks { get => _cfg.Perfiles.MES.MaxStopTicks; set { _cfg.Perfiles.MES.MaxStopTicks = Math.Clamp(value, 2, 2000); Recalcular(); } }
 
+	[Display(Name = "MES: CVD Matrix: delta del giro (contratos)", GroupName = "35. Perfil MES", Order = 240, Description = "Filtro 4: delta de la vela de giro tras el swing. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 100000)]
+	public int MES_CvdMatrixDeltaFlip { get => _cfg.Perfiles.MES.CvdMatrixDeltaFlip; set { _cfg.Perfiles.MES.CvdMatrixDeltaFlip = Math.Clamp(value, 1, 100000); Recalcular(); } }
+
 	// --- 36. Perfil MYM --------------------------------------------------------------------------------------
 
 	[Display(Name = "MYM: Contratos por barra: modo", GroupName = "36. Perfil MYM", Order = 10, Description = "AUTO: de la mediana del volumen de 1 minuto en RTH de ESTE instrumento. Manual: el valor de abajo. Valor inicial PROVISIONAL: calibrar.")]
@@ -1002,4 +1046,8 @@ public partial class SessionSweepsPro
 	[Display(Name = "MYM: Stop máximo (ticks)", GroupName = "36. Perfil MYM", Order = 230, Description = "Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar.")]
 	[Range(2, 2000)]
 	public int MYM_MaxStopTicks { get => _cfg.Perfiles.MYM.MaxStopTicks; set { _cfg.Perfiles.MYM.MaxStopTicks = Math.Clamp(value, 2, 2000); Recalcular(); } }
+
+	[Display(Name = "MYM: CVD Matrix: delta del giro (contratos)", GroupName = "36. Perfil MYM", Order = 240, Description = "Filtro 4: delta de la vela de giro tras el swing. Valor inicial PROVISIONAL: calibrar.")]
+	[Range(1, 100000)]
+	public int MYM_CvdMatrixDeltaFlip { get => _cfg.Perfiles.MYM.CvdMatrixDeltaFlip; set { _cfg.Perfiles.MYM.CvdMatrixDeltaFlip = Math.Clamp(value, 1, 100000); Recalcular(); } }
 }

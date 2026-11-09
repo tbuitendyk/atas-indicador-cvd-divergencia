@@ -158,6 +158,13 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `CvdMicroPivotBars` | Divergencia micro: velas por lado | 3 | 1-30 | Dentro de una macro, para afinar el punto de giro. NY NQ: 3. |
 | `CvdShowMicro` | Mostrar micro-divergencias | Sí |  |  |
 | `CvdMaxLookbackBars` | Velas que se revisan | 120 | 20-5000 |  |
+| `CvdReset` | Reinicio del CVD | DiaFuturos |  | Día de futuros (18:00 NY) o apertura RTH (09:30 NY). |
+| `CvdMatrixMacroStrength` | CVD Matrix: fuerza macro (velas) | 12 | 2-100 | Filtro 1: swing amplio. |
+| `CvdMatrixMicroStrength` | CVD Matrix: fuerza micro (velas) | 3 | 1-30 | Filtro 2: swing corto. |
+| `CvdMatrixMacroValidity` | CVD Matrix: vigencia macro (velas) | 60 | 1-1000 |  |
+| `CvdMatrixMicroValidity` | CVD Matrix: vigencia micro (velas) | 7 | 1-200 |  |
+| `CvdMatrixMinWickPct` | CVD Matrix: mecha mínima (% del rango) | 40 | 0-100 | Filtro 3: absorción en la vela del swing. |
+| `CvdMatrixMinWickVolumePct` | CVD Matrix: volumen en la mecha (%) | 30 | 0-100 | Filtro 3. |
 
 ## 28. Panel y dibujo
 
@@ -174,7 +181,6 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `ShowExternalLiquidity` | Liquidez externa | Sí |  | PDH/PDL y semana anterior. |
 | `ShowLvnLines` | LVN del Thermal | Sí |  | Las zonas que llegan del Thermal (activas y mitigadas). |
 | `ShowManualTriggerBoxes` | Cajas del gatillo manual | No |  | Las dibuja el Thermal que las pidió; actívelo solo si el Thermal está en otro gráfico. |
-| `ShowCvdDivergences` | Divergencias del CVD en el precio | Sí |  | Tramos entre pivotes, sin líneas verticales. |
 | `ShowTrackerDiagnostics` | Diagnóstico de trackers | No |  | Marca hueca fucsia (SSP ICE, STOP, SWEEP, STK, IMB) en cada evento que Sessions Sweeps recibe del bus, para compararlo con el dibujo original del tracker. |
 
 ## 30. Instrumentos
@@ -211,6 +217,7 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `NQ_RecoveryTicks` | NQ: Recuperación 1m/5m (ticks) | 16 | 1-1000 | Recuperación que valida el barrido. |
 | `NQ_StopBufferTicks` | NQ: Margen del stop (ticks) | 3 | 0-200 | Más allá de la zona, estructura o extremo. |
 | `NQ_MaxStopTicks` | NQ: Stop máximo (ticks) | 40 | 2-2000 | Con más: NO EJECUTABLE. |
+| `NQ_CvdMatrixDeltaFlip` | NQ: CVD Matrix: delta del giro (contratos) | 400 | 1-100000 | Filtro 4: delta de la vela de giro tras el swing. |
 
 ## 32. Perfil ES
 
@@ -239,6 +246,7 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `ES_RecoveryTicks` | ES: Recuperación 1m/5m (ticks) | 6 | 1-1000 | Recuperación que valida el barrido. Valor inicial PROVISIONAL: calibrar. |
 | `ES_StopBufferTicks` | ES: Margen del stop (ticks) | 2 | 0-200 | Más allá de la zona, estructura o extremo. Valor inicial PROVISIONAL: calibrar. |
 | `ES_MaxStopTicks` | ES: Stop máximo (ticks) | 16 | 2-2000 | Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar. |
+| `ES_CvdMatrixDeltaFlip` | ES: CVD Matrix: delta del giro (contratos) | 1000 | 1-100000 | Filtro 4: delta de la vela de giro tras el swing. Valor inicial PROVISIONAL: calibrar. |
 
 ## 33. Perfil YM
 
@@ -267,6 +275,7 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `YM_RecoveryTicks` | YM: Recuperación 1m/5m (ticks) | 8 | 1-1000 | Recuperación que valida el barrido. Valor inicial PROVISIONAL: calibrar. |
 | `YM_StopBufferTicks` | YM: Margen del stop (ticks) | 2 | 0-200 | Más allá de la zona, estructura o extremo. Valor inicial PROVISIONAL: calibrar. |
 | `YM_MaxStopTicks` | YM: Stop máximo (ticks) | 25 | 2-2000 | Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar. |
+| `YM_CvdMatrixDeltaFlip` | YM: CVD Matrix: delta del giro (contratos) | 100 | 1-100000 | Filtro 4: delta de la vela de giro tras el swing. Valor inicial PROVISIONAL: calibrar. |
 
 ## 34. Perfil MNQ
 
@@ -295,6 +304,7 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `MNQ_RecoveryTicks` | MNQ: Recuperación 1m/5m (ticks) | 16 | 1-1000 | Recuperación que valida el barrido. Valor inicial PROVISIONAL: calibrar. |
 | `MNQ_StopBufferTicks` | MNQ: Margen del stop (ticks) | 3 | 0-200 | Más allá de la zona, estructura o extremo. Valor inicial PROVISIONAL: calibrar. |
 | `MNQ_MaxStopTicks` | MNQ: Stop máximo (ticks) | 40 | 2-2000 | Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar. |
+| `MNQ_CvdMatrixDeltaFlip` | MNQ: CVD Matrix: delta del giro (contratos) | 800 | 1-100000 | Filtro 4: delta de la vela de giro tras el swing. Valor inicial PROVISIONAL: calibrar. |
 
 ## 35. Perfil MES
 
@@ -323,6 +333,7 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `MES_RecoveryTicks` | MES: Recuperación 1m/5m (ticks) | 6 | 1-1000 | Recuperación que valida el barrido. Valor inicial PROVISIONAL: calibrar. |
 | `MES_StopBufferTicks` | MES: Margen del stop (ticks) | 2 | 0-200 | Más allá de la zona, estructura o extremo. Valor inicial PROVISIONAL: calibrar. |
 | `MES_MaxStopTicks` | MES: Stop máximo (ticks) | 16 | 2-2000 | Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar. |
+| `MES_CvdMatrixDeltaFlip` | MES: CVD Matrix: delta del giro (contratos) | 1000 | 1-100000 | Filtro 4: delta de la vela de giro tras el swing. Valor inicial PROVISIONAL: calibrar. |
 
 ## 36. Perfil MYM
 
@@ -351,3 +362,4 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `MYM_RecoveryTicks` | MYM: Recuperación 1m/5m (ticks) | 8 | 1-1000 | Recuperación que valida el barrido. Valor inicial PROVISIONAL: calibrar. |
 | `MYM_StopBufferTicks` | MYM: Margen del stop (ticks) | 2 | 0-200 | Más allá de la zona, estructura o extremo. Valor inicial PROVISIONAL: calibrar. |
 | `MYM_MaxStopTicks` | MYM: Stop máximo (ticks) | 25 | 2-2000 | Con más: NO EJECUTABLE. Valor inicial PROVISIONAL: calibrar. |
+| `MYM_CvdMatrixDeltaFlip` | MYM: CVD Matrix: delta del giro (contratos) | 100 | 1-100000 | Filtro 4: delta de la vela de giro tras el swing. Valor inicial PROVISIONAL: calibrar. |

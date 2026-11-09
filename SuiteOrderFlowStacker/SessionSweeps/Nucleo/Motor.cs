@@ -136,6 +136,7 @@ public sealed partial class MotorSweeps
 
 		var v = Construir(e);
 		Velas.Add(v);
+		ProcesarCvd(e);
 
 		// El footprint solo hace falta en las velas recientes (ventanas, absorción, Modelo B).
 		if (Velas.Count > 400)

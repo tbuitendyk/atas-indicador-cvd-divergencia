@@ -24,7 +24,6 @@ using Rectangle = System.Drawing.Rectangle;
 /// </summary>
 public partial class SessionSweepsPro
 {
-	private readonly SeguidorCvd _cvdPrecio = new();
 	private readonly List<(ManualTriggerRequest Solicitud, ManualTriggerResult Resultado)> _cajasManuales = new();
 
 	private sealed class FotoV2
@@ -33,20 +32,6 @@ public partial class SessionSweepsPro
 		public List<(string Modelo, string Etiqueta, int Signo, decimal Bajo, decimal Alto, DateTime Desde, DateTime? Hasta, bool Pendiente, bool Abierta, decimal? Entrada, decimal? Stop, decimal? Tp1, decimal? Tp2)> Modelos = new();
 		public List<(bool Alcista, int Marco, decimal Bajo, decimal Alto, DateTime Utc)> Fvgs = new();
 		public List<(decimal Bajo, decimal Alto, bool Manual, bool Activo)> Lvns = new();
-	}
-
-	/// <summary>Vela cerrada para el CVD del precio (se llama en orden desde la vela 0).</summary>
-	private void CvdPrecio(int bar)
-	{
-		if (bar == 0)
-			_cvdPrecio.Reiniciar();
-
-		if (bar != _cvdPrecio.Velas.Count)
-			return;
-
-		var c = GetCandle(bar);
-		_cvdPrecio.Cerrar(c.Time, c.High, c.Low, c.Delta, c.MaxDelta, c.MinDelta);
-		_cvdPrecio.Nuevas(_cfg.V2.CvdMacroPivotBars, _cfg.V2.CvdMicroPivotBars, _cfg.V2.CvdShowMicro, _cfg.V2.CvdMaxLookbackBars);
 	}
 
 	/// <summary>Vela del gráfico que contiene 'utc' (búsqueda binaria en las horas de las velas).</summary>
@@ -227,9 +212,6 @@ public partial class SessionSweepsPro
 		if (_v.ShowManualTriggerBoxes)
 			DibujarManuales(context, visible);
 
-		if (_v.ShowCvdDivergences)
-			DibujarDivergencias(context, visible);
-
 		if (_v.ShowTrackerDiagnostics)
 			DibujarDiagnostico(context, visible);
 
@@ -301,32 +283,6 @@ public partial class SessionSweepsPro
 			context.DrawRectangle(new RenderPen(color, 2), caja);
 			Flecha(context, caja.Right + 4, caja.Top + caja.Height / 2, r.Direccion, color);
 			context.DrawString($"GATILLO {r.Resultado} {(r.Direccion == 0 ? "[-]" : "")} {r.Score:0}", _fuente!, color, new Rectangle(caja.Right + 16, caja.Top + caja.Height / 2 - 7, 260, 13), _izquierda);
-		}
-	}
-
-	private void DibujarDivergencias(RenderContext context, Func<int, int, bool> visible)
-	{
-		foreach (var d in _cvdPrecio.Todas.ToList())
-		{
-			if (!visible(d.I1, d.I2))
-				continue;
-
-			var color = d.Alcista ? ColorDe(ColorPanel.Verde, d.Micro ? 170 : 255) : ColorDe(ColorPanel.Rojo, d.Micro ? 170 : 255);
-			var (x1, x2) = (X(d.I1) + AnchoVela / 2, X(d.I2) + AnchoVela / 2);
-			var (y1, y2) = (Y(d.Precio1), Y(d.Precio2));
-
-			if (d.Micro)
-			{
-				// Punteada a lo largo del tramo (sin líneas verticales).
-				var pasos = Math.Max(1, Math.Abs(x2 - x1) / 6);
-
-				for (var k = 0; k < pasos; k += 2)
-					context.DrawLine(new RenderPen(color, 1), x1 + (x2 - x1) * k / pasos, y1 + (y2 - y1) * k / pasos, x1 + (x2 - x1) * (k + 1) / pasos, y1 + (y2 - y1) * (k + 1) / pasos);
-			}
-			else
-			{
-				context.DrawLine(new RenderPen(color, 2), x1, y1, x2, y2);
-			}
 		}
 	}
 

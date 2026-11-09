@@ -20,15 +20,6 @@ using MediaColor = System.Windows.Media.Color;
 using Rectangle = System.Drawing.Rectangle;
 using StringAlignment = System.Drawing.StringAlignment;
 
-public enum ReinicioCvd
-{
-	[Display(Name = "Día de futuros (18:00 NY)")]
-	DiaFuturos,
-
-	[Display(Name = "Apertura RTH (09:30 NY)")]
-	Rth
-}
-
 /// <summary>
 /// Session Sweeps CVD (anexo): el delta acumulado en velas (apertura = cierre anterior; máximo y mínimo con el delta
 /// máximo y mínimo de cada vela) y sus divergencias con el precio, de máximo a máximo (bajista) y de mínimo a mínimo

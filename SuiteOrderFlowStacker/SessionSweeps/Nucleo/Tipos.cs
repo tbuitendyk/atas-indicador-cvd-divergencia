@@ -206,6 +206,11 @@ public sealed class VelaEntrada
 
 	public decimal Delta { get; set; }
 
+	/// <summary>Delta máximo y mínimo dentro de la vela (mechas de las velas de CVD); 0 si no se conocen.</summary>
+	public decimal MaxDelta { get; set; }
+
+	public decimal MinDelta { get; set; }
+
 	public decimal Ask { get; set; }
 
 	public decimal Bid { get; set; }

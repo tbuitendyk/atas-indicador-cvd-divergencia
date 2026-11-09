@@ -2,7 +2,18 @@ namespace SessionSweeps.Nucleo;
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+
+/// <summary>Hora de Nueva York a la que el CVD vuelve a cero.</summary>
+public enum ReinicioCvd
+{
+	[Display(Name = "Día de futuros (18:00 NY)")]
+	DiaFuturos,
+
+	[Display(Name = "Apertura RTH (09:30 NY)")]
+	Rth
+}
 
 /// <summary>Vela del CVD (delta acumulado): apertura = cierre anterior; máximo y mínimo con el delta máximo/mínimo de la vela.</summary>
 public readonly record struct VelaCvd(DateTime InicioUtc, decimal Open, decimal High, decimal Low, decimal Close, decimal PrecioHigh, decimal PrecioLow);
@@ -171,5 +182,173 @@ public sealed class SeguidorCvd
 			Todas.RemoveRange(0, Todas.Count - 2000);
 
 		return nuevas;
+	}
+}
+
+/// <summary>Una vela para la matriz CVD: OHLC, volumen, delta, CVD al cierre y el volumen por precio (para la mecha).</summary>
+public sealed record VelaMatriz(DateTime InicioUtc, decimal Open, decimal High, decimal Low, decimal Close, decimal Volumen, decimal Delta, decimal Cvd,
+	IReadOnlyList<NivelVela> Niveles);
+
+/// <summary>Disparo de la matriz CVD.</summary>
+public sealed record SenalMatriz(DateTime Utc, decimal Precio, bool Alcista, decimal Delta, decimal MechaPct, decimal VolumenMechaPct);
+
+/// <summary>
+/// CVD Institutional Trigger Matrix (v3, 4.1), portada del Institutional CVD Trigger &amp; Absorption Engine del
+/// repositorio: cuatro filtros en cascada con velas cerradas (sin repintado): 1) macro-divergencia CVD entre swings
+/// amplios; 2) micro-divergencia entre swings cortos; 3) absorción en la vela extrema del swing micro (mecha y volumen en
+/// la mecha); 4) giro de delta agresivo más allá del umbral del instrumento. Con los cuatro en la misma dirección, señal.
+/// Es confluencia: nunca crea una operación por sí sola.
+/// </summary>
+public sealed class MatrizCvd
+{
+	private sealed record Swing(int Barra, decimal Precio, decimal Cvd);
+
+	private readonly List<VelaMatriz> _velas = new();
+	private int _base;
+	private Swing? _macroMin, _macroMax, _microMin, _microMax;
+
+	public (bool Alcista, int Confirmada)? Macro { get; private set; }
+
+	public (bool Alcista, int Swing, int Confirmada, decimal MechaPct, decimal VolumenMechaPct, bool Absorcion, decimal? Giro)? Micro { get; private set; }
+
+	public SenalMatriz? UltimaSenal { get; private set; }
+
+	public decimal DeltaActual { get; private set; }
+
+	public int Count => _base + _velas.Count;
+
+	public void Reiniciar()
+	{
+		_velas.Clear();
+		_base = 0;
+		(_macroMin, _macroMax, _microMin, _microMax, Macro, Micro, UltimaSenal) = (null, null, null, null, null, null, null);
+	}
+
+	private VelaMatriz V(int i) => _velas[i - _base];
+
+	public void Agregar(VelaMatriz v, ParametrosV2 p, decimal tick)
+	{
+		_velas.Add(v);
+		DeltaActual = v.Delta;
+		var c = Count - 1;
+
+		Swings(c, Math.Max(1, p.CvdMatrixMacroStrength), true);
+		Swings(c, Math.Max(1, p.CvdMatrixMicroStrength), false, p, tick);
+
+		if (Macro is { } m && c - m.Confirmada > p.CvdMatrixMacroValidity)
+			Macro = null;
+
+		if (Micro is { } u && c - u.Confirmada > p.CvdMatrixMicroValidity)
+			Micro = null;
+
+		if (Micro is { } k && c > k.Confirmada && k.Giro is null)
+			Giro(c, p);
+
+		if (Macro is { } a && Micro is { Giro: { } giro } b && a.Alcista == b.Alcista && b.Absorcion)
+		{
+			UltimaSenal = new SenalMatriz(v.InicioUtc, b.Alcista ? v.Low : v.High, b.Alcista, giro, b.MechaPct, b.VolumenMechaPct);
+			Micro = null;
+		}
+
+		// Memoria acotada: lo que ya no puede ser swing ni vigencia.
+		var limite = Math.Max(p.CvdMatrixMacroValidity, p.CvdMatrixMacroStrength) * 3 + 50;
+
+		if (_velas.Count > limite + 200)
+		{
+			var quitar = _velas.Count - limite;
+			_velas.RemoveRange(0, quitar);
+			_base += quitar;
+		}
+	}
+
+	private void Swings(int c, int fuerza, bool macro, ParametrosV2? p = null, decimal tick = 0)
+	{
+		var e = c - fuerza;
+
+		if (e - fuerza < _base)
+			return;
+
+		var candidata = V(e);
+		var (esMax, esMin) = (true, true);
+
+		for (var j = e - fuerza; j <= c && (esMax || esMin); j++)
+		{
+			if (j == e)
+				continue;
+
+			esMax &= V(j).High < candidata.High;
+			esMin &= V(j).Low > candidata.Low;
+		}
+
+		if (esMin)
+			Nuevo(new Swing(e, candidata.Low, candidata.Cvd), false, macro, c, p, tick);
+
+		if (esMax)
+			Nuevo(new Swing(e, candidata.High, candidata.Cvd), true, macro, c, p, tick);
+	}
+
+	private void Nuevo(Swing s, bool maximo, bool macro, int c, ParametrosV2? p, decimal tick)
+	{
+		var anterior = macro ? (maximo ? _macroMax : _macroMin) : (maximo ? _microMax : _microMin);
+
+		if (macro)
+		{
+			if (maximo) _macroMax = s; else _macroMin = s;
+		}
+		else
+		{
+			if (maximo) _microMax = s; else _microMin = s;
+		}
+
+		if (anterior is null)
+			return;
+
+		// Macro exige un precio más extremo; micro acepta también doble suelo o techo.
+		var divergencia = maximo
+			? (macro ? s.Precio > anterior.Precio : s.Precio >= anterior.Precio) && s.Cvd < anterior.Cvd
+			: (macro ? s.Precio < anterior.Precio : s.Precio <= anterior.Precio) && s.Cvd > anterior.Cvd;
+
+		if (!divergencia)
+			return;
+
+		var alcista = !maximo;
+
+		if (macro)
+		{
+			Macro = (alcista, c);
+			return;
+		}
+
+		var (mecha, volumen) = Absorcion(V(s.Barra), alcista, tick);
+		Micro = (alcista, s.Barra, c, mecha, volumen, mecha >= p!.CvdMatrixMinWickPct && volumen >= p.CvdMatrixMinWickVolumePct, null);
+
+		// El giro puede haber llegado entre el swing y su confirmación.
+		for (var k = s.Barra + 1; k <= c && Micro?.Giro is null; k++)
+			Giro(k, p);
+	}
+
+	private void Giro(int barra, ParametrosV2 p)
+	{
+		if (Micro is not { } m || m.Giro is not null)
+			return;
+
+		var delta = V(barra).Delta;
+
+		if (m.Alcista ? delta >= p.CvdMatrixDeltaFlip : delta <= -p.CvdMatrixDeltaFlip)
+			Micro = m with { Giro = delta };
+	}
+
+	/// <summary>Mecha del lado del swing (% del rango) y volumen negociado en sus precios (% del volumen de la vela).</summary>
+	public static (decimal MechaPct, decimal VolumenPct) Absorcion(VelaMatriz v, bool alcista, decimal tick)
+	{
+		var rango = v.High - v.Low;
+
+		if (rango <= 0)
+			return (0, 0);
+
+		var (abajo, arriba) = (Math.Min(v.Open, v.Close), Math.Max(v.Open, v.Close));
+		var mecha = alcista ? abajo - v.Low : v.High - arriba;
+		var volumen = v.Niveles.Where(n => alcista ? n.Precio < abajo : n.Precio > arriba).Sum(n => n.Bid + n.Ask);
+		return (mecha / rango * 100, v.Volumen > 0 ? volumen / v.Volumen * 100 : 0);
 	}
 }
