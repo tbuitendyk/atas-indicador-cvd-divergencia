@@ -6,15 +6,24 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-/// <summary>Una alerta de v2.0 para la carcasa (sonido y ventana de ATAS; correo si procede).</summary>
-public sealed record AlertaV2(string Clave, string Categoria, string Texto, bool Correo, string? Asunto, string? Cuerpo);
+/// <summary>Una alerta para la carcasa: ATAS, correo y Telegram según los canales de su categoría.</summary>
+public sealed record AlertaV2(string Clave, CategoriaAlerta Categoria, string Texto, string Asunto, string Cuerpo);
+
+/// <summary>Lo que el mensaje necesita además de la novedad: instrumento, contrato, formato de precio y estado de MT5.</summary>
+public sealed class ContextoMensaje
+{
+	public string Instrumento { get; init; } = "NQ";
+	public string Contrato { get; init; } = "";
+	public string Mt5 { get; init; } = "MT5: APAGADO";
+	public Func<decimal, string> Precio { get; init; } = p => p.ToString("#,##0.00", CultureInfo.InvariantCulture);
+}
 
 /// <summary>Lo que hace la carcasa con las novedades: en el historial se descartan; en vivo, cada evento suena una sola vez.</summary>
 public sealed class DespachoAlertasV2
 {
 	private readonly HashSet<string> _vistas = new();
 
-	public List<AlertaV2> Procesar(IEnumerable<NovedadV2> novedades, bool enVivo, ParametrosV2 p, string simbolo, Func<decimal, string> precio, RaizInstrumento raiz)
+	public List<AlertaV2> Procesar(IEnumerable<NovedadV2> novedades, bool enVivo, ParametrosV2 p, ContextoMensaje ctx)
 	{
 		var r = new List<AlertaV2>();
 
@@ -26,7 +35,7 @@ public sealed class DespachoAlertasV2
 
 		foreach (var n in novedades)
 		{
-			if (PoliticaAlertasV2.Evaluar(n, p, simbolo, precio, raiz) is { } a && _vistas.Add(a.Clave))
+			if (PoliticaAlertasV2.Evaluar(n, p, ctx) is { } a && _vistas.Add(a.Clave))
 				r.Add(a);
 		}
 
@@ -35,19 +44,13 @@ public sealed class DespachoAlertasV2
 }
 
 /// <summary>
-/// Alertas (13): TRAMPA >= AlertMinState al congelar; UPGRADE PREMIUM; MOD3 activado; RUPTURA confirmada (arma MOD4);
-/// gatillo VÁLIDO en MOD1/BFVG/MOD2/MOD3/MOD4; FALLIDO y RUPTURA FALLIDA. Nunca con NOTICIA. Una vez por evento (la clave
-/// la usa la carcasa) y solo en vivo (la carcasa descarta las novedades del historial). Correo (anexo): cada toma de
-/// liquidez EXTERNA válida con entrada, stop y objetivos ya calculados.
+/// Alertas v3 (15), solo estas cinco: BARRIDO DE LIQUIDEZ REAL; BARRIDO DE LIQUIDEZ REAL PREMIUM (un upgrade de REAL a
+/// PREMIUM se etiqueta UPGRADE PREMIUM, sin repetir la de REAL); RUPTURA / ACEPTACIÓN CONFIRMADA (aviso de contexto);
+/// GATILLO VÁLIDO DEL MODELO A; GATILLO VÁLIDO DEL MODELO B. Nunca en el historial (la carcasa), con NOTICIA ni dos veces.
 /// </summary>
 public static class PoliticaAlertasV2
 {
-	public const string Clasificacion = "Clasificacion";
-	public const string Modelos = "Modelos";
-	public const string Entrada = "Entrada";
-	public const string Fallidos = "Fallidos";
-
-	public static AlertaV2? Evaluar(NovedadV2 n, ParametrosV2 p, string simbolo, Func<decimal, string> precio, RaizInstrumento raiz)
+	public static AlertaV2? Evaluar(NovedadV2 n, ParametrosV2 p, ContextoMensaje ctx)
 	{
 		var e = n.Evaluacion;
 
@@ -55,74 +58,76 @@ public static class PoliticaAlertasV2
 			return null;
 
 		var clave = $"{n.Tipo}|{e?.Id}|{n.Setup?.Id}";
-		var hora = TiempoV2.HoraCdmx(n.Utc);
 
 		switch (n.Tipo)
 		{
 			case "CONFIRMADO" when e is not null && e.Estado.EsReal() && e.Estado.Rango() >= (int)p.AlertMinState + 1:
-				return new AlertaV2(clave, Clasificacion, $"{simbolo} {hora} · {n.Texto}", false, null, null);
+				var premium = e.Estado == EstadoBarrido.Premium;
+				return Crear(clave, premium ? CategoriaAlerta.Premium : CategoriaAlerta.Real,
+					premium ? "BARRIDO DE LIQUIDEZ REAL PREMIUM" : "BARRIDO DE LIQUIDEZ REAL", n, e.SignoGiro, null, ctx);
 
-			case "UPGRADE PREMIUM":
-				return new AlertaV2(clave, Clasificacion, $"{simbolo} {hora} · {n.Texto}", false, null, null);
+			case "UPGRADE PREMIUM" when e is not null && p.AlertMinState <= EstadoMinimoAlerta.Premium:
+				return Crear(clave, CategoriaAlerta.Premium, "UPGRADE PREMIUM", n, e.SignoGiro, null, ctx);
 
-			case "MOD3 ACTIVADO":
-			case "RUPTURA (arma MOD4)":
-				return new AlertaV2(clave, Modelos, $"{simbolo} {hora} · {n.Texto}", false, null, null);
-
-			case "FALLIDO":
-			case "RUPTURA FALLIDA":
-				return new AlertaV2(clave, Fallidos, $"{simbolo} {hora} · {n.Texto}", false, null, null);
+			case "CONFIRMADO" when e is not null && e.Estado == EstadoBarrido.Ruptura:
+				return Crear(clave, CategoriaAlerta.Ruptura, "RUPTURA / ACEPTACIÓN CONFIRMADA (contexto)", n, e.Signo, null, ctx);
 
 			case "GATILLO VÁLIDO" when n.Setup is { } s:
-				var externa = s.Barrido?.Nivel.Grupo is "dia" or "semana";
-				return new AlertaV2(clave, Entrada, $"{simbolo} {hora} · {n.Texto}", externa, externa ? Asunto(s, simbolo) : null,
-					externa ? Cuerpo(s, simbolo, precio, raiz, n.Utc) : null);
+				return Crear(clave, s.ModeloOperativo == "A" ? CategoriaAlerta.EntradaA : CategoriaAlerta.EntradaB,
+					$"GATILLO VÁLIDO DEL MODELO {s.ModeloOperativo}", n, s.Signo, s, ctx);
 
 			default:
 				return null;
 		}
 	}
 
-	public static string Asunto(SetupModelo s, string simbolo) =>
-		$"Sessions Sweeps Pro · {simbolo} · {s.Etiqueta} {(s.Signo > 0 ? "LARGO" : "CORTO")} · {s.Barrido?.Nombre ?? s.Zona.Tipo}";
-
-	/// <summary>Correo de una toma de liquidez externa válida: contexto, entrada, SL, TP y plan de riesgo.</summary>
-	public static string Cuerpo(SetupModelo s, string simbolo, Func<decimal, string> precio, RaizInstrumento raiz, DateTime utc)
+	private static AlertaV2 Crear(string clave, CategoriaAlerta categoria, string titulo, NovedadV2 n, int direccion, SetupModelo? s, ContextoMensaje ctx)
 	{
-		var e = s.Barrido;
+		var dir = direccion > 0 ? "ALCISTA" : direccion < 0 ? "BAJISTA" : "";
+		var hora = $"{TiempoV2.HoraCdmx(n.Utc)} ({TiempoV2.HoraEt(n.Utc, "HH:mm")})";
+		var asunto = $"Sessions Sweeps Pro · {ctx.Instrumento} {ctx.Contrato} · {titulo} {dir}".TrimEnd();
+		return new AlertaV2(clave, categoria, $"{ctx.Instrumento} {hora} · {titulo} {dir} · {n.Texto}", asunto, Cuerpo(titulo, dir, hora, n, s, ctx));
+	}
+
+	/// <summary>Cuerpo del correo y de Telegram (15): instrumento, contrato, dirección, horas, clasificación, zona, gatillo, plan, trackers y MT5.</summary>
+	public static string Cuerpo(string titulo, string direccion, string hora, NovedadV2 n, SetupModelo? s, ContextoMensaje ctx)
+	{
+		var f = ctx.Precio;
+		var e = s?.Barrido ?? n.Evaluacion;
 		var sb = new StringBuilder();
-		var rr = s.Entrada is { } en && s.Stop is { } st && en != st && s.Tp1 is { } t1 ? Math.Abs(t1 - en) / Math.Abs(en - st) : 0;
-		sb.AppendLine($"{simbolo} · {TiempoV2.HoraCdmx(utc)} ({TiempoV2.HoraEt(utc, "HH:mm")})");
-		sb.AppendLine($"{s.Etiqueta} {(s.Signo > 0 ? "LARGO" : "CORTO")} · zona {s.Zona.Tipo} {precio(s.Zona.Bajo)} - {precio(s.Zona.Alto)}");
+		sb.AppendLine($"{titulo} {direccion}".TrimEnd());
+		sb.AppendLine($"Instrumento: {ctx.Instrumento} · contrato {ctx.Contrato} · {hora}");
 
 		if (e is not null)
 		{
-			var validacion = e.IcebergEstado == "AGUANTANDO" && e.IcebergModo == "MBO" ? "Certificada como real por iceberg (MBO)"
-				: e.IcebergModo == "INFERIDO" ? "Probable: iceberg inferido" : "Sin iceberg";
-			sb.AppendLine($"Barrido de liquidez externa: {e.Nombre} {precio(e.L)} a las {TiempoV2.HoraCdmx(e.T0Utc)} · {e.Estado.Texto()} {e.Total:0}/100 · {validacion}");
+			var validacion = e.IcebergEstado == "AGUANTANDO" && e.IcebergModo == "MBO" ? "certificada por iceberg (MBO)"
+				: e.IcebergModo == "INFERIDO" ? "probable: iceberg inferido" : "sin iceberg";
+			sb.AppendLine($"Barrido: {e.Nombre} {f(e.L)} · {e.Estado.Texto()} {e.Total:0}/100 · {validacion}");
 		}
 
-		sb.AppendLine();
-		sb.AppendLine($"Gatillo: {s.Gatillo?.Respuesta} (score {s.Gatillo?.Score})");
-		sb.AppendLine($"ENTRADA {(s.Entrada is { } a ? precio(a) : "-")}");
-		sb.AppendLine($"STOP    {(s.Stop is { } b ? precio(b) : "-")}");
-		sb.AppendLine($"TP1     {(s.Tp1 is { } c ? precio(c) : "-")}  (R:R {rr.ToString("0.0", CultureInfo.InvariantCulture)})");
-		sb.AppendLine($"TP2     {(s.Tp2 is { } d ? precio(d) : "-")}");
-
-		if (s.Riesgo is { } plan)
-			sb.AppendLine(plan.Texto(raiz));
-
-		if (s.Gatillo is { Razones.Count: > 0 } g)
+		if (s is not null)
 		{
-			sb.AppendLine();
-			sb.AppendLine("Razones:");
+			var rr = s.Entrada is { } en && s.Stop is { } st && en != st && s.Tp1 is { } t1 ? Math.Abs(t1 - en) / Math.Abs(en - st) : 0;
+			sb.AppendLine($"Modelo {s.ModeloOperativo}: {s.Etiqueta} · zona {s.Zona.Tipo} {f(s.Zona.Bajo)} - {f(s.Zona.Alto)}");
+			sb.AppendLine($"Gatillo: {s.Gatillo?.Respuesta} (score {s.Gatillo?.Score})");
+			sb.AppendLine($"ENTRADA {(s.Entrada is { } a ? f(a) : "-")} · SL {(s.Stop is { } b ? f(b) : "-")} · TP {(s.Tp1 is { } c ? f(c) : "-")} · R:R {rr.ToString("0.0", CultureInfo.InvariantCulture)}");
 
-			foreach (var r in g.Razones.Take(8))
-				sb.AppendLine("- " + r);
+			if (s.Riesgo is { } plan)
+				sb.AppendLine(plan.Texto(Enum.TryParse<RaizInstrumento>(ctx.Instrumento, out var r) ? r : RaizInstrumento.NQ));
 		}
 
+		if (e is not null)
+		{
+			sb.AppendLine($"Trackers: iceberg {(e.IcebergEstado.Length > 0 ? $"{e.IcebergEstado} {e.IcebergModo}" : "sin evento")} · stops {(e.StopsEvento.Length > 0 ? e.StopsEvento : "sin evento")}" +
+				$" · absorción {(e.AbsorptionEvento.Length > 0 ? e.AbsorptionEvento : "sin evento")}");
+		}
+
+		sb.AppendLine(ctx.Mt5);
 		sb.AppendLine();
-		sb.AppendLine("Estadística simulada; no es un registro de operaciones reales.");
+		sb.AppendLine(AvisoLegal);
 		return sb.ToString();
 	}
+
+	/// <summary>Aviso legal del prompt v3 (19).</summary>
+	public const string AvisoLegal = "Las señales y estadísticas son informativas y deben validarse. No son un registro de operaciones reales salvo que provengan de ejecuciones confirmadas.";
 }

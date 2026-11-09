@@ -253,6 +253,24 @@ MNQ_ = {"VolumePerBar": "1000", "MinVolBeyondFloor": "100", "SuperBigTradeMinCon
 DEFECTOS_PERFIL = {r: {**BASE, **extra} for r, extra in
                    [("NQ", {}), ("ES", ES_), ("YM", YM_), ("MNQ", MNQ_), ("MES", ES_), ("MYM", YM_)]}
 
+GRUPOS.append(("37. Alertas y canales", [
+    ("AlertRealAtas", "bool", P + "AlertRealAtas", "BARRIDO REAL: ATAS (sonido y ventana)", "", None, None, False),
+    ("AlertRealEmail", "bool", P + "AlertRealEmail", "BARRIDO REAL: correo", "", None, None, False),
+    ("AlertRealTelegram", "bool", P + "AlertRealTelegram", "BARRIDO REAL: Telegram", "", None, None, False),
+    ("AlertPremiumAtas", "bool", P + "AlertPremiumAtas", "BARRIDO REAL PREMIUM: ATAS (sonido y ventana)", "", None, None, False),
+    ("AlertPremiumEmail", "bool", P + "AlertPremiumEmail", "BARRIDO REAL PREMIUM: correo", "", None, None, False),
+    ("AlertPremiumTelegram", "bool", P + "AlertPremiumTelegram", "BARRIDO REAL PREMIUM: Telegram", "", None, None, False),
+    ("AlertRupturaAtas", "bool", P + "AlertRupturaAtas", "RUPTURA / ACEPTACIÓN: ATAS (sonido y ventana)", "", None, None, False),
+    ("AlertRupturaEmail", "bool", P + "AlertRupturaEmail", "RUPTURA / ACEPTACIÓN: correo", "", None, None, False),
+    ("AlertRupturaTelegram", "bool", P + "AlertRupturaTelegram", "RUPTURA / ACEPTACIÓN: Telegram", "", None, None, False),
+    ("AlertEntradaAAtas", "bool", P + "AlertEntradaAAtas", "GATILLO VÁLIDO A: ATAS (sonido y ventana)", "", None, None, False),
+    ("AlertEntradaAEmail", "bool", P + "AlertEntradaAEmail", "GATILLO VÁLIDO A: correo", "", None, None, False),
+    ("AlertEntradaATelegram", "bool", P + "AlertEntradaATelegram", "GATILLO VÁLIDO A: Telegram", "", None, None, False),
+    ("AlertEntradaBAtas", "bool", P + "AlertEntradaBAtas", "GATILLO VÁLIDO B: ATAS (sonido y ventana)", "", None, None, False),
+    ("AlertEntradaBEmail", "bool", P + "AlertEntradaBEmail", "GATILLO VÁLIDO B: correo", "", None, None, False),
+    ("AlertEntradaBTelegram", "bool", P + "AlertEntradaBTelegram", "GATILLO VÁLIDO B: Telegram", "", None, None, False),
+]))
+
 GRUPOS.append(("30. Instrumentos", [
     ("AliasSimbolos", "string", P + "AliasSimbolos", "Alias de símbolos",
      "Si el proveedor usa otro nombre: ENQ=NQ;EP=ES. Sin reconocer: INSTRUMENTO NO SOPORTADO (sin señales).", None, None, True),

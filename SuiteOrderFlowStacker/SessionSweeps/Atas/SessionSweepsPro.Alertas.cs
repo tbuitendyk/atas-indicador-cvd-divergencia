@@ -76,25 +76,26 @@ public partial class SessionSweepsPro
 				if (n.Setup is { } s && n.Tipo is "GATILLO VÁLIDO" or "MODELO CERRADO" or "MODELO INVALIDADO")
 					g.Modelo(s, ahora);
 			}
+
+			// Puente MT5 (17): solo las entradas válidas en vivo (el gestor decide si se manda, se simula o no).
+			if (n.Tipo == "GATILLO VÁLIDO" && n.Setup is { } entrada && motor.Instrumento.Bloqueo is null)
+				Mt5Entrada(motor, entrada, n.Utc);
 		}
 
-		foreach (var a in _despacho.Procesar(novedades, _enVivo && motor.Instrumento.Bloqueo is null, _cfg.V2, motor.Simbolo, motor.Precio, motor.Raiz))
+		var ctx = new ContextoMensaje { Instrumento = motor.Raiz.ToString(), Contrato = motor.Instrumento.Contrato, Mt5 = EstadoMt5Texto(), Precio = motor.Precio };
+
+		foreach (var a in _despacho.Procesar(novedades, _enVivo && motor.Instrumento.Bloqueo is null, _cfg.V2, ctx))
 		{
+			var canales = _cfg.V2.Canales(a.Categoria);
 
-			var sonar = a.Categoria switch
-			{
-				PoliticaAlertasV2.Clasificacion => AlertaClasificacion,
-				PoliticaAlertasV2.Entrada => AlertaEntrada,
-				PoliticaAlertasV2.Modelos => AlertaModelos,
-				PoliticaAlertasV2.Fallidos => AlertaFallidos,
-				_ => false
-			};
-
-			if (sonar)
+			if (canales.Atas)
 				AddAlert(string.IsNullOrWhiteSpace(AlertSoundFile) ? "alert1" : AlertSoundFile, a.Texto);
 
-			if (a.Correo && EmailOnValidEntry && a.Asunto is not null)
-				Enviar(a.Clave, a.Asunto, a.Cuerpo ?? a.Texto);
+			if (canales.Correo)
+				Enviar(a.Clave, a.Asunto, a.Cuerpo);
+
+			if (canales.Telegram)
+				EnviarTelegram(a.Clave, a.Asunto + "\n\n" + a.Cuerpo);
 		}
 	}
 

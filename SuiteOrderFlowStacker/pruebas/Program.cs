@@ -18,6 +18,7 @@ PruebasV3Bus.Ejecutar(c);
 PruebasV3Thermal.Ejecutar(c);
 PruebasV3Modelos.Ejecutar(c);
 PruebasV3Cvd.Ejecutar(c);
+PruebasV3Envios.Ejecutar(c);
 Documentacion.Ejecutar(c);
 
 return c.Resumen();

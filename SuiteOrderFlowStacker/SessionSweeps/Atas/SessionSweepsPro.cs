@@ -251,44 +251,22 @@ public partial class SessionSweepsPro : Indicator
 	[Display(Name = "Color IFVG", GroupName = G8, Order = 60)]
 	public MediaColor IfvgColor { get; set; } = MediaColor.FromArgb(90, 139, 0, 0);
 
-	// --- 12. Alertas -----------------------------------------------------------------------------------------------
-
-	[Display(Name = "Alerta de ruptura (en el tick)", GroupName = G12, Order = 10)]
-	public bool AlertaRuptura { get; set; } = true;
-
-	[Display(Name = "Alertas de cuenta atrás (1m y 5m)", GroupName = G12, Order = 20)]
-	public bool AlertaCuentaAtras { get; set; } = true;
-
-	[Display(Name = "Segundos antes del cierre", GroupName = G12, Order = 30)]
-	[Range(1, 59)]
-	public int TriggerCountdownSec { get => _cfg.TriggerCountdownSec; set { _cfg.TriggerCountdownSec = value; Recalcular(); } }
-
-	[Display(Name = "Alerta TRAMPA / UPGRADE PREMIUM", GroupName = G12, Order = 40, Description = "Al congelar una TRAMPA igual o mayor que el estado mínimo (22. Estados y alertas) y en cada UPGRADE PREMIUM.")]
-	public bool AlertaClasificacion { get; set; } = true;
-
-	[Display(Name = "Alerta de gatillo VÁLIDO", GroupName = G12, Order = 50, Description = "Entrada de MOD1, BFVG, MOD2, MOD3 o MOD4.")]
-	public bool AlertaEntrada { get; set; } = true;
-
-	[Display(Name = "Alerta MOD3 / RUPTURA (arma MOD4)", GroupName = G12, Order = 52)]
-	public bool AlertaModelos { get; set; } = true;
-
-	[Display(Name = "Alerta FALLIDO / RUPTURA FALLIDA", GroupName = G12, Order = 54)]
-	public bool AlertaFallidos { get; set; } = true;
-
-	[Display(Name = "Alerta de IFVG", GroupName = G12, Order = 60)]
-	public bool AlertaIfvg { get; set; }
+	// --- 12. Alertas (v3: solo las cinco del prompt; sus canales están en "37. Alertas y canales") ------------------
 
 	[Display(Name = "Sonido", GroupName = G12, Order = 70)]
 	[SoundComboBoxEditor]
 	public string AlertSoundFile { get; set; } = "alert1";
 
-	// --- 13. Correo ------------------------------------------------------------------------------------------------
+	// --- 13. Correo y Telegram ---------------------------------------------------------------------------------------
 
 	[Display(Name = "Correo activado", GroupName = G13, Order = 10)]
 	public bool EmailEnabled { get; set; } = true;
 
-	[Display(Name = "Para (EmailTo)", GroupName = G13, Order = 20, Description = "Destinatario del correo de cada toma de liquidez externa válida.")]
+	[Display(Name = "Para (destinatarios)", GroupName = G13, Order = 20, Description = "Uno o varios, separados por ';'.")]
 	public string EmailTo { get; set; } = "uniontradingacademy@gmail.com";
+
+	[Display(Name = "Remitente", GroupName = G13, Order = 25, Description = "Vacío = el usuario SMTP.")]
+	public string EmailFrom { get; set; } = "";
 
 	[Display(Name = "Servidor SMTP", GroupName = G13, Order = 30)]
 	public string SmtpServer { get; set; } = "smtp.gmail.com";
@@ -297,24 +275,23 @@ public partial class SessionSweepsPro : Indicator
 	[Range(1, 65535)]
 	public int SmtpPort { get; set; } = 587;
 
-	[Display(Name = "SSL", GroupName = G13, Order = 50)]
+	[Display(Name = "TLS", GroupName = G13, Order = 50)]
 	public bool UseSSL { get; set; } = true;
 
 	[Display(Name = "Usuario SMTP", GroupName = G13, Order = 60)]
 	public string SmtpUser { get; set; } = "";
 
-	[Display(Name = "Contraseña de aplicación", GroupName = G13, Order = 70, Description = "Gmail: contraseña de aplicación de 16 letras (verificación en 2 pasos).")]
-	public SecureString? SmtpPassword { get; set; }
-
-	[Display(Name = "Correo en cada toma de liquidez externa válida", GroupName = G13, Order = 75,
-		Description = "Gatillo VÁLIDO sobre un barrido de liquidez externa (PDH/PDL, días y semana anteriores) con entrada, stop y objetivos. Solo en vivo, nunca con NOTICIA.")]
-	public bool EmailOnValidEntry { get; set; } = true;
-
-	[Display(Name = "Correo al barrer (en t0, aviso informativo)", GroupName = G13, Order = 80)]
-	public bool EmailOnSweep { get; set; }
-
-	[Display(Name = "Correo de actualización (al cierre de W5)", GroupName = G13, Order = 85)]
-	public bool EmailOnUpdate { get; set; }
+	[Display(Name = "Contraseña de aplicación", GroupName = G13, Order = 70,
+		Description = "Se guarda cifrada con DPAPI de Windows (no en los ajustes de ATAS ni en ningún archivo en claro). Gmail: contraseña de aplicación de 16 letras.")]
+	public SecureString? SmtpPassword
+	{
+		get => null;
+		set
+		{
+			if (value is { Length: > 0 })
+				GuardarCredencial("smtp", value);
+		}
+	}
 
 	[Display(Name = "Zona horaria del correo", GroupName = G13, Order = 120, Description = "Por ejemplo Eastern Standard Time o Central Standard Time (Mexico).")]
 	public string EmailTimeZone { get; set; } = "Eastern Standard Time";
@@ -327,6 +304,34 @@ public partial class SessionSweepsPro : Indicator
 		{
 			if (value)
 				EnviarPrueba();
+		}
+	}
+
+	[Display(Name = "Telegram: token del bot", GroupName = G13, Order = 200,
+		Description = "Se guarda cifrado con DPAPI; aquí solo se ve si está guardado. Para borrarlo escriba BORRAR.")]
+	public string TelegramBotToken
+	{
+		get => ExisteCredencial("telegram") ? MascaraGuardado : "";
+		set
+		{
+			if (string.Equals(value, "BORRAR", StringComparison.OrdinalIgnoreCase))
+				BorrarCredencial("telegram");
+			else if (!string.IsNullOrWhiteSpace(value) && value != MascaraGuardado)
+				GuardarCredencial("telegram", value.Trim());
+		}
+	}
+
+	[Display(Name = "Telegram: chat ID", GroupName = G13, Order = 210)]
+	public string TelegramChatId { get; set; } = "";
+
+	[Display(Name = "Telegram: enviar prueba", GroupName = G13, Order = 220)]
+	public bool SendTestTelegram
+	{
+		get => false;
+		set
+		{
+			if (value)
+				EnviarTelegram("prueba|" + Guid.NewGuid(), "Sessions Sweeps Pro: mensaje de prueba de Telegram.");
 		}
 	}
 
@@ -374,8 +379,6 @@ public partial class SessionSweepsPro : Indicator
 	private long _avisoVisto;
 	private int _minutos;
 	private string _estado = "";
-	private Correo? _correo;
-	private bool _avisoSinSmtp;
 
 	#endregion
 
@@ -540,10 +543,11 @@ public partial class SessionSweepsPro : Indicator
 	protected override void OnDispose()
 	{
 		CerrarV2();
+		PararPuente();
 		_grabador?.Dispose();
 		_grabador = null;
-		_correo?.Dispose();
-		_correo = null;
+		_envios?.Dispose();
+		_envios = null;
 	}
 
 	private static List<decimal> LeerPrecios(string texto) =>
@@ -557,71 +561,14 @@ public partial class SessionSweepsPro : Indicator
 
 	#region Alertas y correo
 
-	/// <summary>Avisos nuevos del motor: alerta de ATAS y/o correo según el tipo y los ajustes. Solo en vivo.</summary>
+	/// <summary>
+	/// v3 (15): los avisos del motor heredado (ruptura en el tick, cuentas atrás, IFVG) ya no suenan ni se envían: solo las
+	/// cinco alertas del prompt (ProcesarNovedadesV2). Se marcan como vistos para que no se acumulen.
+	/// </summary>
 	private void RevisarAvisos()
 	{
-		if (!_enVivo || _motor is not { } motor)
-			return;
-
-		lock (_syncAvisos)
-		{
-			if (motor.UltimoAviso == _avisoVisto)
-				return;
-
-			foreach (var a in motor.AvisosDespuesDe(_avisoVisto))
-			{
-				_avisoVisto = a.Numero;
-
-				// De los avisos del motor del NQ quedan los del tick (ruptura, cuentas atrás) e IFVG; la clasificación y las
-				// entradas son las de v2.0 (ProcesarNovedadesV2).
-				var alerta = a.Tipo switch
-				{
-					TipoAviso.Ruptura => AlertaRuptura,
-					TipoAviso.CuentaAtras1m or TipoAviso.CuentaAtras5m => AlertaCuentaAtras,
-					TipoAviso.Ifvg => AlertaIfvg,
-					_ => false
-				};
-
-				if (alerta)
-					AddAlert(string.IsNullOrWhiteSpace(AlertSoundFile) ? "alert1" : AlertSoundFile, a.Texto);
-
-				var correo = a.Asunto is not null && a.Tipo switch
-				{
-					TipoAviso.Ruptura => EmailOnSweep,
-					TipoAviso.ActualizacionW5 => EmailOnUpdate,
-					_ => false
-				};
-
-				if (correo)
-					Enviar(a.Clave, a.Asunto!, a.Cuerpo ?? a.Texto);
-			}
-		}
-	}
-
-	private void Enviar(string clave, string asunto, string cuerpo)
-	{
-		if (!EmailEnabled || string.IsNullOrWhiteSpace(EmailTo))
-			return;
-
-		// Sin usuario o contraseña SMTP no se intenta (se avisa una vez en el registro de ATAS).
-		if (string.IsNullOrWhiteSpace(SmtpUser) || SmtpPassword is not { Length: > 0 })
-		{
-			if (!_avisoSinSmtp)
-				this.LogWarn("Sessions Sweeps Pro: correo sin configurar (usuario y contraseña SMTP en 13. Correo); no se envía.");
-
-			_avisoSinSmtp = true;
-			return;
-		}
-
-		_correo ??= new Correo((mensaje, error) => this.LogError(mensaje, error));
-		_correo.Encolar(clave, new ConfiguracionCorreo(SmtpServer, SmtpPort, UseSSL, SmtpUser, SmtpPassword, EmailTo), asunto, cuerpo);
-	}
-
-	private void EnviarPrueba()
-	{
-		var hora = Zonas.PorNombre(EmailTimeZone);
-		var ahora = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, hora).ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-		Enviar("prueba|" + Guid.NewGuid(), "Sessions Sweeps Pro - correo de prueba", $"Correo de prueba enviado a las {ahora}.\nSi lo recibe, el correo esta bien configurado.");
+		if (_motor is { } motor)
+			_avisoVisto = motor.UltimoAviso;
 	}
 
 	#endregion

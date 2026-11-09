@@ -460,6 +460,53 @@ public partial class SessionSweepsPro
 	[Display(Name = "Diagnóstico de trackers", GroupName = "28. Panel y dibujo", Order = 120, Description = "Marca hueca fucsia (SSP ICE, STOP, SWEEP, STK, IMB) en cada evento que Sessions Sweeps recibe del bus, para compararlo con el dibujo original del tracker.")]
 	public bool ShowTrackerDiagnostics { get => _v.ShowTrackerDiagnostics; set { _v.ShowTrackerDiagnostics = value; RedrawChart(); } }
 
+	// --- 37. Alertas y canales -------------------------------------------------------------------------------
+
+	[Display(Name = "BARRIDO REAL: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 10, Description = "")]
+	public bool AlertRealAtas { get => _cfg.V2.AlertRealAtas; set { _cfg.V2.AlertRealAtas = value; RedrawChart(); } }
+
+	[Display(Name = "BARRIDO REAL: correo", GroupName = "37. Alertas y canales", Order = 20, Description = "")]
+	public bool AlertRealEmail { get => _cfg.V2.AlertRealEmail; set { _cfg.V2.AlertRealEmail = value; RedrawChart(); } }
+
+	[Display(Name = "BARRIDO REAL: Telegram", GroupName = "37. Alertas y canales", Order = 30, Description = "")]
+	public bool AlertRealTelegram { get => _cfg.V2.AlertRealTelegram; set { _cfg.V2.AlertRealTelegram = value; RedrawChart(); } }
+
+	[Display(Name = "BARRIDO REAL PREMIUM: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 40, Description = "")]
+	public bool AlertPremiumAtas { get => _cfg.V2.AlertPremiumAtas; set { _cfg.V2.AlertPremiumAtas = value; RedrawChart(); } }
+
+	[Display(Name = "BARRIDO REAL PREMIUM: correo", GroupName = "37. Alertas y canales", Order = 50, Description = "")]
+	public bool AlertPremiumEmail { get => _cfg.V2.AlertPremiumEmail; set { _cfg.V2.AlertPremiumEmail = value; RedrawChart(); } }
+
+	[Display(Name = "BARRIDO REAL PREMIUM: Telegram", GroupName = "37. Alertas y canales", Order = 60, Description = "")]
+	public bool AlertPremiumTelegram { get => _cfg.V2.AlertPremiumTelegram; set { _cfg.V2.AlertPremiumTelegram = value; RedrawChart(); } }
+
+	[Display(Name = "RUPTURA / ACEPTACIÓN: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 70, Description = "")]
+	public bool AlertRupturaAtas { get => _cfg.V2.AlertRupturaAtas; set { _cfg.V2.AlertRupturaAtas = value; RedrawChart(); } }
+
+	[Display(Name = "RUPTURA / ACEPTACIÓN: correo", GroupName = "37. Alertas y canales", Order = 80, Description = "")]
+	public bool AlertRupturaEmail { get => _cfg.V2.AlertRupturaEmail; set { _cfg.V2.AlertRupturaEmail = value; RedrawChart(); } }
+
+	[Display(Name = "RUPTURA / ACEPTACIÓN: Telegram", GroupName = "37. Alertas y canales", Order = 90, Description = "")]
+	public bool AlertRupturaTelegram { get => _cfg.V2.AlertRupturaTelegram; set { _cfg.V2.AlertRupturaTelegram = value; RedrawChart(); } }
+
+	[Display(Name = "GATILLO VÁLIDO A: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 100, Description = "")]
+	public bool AlertEntradaAAtas { get => _cfg.V2.AlertEntradaAAtas; set { _cfg.V2.AlertEntradaAAtas = value; RedrawChart(); } }
+
+	[Display(Name = "GATILLO VÁLIDO A: correo", GroupName = "37. Alertas y canales", Order = 110, Description = "")]
+	public bool AlertEntradaAEmail { get => _cfg.V2.AlertEntradaAEmail; set { _cfg.V2.AlertEntradaAEmail = value; RedrawChart(); } }
+
+	[Display(Name = "GATILLO VÁLIDO A: Telegram", GroupName = "37. Alertas y canales", Order = 120, Description = "")]
+	public bool AlertEntradaATelegram { get => _cfg.V2.AlertEntradaATelegram; set { _cfg.V2.AlertEntradaATelegram = value; RedrawChart(); } }
+
+	[Display(Name = "GATILLO VÁLIDO B: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 130, Description = "")]
+	public bool AlertEntradaBAtas { get => _cfg.V2.AlertEntradaBAtas; set { _cfg.V2.AlertEntradaBAtas = value; RedrawChart(); } }
+
+	[Display(Name = "GATILLO VÁLIDO B: correo", GroupName = "37. Alertas y canales", Order = 140, Description = "")]
+	public bool AlertEntradaBEmail { get => _cfg.V2.AlertEntradaBEmail; set { _cfg.V2.AlertEntradaBEmail = value; RedrawChart(); } }
+
+	[Display(Name = "GATILLO VÁLIDO B: Telegram", GroupName = "37. Alertas y canales", Order = 150, Description = "")]
+	public bool AlertEntradaBTelegram { get => _cfg.V2.AlertEntradaBTelegram; set { _cfg.V2.AlertEntradaBTelegram = value; RedrawChart(); } }
+
 	// --- 30. Instrumentos ------------------------------------------------------------------------------------
 
 	[Display(Name = "Alias de símbolos", GroupName = "30. Instrumentos", Order = 10, Description = "Si el proveedor usa otro nombre: ENQ=NQ;EP=ES. Sin reconocer: INSTRUMENTO NO SOPORTADO (sin señales).")]

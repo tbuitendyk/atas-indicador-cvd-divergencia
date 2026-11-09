@@ -156,6 +156,32 @@ public sealed class ParametrosV2
 	public int MaxEvaluationSec { get; set; } = 300;
 	public EstadoMinimoAlerta AlertMinState { get; set; } = EstadoMinimoAlerta.Real;
 
+	// Canales de cada alerta (15): ATAS (sonido y ventana), correo y Telegram.
+	public bool AlertRealAtas { get; set; } = true;
+	public bool AlertRealEmail { get; set; }
+	public bool AlertRealTelegram { get; set; }
+	public bool AlertPremiumAtas { get; set; } = true;
+	public bool AlertPremiumEmail { get; set; } = true;
+	public bool AlertPremiumTelegram { get; set; } = true;
+	public bool AlertRupturaAtas { get; set; } = true;
+	public bool AlertRupturaEmail { get; set; }
+	public bool AlertRupturaTelegram { get; set; }
+	public bool AlertEntradaAAtas { get; set; } = true;
+	public bool AlertEntradaAEmail { get; set; } = true;
+	public bool AlertEntradaATelegram { get; set; } = true;
+	public bool AlertEntradaBAtas { get; set; } = true;
+	public bool AlertEntradaBEmail { get; set; } = true;
+	public bool AlertEntradaBTelegram { get; set; } = true;
+
+	public CanalesAlerta Canales(CategoriaAlerta c) => c switch
+	{
+		CategoriaAlerta.Real => new(AlertRealAtas, AlertRealEmail, AlertRealTelegram),
+		CategoriaAlerta.Premium => new(AlertPremiumAtas, AlertPremiumEmail, AlertPremiumTelegram),
+		CategoriaAlerta.Ruptura => new(AlertRupturaAtas, AlertRupturaEmail, AlertRupturaTelegram),
+		CategoriaAlerta.EntradaA => new(AlertEntradaAAtas, AlertEntradaAEmail, AlertEntradaATelegram),
+		_ => new(AlertEntradaBAtas, AlertEntradaBEmail, AlertEntradaBTelegram)
+	};
+
 	// FVG / LVN
 	public int FvgMinTicks { get; set; } = 4;
 	public int FvgMaxActive { get; set; } = 10;

@@ -183,6 +183,26 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `ShowManualTriggerBoxes` | Cajas del gatillo manual | No |  | Las dibuja el Thermal que las pidió; actívelo solo si el Thermal está en otro gráfico. |
 | `ShowTrackerDiagnostics` | Diagnóstico de trackers | No |  | Marca hueca fucsia (SSP ICE, STOP, SWEEP, STK, IMB) en cada evento que Sessions Sweeps recibe del bus, para compararlo con el dibujo original del tracker. |
 
+## 37. Alertas y canales
+
+| Parámetro | En ATAS | Defecto | Rango | Descripción |
+|---|---|---|---|---|
+| `AlertRealAtas` | BARRIDO REAL: ATAS (sonido y ventana) | Sí |  |  |
+| `AlertRealEmail` | BARRIDO REAL: correo | No |  |  |
+| `AlertRealTelegram` | BARRIDO REAL: Telegram | No |  |  |
+| `AlertPremiumAtas` | BARRIDO REAL PREMIUM: ATAS (sonido y ventana) | Sí |  |  |
+| `AlertPremiumEmail` | BARRIDO REAL PREMIUM: correo | Sí |  |  |
+| `AlertPremiumTelegram` | BARRIDO REAL PREMIUM: Telegram | Sí |  |  |
+| `AlertRupturaAtas` | RUPTURA / ACEPTACIÓN: ATAS (sonido y ventana) | Sí |  |  |
+| `AlertRupturaEmail` | RUPTURA / ACEPTACIÓN: correo | No |  |  |
+| `AlertRupturaTelegram` | RUPTURA / ACEPTACIÓN: Telegram | No |  |  |
+| `AlertEntradaAAtas` | GATILLO VÁLIDO A: ATAS (sonido y ventana) | Sí |  |  |
+| `AlertEntradaAEmail` | GATILLO VÁLIDO A: correo | Sí |  |  |
+| `AlertEntradaATelegram` | GATILLO VÁLIDO A: Telegram | Sí |  |  |
+| `AlertEntradaBAtas` | GATILLO VÁLIDO B: ATAS (sonido y ventana) | Sí |  |  |
+| `AlertEntradaBEmail` | GATILLO VÁLIDO B: correo | Sí |  |  |
+| `AlertEntradaBTelegram` | GATILLO VÁLIDO B: Telegram | Sí |  |  |
+
 ## 30. Instrumentos
 
 | Parámetro | En ATAS | Defecto | Rango | Descripción |
