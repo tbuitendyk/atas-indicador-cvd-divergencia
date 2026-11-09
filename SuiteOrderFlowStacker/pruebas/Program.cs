@@ -16,6 +16,7 @@ PruebasV2Alertas.Ejecutar(c);
 PruebasV3Instrumentos.Ejecutar(c);
 PruebasV3Bus.Ejecutar(c);
 PruebasV3Thermal.Ejecutar(c);
+PruebasV3Modelos.Ejecutar(c);
 Documentacion.Ejecutar(c);
 
 return c.Resumen();

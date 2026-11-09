@@ -138,7 +138,7 @@ internal static class PruebasV2Modelos
 			.Concat(SimMotor.CaminoT(21430, 21437, 4.5m, 0.5m, 45, 47)));
 		var entrada = s.Setups.FirstOrDefault(x => x.Modelo == "MOD4" && x.Zona.Tipo == "FVG+LVN");
 		c.Check("T23 entrada MOD4 en la zona FVG+LVN con gatillo de ARRANQUE",
-			entrada is null ? "sin setup" : $"{entrada.TextoEstado} {entrada.Gatillo?.Tipo} {entrada.Etiqueta}", "ENTRADA Arranque MOD4-C RUPTURA-RETROCESO");
+			entrada is null ? "sin setup" : $"{entrada.TextoEstado} {entrada.Gatillo?.Tipo} {entrada.Etiqueta} {entrada.ModeloOperativo}", "ENTRADA Arranque B - RETROCESO TRAS ROMPIMIENTO B");
 		c.Check("T23 riesgo calculado (NQ)", entrada?.Riesgo?.Contratos > 0 ? "ok" : $"{entrada?.Riesgo}", "ok");
 
 		c.Seccion("S7 T24: la misma ruptura con un iceberg ROTO = manda MOD3, sin duplicar MOD4");
@@ -148,9 +148,10 @@ internal static class PruebasV2Modelos
 		s24.Fuentes.Eventos.Add(new IcebergEvent { Id = 50, Fuente = FuenteSuite.Iceberg, Utc = t0, CambioUtc = t0.AddSeconds(5), Precio = 21420.25m, Compra = false, Estado = "ROTO", Mbo = true, Ejecutado = 250 });
 		s24.Ruptura();
 		var modelos24 = s24.Setups;
-		c.Check("T24 RUPTURA con iceberg ROTO: MOD3 activado, ningún MOD4",
-			$"{s24.Pdh?.IcebergEstado} {modelos24.Count(x => x.Modelo == "MOD3")} {modelos24.Count(x => x.Modelo == "MOD4")}", "ROTO 1 0");
-		c.Check("T24 las zonas de la pierna se operan como 'MOD2 tras MOD3'", modelos24.Any(x => x.Etiqueta == "MOD2 tras MOD3" && x.Zona.Tipo == "FVG+LVN").ToString(), "True");
+		c.Check("T24 v3: el rompimiento con iceberg ROTO es contexto (activo, sin modelo propio) y no duplica la B de la ruptura",
+			$"{s24.Pdh?.IcebergEstado} {s24.M.Leer(m => m.Mod3Activo?.Signo)} {modelos24.Count(x => x.Modelo == "MOD3")} {modelos24.Count(x => x.Modelo == "MOD4")}", "ROTO 1 0 0");
+		c.Check("T24 las zonas de la pierna se operan como 'B - RETROCESO TRAS ROMPIMIENTO (iceberg roto)'",
+			modelos24.Any(x => x.TrasIcebergRoto && x.ModeloOperativo == "B" && x.Etiqueta == "B - RETROCESO TRAS ROMPIMIENTO (iceberg roto)" && x.Zona.Tipo == "FVG+LVN").ToString(), "True");
 
 		c.Seccion("S7 T25: MOD4 cancelado por RUPTURA FALLIDA");
 		var s25 = new SimMotor();
@@ -180,10 +181,10 @@ internal static class PruebasV2Modelos
 		s26.Fuentes.Eventos.Add(new StopsEvent { Id = 62, Fuente = FuenteSuite.Stops, Utc = tr, CambioUtc = tr, Desde = 21403, Extremo = 21405, Compra = true, Contratos = 200 });
 		s26.Minuto(new DateTime(2026, 10, 30, 9, 41, 0), SimMotor.Camino(21402, 21412, 8, 2));
 		var st = s26.Setups.ToDictionary(x => x.Id);
-		c.Check("T26 MOD3 activado (largo)", $"{s26.M.Leer(m => m.Mod3Activo?.Signo)} {s26.Setups.Count(x => x.Modelo == "MOD3")}", "1 1");
-		c.Check("T26 MOD1 y MOD2 cortos: INVALIDADO POR MOD3; MOD2 largo sigue ARMADO",
+		c.Check("T26 rompimiento con iceberg roto (largo): contexto, sin modelo propio", $"{s26.M.Leer(m => m.Mod3Activo?.Signo)} {s26.Setups.Count(x => x.Modelo == "MOD3")}", "1 0");
+		c.Check("T26 A y B cortos: INVALIDADO POR ROMPIMIENTO; B largo sigue ARMADO",
 			$"{st[901].TextoEstado}:{st[901].Motivo} {st[902].TextoEstado}:{st[902].Motivo} {st[903].TextoEstado}",
-			"INVALIDADO:INVALIDADO POR MOD3 INVALIDADO:INVALIDADO POR MOD3 ARMADO");
+			"INVALIDADO:INVALIDADO POR ROMPIMIENTO (iceberg roto) INVALIDADO:INVALIDADO POR ROMPIMIENTO (iceberg roto) ARMADO");
 
 		c.Seccion("S7 T27 y T20: MOD1 no acepta continuidad; un LVN MANUAL del botón LVN arma MOD2");
 		var s27 = new SimMotor();

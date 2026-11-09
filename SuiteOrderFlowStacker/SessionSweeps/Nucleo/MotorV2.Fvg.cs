@@ -61,7 +61,7 @@ public sealed partial class MotorSweeps
 			return;
 		}
 
-		var z = MotorFvgV2.ZonaDeFvg(NuevaZonaId(), f, Lvn, P2, Cfg.TamanoTick, bfvg: true, e.Id, "BFVG");
+		var z = MotorFvgV2.ZonaDeFvg(NuevaZonaId(), f, Lvn, P2, Cfg.TamanoTick, bfvg: true, e.Id, "BFVG", Edge);
 		z.ExpiraUtc = fin;
 		Zonas2.Add(z);
 

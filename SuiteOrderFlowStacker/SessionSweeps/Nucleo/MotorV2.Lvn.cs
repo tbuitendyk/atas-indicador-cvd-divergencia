@@ -13,6 +13,34 @@ public sealed partial class MotorSweeps
 
 	public RepositorioLvn Lvn { get; } = new();
 
+	/// <summary>EDGE del Thermal (v3, 8).</summary>
+	public RepositorioEdge Edge { get; } = new();
+
+	/// <summary>Un evento EDGE (o un RangeReset) del Thermal.</summary>
+	public void EdgeDesdeSuite(EventoSuite e)
+	{
+		lock (_sync)
+		{
+			Edge.AlBorrar ??= BorradosEdge;
+			Edge.Aplicar(e);
+		}
+	}
+
+	/// <summary>Próximo LVN o EDGE en la dirección de la operación (el más cercano de los dos), a TargetMinDistTicks o más.</summary>
+	public decimal? ProximoObjetivo(decimal entrada, int signo)
+	{
+		var minimo = P2.TargetMinDistTicks * Cfg.TamanoTick;
+		var l = Lvn.Proximo(entrada, signo, minimo)?.Centro;
+		var e = Edge.Proximo(entrada, signo, minimo)?.Precio;
+		return (l, e) switch
+		{
+			({ } a, { } b) => Math.Abs(a - entrada) <= Math.Abs(b - entrada) ? a : b,
+			({ } a, null) => a,
+			(null, { } b) => b,
+			_ => null
+		};
+	}
+
 	/// <summary>Thermal cargado (si no: "SIN FUENTE LVN"; MOD2/MOD4 solo con FVG, EMA o nivel).</summary>
 	public bool HayFuenteLvn => Fuentes.Estado(FuenteSuite.Thermal) != EstadoFuente.NoCargado;
 

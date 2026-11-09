@@ -111,11 +111,22 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 
 | Parámetro | En ATAS | Defecto | Rango | Descripción |
 |---|---|---|---|---|
-| `Mod3InvalidatesAllMod1Mod2` | MOD3 invalida todos los MOD1/MOD2 | No |  | Desactivado: solo los contrarios a la dirección del MOD3. |
-| `Mod4AllowInternal` | MOD4 en liquidez interna | No |  | Por defecto solo externa. |
-| `Mod4MaxWaitMin` | MOD4: espera máxima (min) | 45 | 1-480 |  |
-| `Mod4MaxRetracePct` | MOD4: retroceso máximo | 0.618 | 0.1-1 | Fracción de la pierna (0,618). |
-| `Mod4MaxAttempts` | MOD4: intentos máximos | 2 | 1-10 | Entradas por ruptura. |
+| `EnableModelA` | Modelo A: barrido de liquidez | Sí |  | Prioridad A: barrido real (o premium) y recuperación; incluye los BFVG. |
+| `EnableModelB` | Modelo B: retroceso a LVN / EDGE / FVG | Sí |  | Prioridad B (la de mayor interés): retroceso a una zona con gatillo confirmado. Incluye B - RETROCESO TRAS ROMPIMIENTO. |
+| `ModelBEnableLvn` | Modelo B: LVN del Thermal | Sí |  |  |
+| `ModelBEnableEdge` | Modelo B: EDGE del Thermal | Sí |  |  |
+| `ModelBEnableFvg` | Modelo B: FVG | Sí |  | También FVG+LVN y FVG+EDGE. |
+| `ModelBEnableEma` | Modelo B: EMA 15 | Sí |  |  |
+| `ModelBEnableNivel` | Modelo B: nivel roto | Sí |  |  |
+| `MaxAttemptsPerZone` | Intentos máximos por zona | 2 | 1-20 | Entradas en la misma zona y dirección. |
+| `TpRMultiple` | TP (R múltiplos) | 2.0 | 0.5-20 | Objetivo a este múltiplo del riesgo (2R). |
+| `TargetMode` | Objetivo | RMultiplo |  | R múltiplos, o el próximo LVN / EDGE (si no hay, R). |
+| `ExitMode` | Salida | TpOEma15 |  | TP o cierre de 1 minuto al otro lado de la EMA 15, lo primero (por defecto). El SL nunca se amplía. |
+| `Mod3InvalidatesAllMod1Mod2` | Iceberg roto anula todos los A y B | No |  | Desactivado: solo los contrarios a la dirección del rompimiento (contexto). |
+| `Mod4AllowInternal` | B tras rompimiento en liquidez interna | No |  | Por defecto solo externa. |
+| `Mod4MaxWaitMin` | B tras rompimiento: espera máxima (min) | 45 | 1-480 |  |
+| `Mod4MaxRetracePct` | B tras rompimiento: retroceso máximo | 0.618 | 0.1-1 | Fracción de la pierna (0,618). |
+| `Mod4MaxAttempts` | B tras rompimiento: intentos máximos | 2 | 1-10 | Entradas por ruptura. |
 | `MinRR` | R:R mínimo | 1.5 | 0.5-10 |  |
 | `StopMode` | Modo del stop | ZonaEstructura |  |  |
 
@@ -129,8 +140,7 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `AccountSize` | Tamaño de la cuenta (USD) | 50000 | 100-100000000 | Si no se lee de ATAS. |
 | `ReadAtasAccount` | Leer el saldo de ATAS | No |  | Del portafolio seleccionado en ATAS. |
 | `MaxOpenRiskPct` | Riesgo abierto máximo (%) | 1.0 | 0.1-20 |  |
-| `MicroImpulseEmaLen` | Micro-impulso: EMA | 15 | 2-200 | EMA de 1m (anexo: 15). |
-| `MicroImpulseFromEntry` | Micro-impulso desde la entrada | No |  | Si no, desde el armado. |
+| `MicroImpulseEmaLen` | EMA de salida (Ema15Length) | 15 | 2-200 | EMA de 1 minuto para la salida y el contexto (15). |
 
 ## 26. Gatillo manual
 

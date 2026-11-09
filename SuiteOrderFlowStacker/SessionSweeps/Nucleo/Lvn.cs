@@ -114,3 +114,86 @@ public sealed class RepositorioLvn
 	/// <summary>LVN (activos) que tocan una zona de precios.</summary>
 	public IEnumerable<ZonaLvn> Solapan(decimal bajo, decimal alto, decimal margen) => Activas.Where(z => z.Bajo - margen <= alto && z.Alto + margen >= bajo);
 }
+
+/// <summary>Un EDGE conocido por Sessions Sweeps Pro (del Thermal Volume Profile + LVN (Suite)).</summary>
+public sealed class ZonaEdge
+{
+	public long Id, RangoId;
+	public decimal Precio, Bajo, Alto;
+
+	/// <summary>TECHO_HVN o PISO_HVN.</summary>
+	public string Lado = "TECHO_HVN";
+
+	/// <summary>ACTIVO, PROBADO, ATRAVESADO o BORRADO.</summary>
+	public string Estado = "ACTIVO";
+
+	public bool Provisional, Manual;
+	public int Score, Toques;
+	public DateTime Utc;
+
+	public string Origen => Manual ? "MANUAL" : "AUTO";
+
+	public bool Activo => !Provisional && Estado is "ACTIVO" or "PROBADO";
+
+	public string Texto => Lado == "PISO_HVN" ? "PISO HVN" : "TECHO HVN";
+}
+
+/// <summary>Repositorio de EDGE (v3, 8): como el de LVN; un RangeReset los borra y avisa.</summary>
+public sealed class RepositorioEdge
+{
+	private readonly Dictionary<long, ZonaEdge> _zonas = new();
+
+	public long RangoActual { get; private set; }
+
+	public Action<IReadOnlyList<ZonaEdge>>? AlBorrar { get; set; }
+
+	public IEnumerable<ZonaEdge> Activas => _zonas.Values.Where(z => z.Activo);
+
+	public IEnumerable<ZonaEdge> Todas => _zonas.Values;
+
+	public void Aplicar(EventoSuite e)
+	{
+		switch (e)
+		{
+			case EdgeZone z when z.Estado == "BORRADO":
+				if (_zonas.Remove(z.Id, out var quitada))
+					AlBorrar?.Invoke(new[] { quitada });
+
+				break;
+
+			case EdgeZone z:
+				if (z.RangoId < RangoActual)
+					return;
+
+				RangoActual = Math.Max(RangoActual, z.RangoId);
+				_zonas[z.Id] = new ZonaEdge
+				{
+					Id = z.Id, RangoId = z.RangoId, Precio = z.Precio, Bajo = Math.Min(z.Bajo, z.Alto), Alto = Math.Max(z.Bajo, z.Alto), Lado = z.Lado,
+					Estado = z.Estado, Provisional = z.Provisional, Manual = z.Manual, Score = z.Score, Toques = z.Toques, Utc = z.Utc
+				};
+
+				break;
+
+			case RangeReset r:
+				var viejas = _zonas.Values.Where(x => x.RangoId <= r.RangoAnteriorId || x.RangoId < r.RangoNuevoId).ToList();
+
+				foreach (var x in viejas)
+					_zonas.Remove(x.Id);
+
+				RangoActual = Math.Max(RangoActual, r.RangoNuevoId);
+
+				if (viejas.Count > 0)
+					AlBorrar?.Invoke(viejas);
+
+				break;
+		}
+	}
+
+	/// <summary>Próximo EDGE objetivo: el ACTIVO más cercano en la dirección de la operación a la distancia mínima o más.</summary>
+	public ZonaEdge? Proximo(decimal precio, int signo, decimal distanciaMinima) =>
+		Activas.Where(z => signo * (z.Precio - precio) >= distanciaMinima).OrderBy(z => Math.Abs(z.Precio - precio)).FirstOrDefault();
+
+	/// <summary>EDGE confirmados (no provisionales ni borrados; también atravesados: el retest vale) que tocan una zona.</summary>
+	public IEnumerable<ZonaEdge> Solapan(decimal bajo, decimal alto) =>
+		_zonas.Values.Where(z => !z.Provisional && z.Estado != "BORRADO" && z.Bajo <= alto && z.Alto >= bajo);
+}

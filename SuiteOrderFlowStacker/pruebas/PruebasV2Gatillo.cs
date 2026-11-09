@@ -46,8 +46,8 @@ internal static class PruebasV2Gatillo
 		x.Barra(4, Enumerable.Range(0, 20).Select(i => (-3 + i, 4m, 1m)).ToArray());
 		var a = AnalizadorGatillo.Analizar(z, toque, Ctx(x), continuidad: false);
 		c.Check("VÁLIDO por vela de ARRANQUE", $"{a.Resultado} {a.Tipo} {a.Respuesta}", "Valido Arranque GATILLO POR VELA DE ARRANQUE");
-		c.Check("entrada al cierre de la vela gatillo; stop 3 ticks bajo la zona; TP1 1.5R sin LVN",
-			$"{F(a.Entrada)} {F(a.Stop)} {F(a.Tp1)} {F(a.RewardRisk)}", "21424 21418.25 21432.75 1.52");
+		c.Check("entrada al cierre de la vela gatillo; stop 3 ticks bajo la zona; v3: TP a 2R (TpRMultiple) sin objetivo",
+			$"{F(a.Entrada)} {F(a.Stop)} {F(a.Tp1)} {F(a.RewardRisk)}", "21424 21418.25 21435.5 2");
 		c.Check("razones: F1, compresión, delta sin progreso, F3", string.Join(" | ", a.Razones.Take(3)),
 			"F1 llegada a la zona con agresión en contra | F2: 2 barras de compresión | Delta en contra sin progreso (absorción)");
 		c.Check("flecha verde (anexo)", a.Flecha, "▲");

@@ -348,7 +348,7 @@ public static class AnalizadorGatillo
 			a.Stop = (s > 0 ? Math.Min(z.Bajo, comp.Low) : Math.Max(z.Alto, comp.High)) - s * buffer;
 
 		var riesgo = Math.Abs(a.Entrada.Value - a.Stop.Value);
-		a.Tp1 = c.Objetivo(a.Entrada.Value, s) ?? Math.Round((a.Entrada.Value + s * 1.5m * riesgo) / tick, MidpointRounding.AwayFromZero) * tick;
+		a.Tp1 = c.Objetivo(a.Entrada.Value, s) ?? Math.Round((a.Entrada.Value + s * Math.Max(0.5m, c.P.TpRMultiple) * riesgo) / tick, MidpointRounding.AwayFromZero) * tick;
 		a.RewardRisk = riesgo > 0 ? Math.Round(Math.Abs(a.Tp1.Value - a.Entrada.Value) / riesgo, 2) : 0;
 		a.Utc = gatillo.FinUtc;
 	}

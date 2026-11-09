@@ -274,29 +274,64 @@ public partial class SessionSweepsPro
 
 	// --- 24. Modelos -----------------------------------------------------------------------------------------
 
-	[Display(Name = "MOD3 invalida todos los MOD1/MOD2", GroupName = "24. Modelos", Order = 10, Description = "Desactivado: solo los contrarios a la dirección del MOD3.")]
+	[Display(Name = "Modelo A: barrido de liquidez", GroupName = "24. Modelos", Order = 10, Description = "Prioridad A: barrido real (o premium) y recuperación; incluye los BFVG.")]
+	public bool EnableModelA { get => _cfg.V2.EnableModelA; set { _cfg.V2.EnableModelA = value; Recalcular(); } }
+
+	[Display(Name = "Modelo B: retroceso a LVN / EDGE / FVG", GroupName = "24. Modelos", Order = 20, Description = "Prioridad B (la de mayor interés): retroceso a una zona con gatillo confirmado. Incluye B - RETROCESO TRAS ROMPIMIENTO.")]
+	public bool EnableModelB { get => _cfg.V2.EnableModelB; set { _cfg.V2.EnableModelB = value; Recalcular(); } }
+
+	[Display(Name = "Modelo B: LVN del Thermal", GroupName = "24. Modelos", Order = 30, Description = "")]
+	public bool ModelBEnableLvn { get => _cfg.V2.ModelBEnableLvn; set { _cfg.V2.ModelBEnableLvn = value; Recalcular(); } }
+
+	[Display(Name = "Modelo B: EDGE del Thermal", GroupName = "24. Modelos", Order = 40, Description = "")]
+	public bool ModelBEnableEdge { get => _cfg.V2.ModelBEnableEdge; set { _cfg.V2.ModelBEnableEdge = value; Recalcular(); } }
+
+	[Display(Name = "Modelo B: FVG", GroupName = "24. Modelos", Order = 50, Description = "También FVG+LVN y FVG+EDGE.")]
+	public bool ModelBEnableFvg { get => _cfg.V2.ModelBEnableFvg; set { _cfg.V2.ModelBEnableFvg = value; Recalcular(); } }
+
+	[Display(Name = "Modelo B: EMA 15", GroupName = "24. Modelos", Order = 60, Description = "")]
+	public bool ModelBEnableEma { get => _cfg.V2.ModelBEnableEma; set { _cfg.V2.ModelBEnableEma = value; Recalcular(); } }
+
+	[Display(Name = "Modelo B: nivel roto", GroupName = "24. Modelos", Order = 70, Description = "")]
+	public bool ModelBEnableNivel { get => _cfg.V2.ModelBEnableNivel; set { _cfg.V2.ModelBEnableNivel = value; Recalcular(); } }
+
+	[Display(Name = "Intentos máximos por zona", GroupName = "24. Modelos", Order = 80, Description = "Entradas en la misma zona y dirección.")]
+	[Range(1, 20)]
+	public int MaxAttemptsPerZone { get => _cfg.V2.MaxAttemptsPerZone; set { _cfg.V2.MaxAttemptsPerZone = Math.Clamp(value, 1, 20); Recalcular(); } }
+
+	[Display(Name = "TP (R múltiplos)", GroupName = "24. Modelos", Order = 90, Description = "Objetivo a este múltiplo del riesgo (2R).")]
+	[Range(0.5, 20)]
+	public decimal TpRMultiple { get => _cfg.V2.TpRMultiple; set { _cfg.V2.TpRMultiple = Math.Clamp(value, 0.5m, 20m); Recalcular(); } }
+
+	[Display(Name = "Objetivo", GroupName = "24. Modelos", Order = 100, Description = "R múltiplos, o el próximo LVN / EDGE (si no hay, R).")]
+	public ModoObjetivo TargetMode { get => _cfg.V2.TargetMode; set { _cfg.V2.TargetMode = value; Recalcular(); } }
+
+	[Display(Name = "Salida", GroupName = "24. Modelos", Order = 110, Description = "TP o cierre de 1 minuto al otro lado de la EMA 15, lo primero (por defecto). El SL nunca se amplía.")]
+	public ModoSalida ExitMode { get => _cfg.V2.ExitMode; set { _cfg.V2.ExitMode = value; Recalcular(); } }
+
+	[Display(Name = "Iceberg roto anula todos los A y B", GroupName = "24. Modelos", Order = 120, Description = "Desactivado: solo los contrarios a la dirección del rompimiento (contexto).")]
 	public bool Mod3InvalidatesAllMod1Mod2 { get => _cfg.V2.Mod3InvalidatesAllMod1Mod2; set { _cfg.V2.Mod3InvalidatesAllMod1Mod2 = value; Recalcular(); } }
 
-	[Display(Name = "MOD4 en liquidez interna", GroupName = "24. Modelos", Order = 20, Description = "Por defecto solo externa.")]
+	[Display(Name = "B tras rompimiento en liquidez interna", GroupName = "24. Modelos", Order = 130, Description = "Por defecto solo externa.")]
 	public bool Mod4AllowInternal { get => _cfg.V2.Mod4AllowInternal; set { _cfg.V2.Mod4AllowInternal = value; Recalcular(); } }
 
-	[Display(Name = "MOD4: espera máxima (min)", GroupName = "24. Modelos", Order = 30, Description = "")]
+	[Display(Name = "B tras rompimiento: espera máxima (min)", GroupName = "24. Modelos", Order = 140, Description = "")]
 	[Range(1, 480)]
 	public int Mod4MaxWaitMin { get => _cfg.V2.Mod4MaxWaitMin; set { _cfg.V2.Mod4MaxWaitMin = Math.Clamp(value, 1, 480); Recalcular(); } }
 
-	[Display(Name = "MOD4: retroceso máximo", GroupName = "24. Modelos", Order = 40, Description = "Fracción de la pierna (0,618).")]
+	[Display(Name = "B tras rompimiento: retroceso máximo", GroupName = "24. Modelos", Order = 150, Description = "Fracción de la pierna (0,618).")]
 	[Range(0.1, 1)]
 	public decimal Mod4MaxRetracePct { get => _cfg.V2.Mod4MaxRetracePct; set { _cfg.V2.Mod4MaxRetracePct = Math.Clamp(value, 0.1m, 1m); Recalcular(); } }
 
-	[Display(Name = "MOD4: intentos máximos", GroupName = "24. Modelos", Order = 50, Description = "Entradas por ruptura.")]
+	[Display(Name = "B tras rompimiento: intentos máximos", GroupName = "24. Modelos", Order = 160, Description = "Entradas por ruptura.")]
 	[Range(1, 10)]
 	public int Mod4MaxAttempts { get => _cfg.V2.Mod4MaxAttempts; set { _cfg.V2.Mod4MaxAttempts = Math.Clamp(value, 1, 10); Recalcular(); } }
 
-	[Display(Name = "R:R mínimo", GroupName = "24. Modelos", Order = 60, Description = "")]
+	[Display(Name = "R:R mínimo", GroupName = "24. Modelos", Order = 170, Description = "")]
 	[Range(0.5, 10)]
 	public decimal MinRR { get => _cfg.V2.MinRR; set { _cfg.V2.MinRR = Math.Clamp(value, 0.5m, 10m); Recalcular(); } }
 
-	[Display(Name = "Modo del stop", GroupName = "24. Modelos", Order = 70, Description = "")]
+	[Display(Name = "Modo del stop", GroupName = "24. Modelos", Order = 180, Description = "")]
 	public ModoStop StopMode { get => _cfg.V2.StopMode; set { _cfg.V2.StopMode = value; Recalcular(); } }
 
 	// --- 25. Riesgo ------------------------------------------------------------------------------------------
@@ -323,12 +358,9 @@ public partial class SessionSweepsPro
 	[Range(0.1, 20)]
 	public decimal MaxOpenRiskPct { get => _cfg.V2.MaxOpenRiskPct; set { _cfg.V2.MaxOpenRiskPct = Math.Clamp(value, 0.1m, 20m); Recalcular(); } }
 
-	[Display(Name = "Micro-impulso: EMA", GroupName = "25. Riesgo", Order = 70, Description = "EMA de 1m (anexo: 15).")]
+	[Display(Name = "EMA de salida (Ema15Length)", GroupName = "25. Riesgo", Order = 70, Description = "EMA de 1 minuto para la salida y el contexto (15).")]
 	[Range(2, 200)]
 	public int MicroImpulseEmaLen { get => _cfg.V2.MicroImpulseEmaLen; set { _cfg.V2.MicroImpulseEmaLen = Math.Clamp(value, 2, 200); Recalcular(); } }
-
-	[Display(Name = "Micro-impulso desde la entrada", GroupName = "25. Riesgo", Order = 80, Description = "Si no, desde el armado.")]
-	public bool MicroImpulseFromEntry { get => _cfg.V2.MicroImpulseFromEntry; set { _cfg.V2.MicroImpulseFromEntry = value; Recalcular(); } }
 
 	// --- 26. Gatillo manual ----------------------------------------------------------------------------------
 

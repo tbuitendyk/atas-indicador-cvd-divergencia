@@ -47,6 +47,12 @@ public sealed class SetupModelo
 	/// <summary>Ruptura que arma un MOD4 (para el máximo de entradas por ruptura).</summary>
 	public long? RupturaId;
 
+	/// <summary>v3 (1): solo dos modelos operativos. A = barrido (MOD1 y BFVG); B = retroceso a LVN / EDGE / FVG (MOD2 y MOD4).</summary>
+	public string ModeloOperativo => Modelo is "MOD1" or "BFVG" ? "A" : "B";
+
+	/// <summary>Zona de la pierna de un rompimiento con iceberg roto (contexto, antes MOD3).</summary>
+	public bool TrasIcebergRoto;
+
 	public bool Pendiente => Estado is EstadoModelo.Armado or EstadoModelo.GatilloPendiente;
 
 	public bool Abierta => Estado is EstadoModelo.Entrada or EstadoModelo.Gestion;
@@ -99,6 +105,10 @@ public sealed partial class MotorSweeps
 		// Instrumento no soportado (2.2): sin señales automáticas; el setup queda a la vista, invalidado.
 		if (Instrumento.Bloqueo is { } bloqueo)
 			(s.Estado, s.Motivo) = (EstadoModelo.Invalidado, bloqueo);
+		else if (s.ModeloOperativo == "A" ? !P2.EnableModelA : !P2.EnableModelB)
+			(s.Estado, s.Motivo) = (EstadoModelo.Invalidado, $"MODELO {s.ModeloOperativo} APAGADO");
+		else if (Setups.Count(x => x.EntradaUtc is not null && x.Signo == s.Signo && ClaveZona(x.Zona) == ClaveZona(z)) >= Math.Max(1, P2.MaxAttemptsPerZone))
+			(s.Estado, s.Motivo) = (EstadoModelo.Invalidado, $"máximo de {P2.MaxAttemptsPerZone} intentos en la zona");
 
 		Setups.Add(s);
 
@@ -107,6 +117,8 @@ public sealed partial class MotorSweeps
 
 		return s;
 	}
+
+	private static string ClaveZona(ZonaOperable z) => $"{z.Tipo}|{z.Bajo}|{z.Alto}";
 
 	private void Invalidar(Func<SetupModelo, bool> condicion, string motivo, DateTime utc)
 	{
@@ -132,8 +144,8 @@ public sealed partial class MotorSweeps
 				BarridoId = e.Id, Calidad = 10, Utc = utc, BarraToque = e.BarraT0
 			};
 
-			Armar("MOD1", "MOD1 (Modelo A)", z, e, utc, utc.AddMinutes(Math.Max(1, P2.BfvgWindowMin)), continuidad: false);
-			Invalidar(s => s.Modelo == "MOD4" && s.Signo == -e.SignoGiro, $"TRAMPA {e.Nombre}", utc);
+			Armar("MOD1", "A - BARRIDO", z, e, utc, utc.AddMinutes(Math.Max(1, P2.BfvgWindowMin)), continuidad: false);
+			Invalidar(s => s.Modelo == "MOD4" && s.Signo == -e.SignoGiro, $"BARRIDO REAL {e.Nombre}", utc);
 			return;
 		}
 
@@ -164,7 +176,7 @@ public sealed partial class MotorSweeps
 				break;
 
 			case "RUPTURA FALLIDA":
-				Invalidar(s => (s.Barrido?.Id == e.Id && s.Modelo is "MOD3" or "MOD4") || s.Etiqueta == "MOD2 tras MOD3" || s.RupturaId == e.Id, "RUPTURA FALLIDA", utc);
+				Invalidar(s => (s.Barrido?.Id == e.Id && s.Modelo is "MOD3" or "MOD4") || s.TrasIcebergRoto || s.RupturaId == e.Id, "RUPTURA FALLIDA", utc);
 
 				if (Mod3Activo is { } m && m.Signo == e.Signo)
 					Mod3Activo = null;
@@ -180,7 +192,7 @@ public sealed partial class MotorSweeps
 		var s = e.Signo;
 		var tick = Cfg.TamanoTick;
 
-		Novedad(e, "RUPTURA (arma MOD4)", utc, $"RUPTURA {e.Nombre} {Precio(e.L)}: MOD4-C RUPTURA-RETROCESO armado");
+		Novedad(e, "RUPTURA (arma MOD4)", utc, $"RUPTURA / ACEPTACIÓN {e.Nombre} {Precio(e.L)}: B - RETROCESO TRAS ROMPIMIENTO armado");
 
 		// 4) retest de L (cambio de rol).
 		var retest = new ZonaOperable
@@ -189,7 +201,7 @@ public sealed partial class MotorSweeps
 			Calidad = MotorFvgV2.CalidadTipo("NIVEL"), Utc = utc
 		};
 
-		Armar("MOD4", "MOD4-C RUPTURA-RETROCESO", retest, e, utc, espera, continuidad: true).RupturaId = e.Id;
+		Armar("MOD4", "B - RETROCESO TRAS ROMPIMIENTO", retest, e, utc, espera, continuidad: true).RupturaId = e.Id;
 		ZonasPiernaMod4(e, utc);
 	}
 
@@ -200,18 +212,19 @@ public sealed partial class MotorSweeps
 	private void ZonasPiernaMod4(EvaluacionBarrido e, DateTime utc)
 	{
 		var comoMod2 = e.IcebergEstado == "ROTO";
-		var (modelo, etiqueta) = comoMod2 ? ("MOD2", "MOD2 tras MOD3") : ("MOD4", "MOD4-C RUPTURA-RETROCESO");
+		var (modelo, etiqueta) = comoMod2 ? ("MOD2", "B - RETROCESO TRAS ROMPIMIENTO (iceberg roto)") : ("MOD4", "B - RETROCESO TRAS ROMPIMIENTO");
 		var extremo = e.ExtremoPierna != 0 ? e.ExtremoPierna : e.Extremo;
 		var (bajo, alto) = (Math.Min(e.L, extremo), Math.Max(e.L, extremo));
 		var espera = e.TimeConfirmUtc?.AddMinutes(Math.Max(1, P2.Mod4MaxWaitMin)) ?? utc.AddMinutes(P2.Mod4MaxWaitMin);
 
-		foreach (var f in Fvg2.Fvgs.Where(f => f.Vivo && f.Signo == e.Signo && f.Utc >= e.T0Utc && f.Bajo >= bajo && f.Alto <= alto))
+		foreach (var f in Fvg2.Fvgs.Where(f => P2.ModelBEnableFvg && f.Vivo && f.Signo == e.Signo && f.Utc >= e.T0Utc && f.Bajo >= bajo && f.Alto <= alto))
 		{
 			if (!_zonasModelo.Add($"MOD4|{e.Id}|F{f.Id}"))
 				continue;
 
-			var z = MotorFvgV2.ZonaDeFvg(NuevaZonaId(), f, Lvn, P2, Cfg.TamanoTick, bfvg: false, e.Id, modelo);
-			Armar(modelo, etiqueta, z, e, utc, espera, continuidad: true).RupturaId = comoMod2 ? null : e.Id;
+			var z = MotorFvgV2.ZonaDeFvg(NuevaZonaId(), f, Lvn, P2, Cfg.TamanoTick, bfvg: false, e.Id, modelo, Edge);
+			var armadoFvg = Armar(modelo, etiqueta, z, e, utc, espera, continuidad: true);
+			(armadoFvg.RupturaId, armadoFvg.TrasIcebergRoto) = (comoMod2 ? null : e.Id, comoMod2);
 
 			// Un LVN que ya tenía su zona y queda dentro de este FVG+LVN se opera aquí (una sola zona).
 			if (z.LvnId is { } lid)
@@ -219,7 +232,7 @@ public sealed partial class MotorSweeps
 		}
 
 		// La pierna atraviesa sus LVN (quedan MITIGADOS): como zona de retroceso siguen valiendo; solo un BORRADO no.
-		foreach (var l in Lvn.Todas.Where(l => l.Estado != "BORRADO" && l.Centro > bajo && l.Centro < alto))
+		foreach (var l in Lvn.Todas.Where(l => P2.ModelBEnableLvn && l.Estado != "BORRADO" && !l.Provisional && l.Centro > bajo && l.Centro < alto))
 		{
 			var enFvg = Setups.Any(x => x.Barrido?.Id == e.Id && x.Zona.LvnId == l.Id && x.Zona.Tipo.EndsWith("+LVN", StringComparison.Ordinal));
 
@@ -233,27 +246,45 @@ public sealed partial class MotorSweeps
 			};
 
 			var armado = Armar(modelo, etiqueta, z, e, utc, espera, continuidad: true);
-			armado.RupturaId = comoMod2 ? null : e.Id;
+			(armado.RupturaId, armado.TrasIcebergRoto) = (comoMod2 ? null : e.Id, comoMod2);
 			armado.DependeSoloDeLvn = true;
+		}
+
+		// EDGE del Thermal dentro de la pierna (los que no están ya en un FVG+EDGE).
+		foreach (var g in Edge.Todas.Where(g => P2.ModelBEnableEdge && !g.Provisional && g.Estado != "BORRADO" && g.Precio > bajo && g.Precio < alto))
+		{
+			var enFvg = Setups.Any(x => x.Barrido?.Id == e.Id && x.Zona.EdgeId == g.Id);
+
+			if (enFvg || !_zonasModelo.Add($"MOD4|{e.Id}|G{g.Id}"))
+				continue;
+
+			var z = new ZonaOperable
+			{
+				Id = NuevaZonaId(), Tipo = "EDGE", Bajo = g.Bajo, Alto = g.Alto, Signo = e.Signo, BarridoId = e.Id, EdgeId = g.Id, LvnOrigen = g.Origen,
+				Calidad = MotorFvgV2.CalidadTipo("EDGE"), Utc = utc
+			};
+
+			var armado = Armar(modelo, etiqueta, z, e, utc, espera, continuidad: true);
+			(armado.RupturaId, armado.TrasIcebergRoto) = (comoMod2 ? null : e.Id, comoMod2);
 		}
 	}
 
-	/// <summary>MOD3 (8.4): iceberg o super big trade ROTO por agresión con imbalance, stops y aceptación. Caja fucsia.</summary>
+	/// <summary>
+	/// Rompimiento con iceberg (o super big trade) ROTO, imbalance, stops y aceptación (antes MOD3). v3 (1): es CONTEXTO y
+	/// confirmación del Modelo B, no un modelo propio: no arma una zona ni una señal suya; anula los setups contrarios y sus
+	/// retrocesos se operan como "B - RETROCESO TRAS ROMPIMIENTO (iceberg roto)".
+	/// </summary>
 	private void ActivarMod3(int signo, decimal precio, DateTime utc, EvaluacionBarrido? e, string motivo)
 	{
 		Mod3Activo = (signo, utc, precio);
-		Novedad(e, "MOD3 ACTIVADO", utc, $"MOD3 ROMPIMIENTO CONTINUIDAD {(signo > 0 ? "LARGO" : "CORTO")} en {Precio(precio)} ({motivo})");
+		Novedad(e, "MOD3 ACTIVADO", utc, $"ROMPIMIENTO CON ICEBERG ROTO {(signo > 0 ? "ALCISTA" : "BAJISTA")} en {Precio(precio)} ({motivo}) · contexto del Modelo B");
 
-		// Invalida MOD1 y MOD2 contrarios (o todos, si se pidió); MOD2 a favor sigue permitido.
-		Invalidar(s => s.Modelo is "MOD1" or "BFVG" or "MOD2" && (P2.Mod3InvalidatesAllMod1Mod2 || s.Signo == -signo), "INVALIDADO POR MOD3", utc);
+		// Anula los A y B contrarios (o todos, si se pidió); los B a favor siguen.
+		Invalidar(s => s.Modelo is "MOD1" or "BFVG" or "MOD2" && (P2.Mod3InvalidatesAllMod1Mod2 || s.Signo == -signo), "INVALIDADO POR ROMPIMIENTO (iceberg roto)", utc);
 
-		// Una MOD4 de la misma ruptura no se duplica: manda MOD3.
+		// Una B de la misma ruptura no se duplica: sus zonas pasan a "tras iceberg roto".
 		if (e is not null)
-			Invalidar(s => s.Modelo == "MOD4" && s.RupturaId == e.Id, "manda MOD3 (iceberg roto)", utc);
-
-		var tick = Cfg.TamanoTick;
-		var z = new ZonaOperable { Id = NuevaZonaId(), Tipo = "ICEBERG", Bajo = precio - 2 * tick, Alto = precio + 2 * tick, Signo = signo, BarridoId = e?.Id, Calidad = 20, Utc = utc };
-		Armar("MOD3", "MOD3 ROMPIMIENTO CONTINUIDAD", z, e, utc, utc.AddMinutes(Math.Max(1, P2.Mod4MaxWaitMin)), continuidad: true);
+			Invalidar(s => s.Modelo == "MOD4" && s.RupturaId == e.Id, "rompimiento con iceberg roto (sin duplicar)", utc);
 	}
 
 	/// <summary>RangeReset del Thermal (T21): se cancelan los setups PENDIENTES que dependían solo de esas zonas LVN.</summary>
@@ -261,6 +292,13 @@ public sealed partial class MotorSweeps
 	{
 		var ids = zonas.Select(z => z.Id).ToHashSet();
 		Invalidar(s => s.DependeSoloDeLvn && s.Zona.LvnId is { } id && ids.Contains(id), "rango nuevo: LVN borrado", _ahoraV2);
+	}
+
+	/// <summary>EDGE borrados (rango nuevo): se cancelan los setups PENDIENTES cuya zona era solo ese EDGE.</summary>
+	internal void BorradosEdge(IReadOnlyList<ZonaEdge> zonas)
+	{
+		var ids = zonas.Select(z => z.Id).ToHashSet();
+		Invalidar(s => s.Zona.Tipo == "EDGE" && s.Zona.EdgeId is { } id && ids.Contains(id), "rango nuevo: EDGE borrado", _ahoraV2);
 	}
 
 	// =================================================================================================================
@@ -275,7 +313,7 @@ public sealed partial class MotorSweeps
 		foreach (var z in Zonas2.Where(z => z.Modelo == "BFVG" && _zonasModelo.Add($"BFVG|{z.Id}")).ToList())
 		{
 			var padre = Evaluaciones.FirstOrDefault(x => x.Id == z.BarridoId);
-			Armar("BFVG", z.Tipo, z, padre, utc, z.ExpiraUtc, continuidad: true);
+			Armar("BFVG", "A - " + z.Tipo, z, padre, utc, z.ExpiraUtc, continuidad: true);
 		}
 
 		DetectarMod3(b);
@@ -309,22 +347,23 @@ public sealed partial class MotorSweeps
 		var tick = Cfg.TamanoTick;
 		var candidatas = new List<(string Clave, ZonaOperable Zona, bool SoloLvn)>();
 
-		// Un LVN ya atravesado (MITIGADO) es justo el que se retestea en un retroceso: vale; un BORRADO no.
-		foreach (var l in Lvn.Todas.Where(l => l.Estado != "BORRADO"))
-		{
+		// Un LVN ya atravesado es justo el que se retestea en un retroceso: vale; un BORRADO o un PROVISIONAL no.
+		foreach (var l in Lvn.Todas.Where(l => P2.ModelBEnableLvn && l.Estado != "BORRADO" && !l.Provisional))
 			candidatas.Add(($"L{l.Id}", new ZonaOperable { Tipo = "LVN", Bajo = l.Bajo, Alto = l.Alto, LvnId = l.Id, LvnOrigen = l.Origen }, true));
-		}
 
-		foreach (var f in Fvg2.Fvgs.Where(f => f.Vivo && f.Signo == d))
+		foreach (var g in Edge.Todas.Where(g => P2.ModelBEnableEdge && g.Estado != "BORRADO" && !g.Provisional))
+			candidatas.Add(($"G{g.Id}", new ZonaOperable { Tipo = "EDGE", Bajo = g.Bajo, Alto = g.Alto, EdgeId = g.Id, LvnOrigen = g.Origen }, false));
+
+		foreach (var f in Fvg2.Fvgs.Where(f => P2.ModelBEnableFvg && f.Vivo && f.Signo == d))
 		{
-			var z = MotorFvgV2.ZonaDeFvg(0, f, Lvn, P2, tick, bfvg: false, null, "MOD2");
+			var z = MotorFvgV2.ZonaDeFvg(0, f, Lvn, P2, tick, bfvg: false, null, "MOD2", Edge);
 			candidatas.Add(($"F{f.Id}", z, false));
 		}
 
-		if (ContextoV2.Ema15.Valor is { } ema)
+		if (P2.ModelBEnableEma && ContextoV2.Ema15.Valor is { } ema)
 			candidatas.Add(($"E{Math.Round(ema / tick)}", new ZonaOperable { Tipo = "EMA", Bajo = ema - 2 * tick, Alto = ema + 2 * tick }, false));
 
-		foreach (var n in Niveles.Niveles.Where(n => n.Estado == EstadoNivel.Roto && n.Lado.Signo() == d))
+		foreach (var n in Niveles.Niveles.Where(n => P2.ModelBEnableNivel && n.Estado == EstadoNivel.Roto && n.Lado.Signo() == d))
 			candidatas.Add(($"N{n.Id}", new ZonaOperable { Tipo = "NIVEL", Bajo = n.Precio - 2 * tick, Alto = n.Precio + 2 * tick }, false));
 
 		foreach (var (clave, z, soloLvn) in candidatas)
@@ -340,9 +379,10 @@ public sealed partial class MotorSweeps
 			z.Calidad = MotorFvgV2.CalidadTipo(z.Tipo);
 			z.Utc = b.FinUtc;
 			z.BarraToque = b.Indice;
-			var etiqueta = Mod3Activo is { } m && m.Signo == d ? "MOD2 tras MOD3" : "MOD2 (Modelo B)";
+			var tras = Mod3Activo is { } m && m.Signo == d;
+			var etiqueta = tras ? "B - RETROCESO TRAS ROMPIMIENTO (iceberg roto)" : "B - " + z.Tipo;
 			var s = Armar("MOD2", etiqueta, z, null, b.FinUtc, b.FinUtc.AddMinutes(30), continuidad: true);
-			s.DependeSoloDeLvn = soloLvn;
+			(s.DependeSoloDeLvn, s.TrasIcebergRoto) = (soloLvn, tras);
 		}
 	}
 
@@ -485,6 +525,29 @@ public sealed partial class MotorSweeps
 	private void Entrar(SetupModelo s, AnalisisGatillo a, BarraVolumen b)
 	{
 		var utc = b.FinUtc;
+		var tick = Cfg.TamanoTick;
+
+		// Modelo A (17.2): el stop va más allá del extremo del barrido con el margen (nunca más cerca que el del gatillo).
+		if (s.ModeloOperativo == "A" && s.Barrido is { } barrido)
+		{
+			var stopA = barrido.Extremo - s.Signo * P2.StopBufferTicks * tick;
+
+			if (s.Signo * (a.Entrada!.Value - stopA) > s.Signo * (a.Entrada.Value - a.Stop!.Value))
+			{
+				a.Stop = stopA;
+				var r = Math.Abs(a.Entrada.Value - stopA);
+
+				if (r / tick > P2.MaxStopTicks)
+				{
+					Invalidar(x => x == s, $"stop más allá del extremo: {r / tick:0} ticks > {P2.MaxStopTicks}", utc);
+					return;
+				}
+
+				if (P2.TargetMode == ModoObjetivo.RMultiplo || a.Tp1 is null)
+					a.Tp1 = Math.Round((a.Entrada.Value + s.Signo * Math.Max(0.5m, P2.TpRMultiple) * r) / tick, MidpointRounding.AwayFromZero) * tick;
+			}
+		}
+
 		var plan = CalculadoraRiesgo.Calcular(P2, a.Entrada!.Value, a.Stop!.Value, Cfg.TamanoTick, Instrumento.ValorTick, SaldoAtas);
 
 		// Una posición por dirección; un añadido solo si el riesgo abierto total lo permite (MaxOpenRiskPct).
@@ -496,18 +559,15 @@ public sealed partial class MotorSweeps
 			return;
 		}
 
-		(s.Estado, s.EntradaUtc, s.Entrada, s.Stop, s.Tp1, s.Riesgo) = (EstadoModelo.Entrada, utc, a.Entrada, a.Stop, a.Tp1, plan);
-		var riesgo = Math.Abs(a.Entrada.Value - a.Stop.Value);
-		s.Tp2 = Niveles.Activos.Where(n => n.Grupo is "dia" or "semana" && n.Lado.Signo() == s.Signo && s.Signo * (n.Precio - (a.Tp1 ?? a.Entrada.Value)) > 0)
-			.OrderBy(n => Math.Abs(n.Precio - a.Entrada.Value)).Select(n => (decimal?)n.Precio).FirstOrDefault()
-			?? a.Entrada + s.Signo * 3 * riesgo;
+		// Un solo objetivo (17.2): TP a TpRMultiple (o el próximo LVN / EDGE) y, según ExitMode, la salida por la EMA 15.
+		(s.Estado, s.EntradaUtc, s.Entrada, s.Stop, s.Tp1, s.Tp2, s.Riesgo) = (EstadoModelo.Entrada, utc, a.Entrada, a.Stop, a.Tp1, null, plan);
 		s.Zona.Resultado = "ENTRADA";
 		Micro.Reiniciar();
 		Novedad(s.Barrido, "GATILLO VÁLIDO", utc,
 			$"{s.Etiqueta} {(s.Signo > 0 ? "LARGO" : "CORTO")} | {a.Respuesta} | Entrada {Precio(a.Entrada.Value)} SL {Precio(a.Stop.Value)} TP1 {Precio(a.Tp1!.Value)} | {plan.Texto(Raiz)}", s);
 	}
 
-	/// <summary>Gestión simulada: MAE/MFE, stop, TP1 (después actúa el micro-impulso) y TP2.</summary>
+	/// <summary>Gestión simulada (17.2): MAE/MFE, stop (nunca se amplía) y TP; la salida por la EMA 15 va con las velas de 1 minuto.</summary>
 	private void Gestionar(SetupModelo s, BarraVolumen b)
 	{
 		var tick = Cfg.TamanoTick;
@@ -519,19 +579,15 @@ public sealed partial class MotorSweeps
 		// Stop primero (conservador si la barra toca los dos).
 		if (x * ((x > 0 ? b.Low : b.High) - s.Stop!.Value) <= 0)
 		{
-			Cerrar(s, s.Tp1Tocado ? "TP1" : "STOP", b.FinUtc);
+			Cerrar(s, "STOP", b.FinUtc);
 			return;
 		}
 
-		if (!s.Tp1Tocado && x * ((x > 0 ? b.High : b.Low) - s.Tp1!.Value) >= 0)
+		if (P2.ExitMode != ModoSalida.SoloEma15 && s.Tp1 is { } tp && x * ((x > 0 ? b.High : b.Low) - tp) >= 0)
 		{
 			s.Tp1Tocado = true;
-			s.Estado = EstadoModelo.Gestion;
-			s.Stop = s.Entrada;
+			Cerrar(s, "TP", b.FinUtc);
 		}
-
-		if (s.Tp1Tocado && s.Tp2 is { } tp2 && x * ((x > 0 ? b.High : b.Low) - tp2) >= 0)
-			Cerrar(s, "TP2", b.FinUtc);
 	}
 
 	private void Cerrar(SetupModelo s, string resultado, DateTime utc)
@@ -551,16 +607,17 @@ public sealed partial class MotorSweeps
 			ZonasPiernaMod4(e, v.FinUtc);
 		}
 
+		// Salida por la EMA 15 (17.2): un cierre de 1 minuto que la cruza contra la posición (ExitMode TP o EMA 15 / solo EMA 15).
 		var abierta = Setups.LastOrDefault(s => s.Abierta);
 		var anterior = Velas.Count >= 2 ? Velas[^2].Close : (decimal?)null;
 
-		if (abierta is null || !(abierta.Tp1Tocado || P2.MicroImpulseFromEntry))
+		if (abierta is null || P2.ExitMode == ModoSalida.SoloTp)
 		{
 			Micro.Vela(v, ContextoV2.Ema15.Valor, anterior, ContextoV2.Ema15.Anterior, 0, P2);
 			return;
 		}
 
 		if (Micro.Vela(v, ContextoV2.Ema15.Valor, anterior, ContextoV2.Ema15.Anterior, abierta.Signo, P2))
-			Cerrar(abierta, abierta.Tp1Tocado ? "TP1" : "CANCEL", v.FinUtc);
+			Cerrar(abierta, "EMA15", v.FinUtc);
 	}
 }

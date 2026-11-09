@@ -95,6 +95,9 @@ public partial class SessionSweepsPro
 			foreach (var z in canal.Todos<LvnZone>().Where(z => z.Estado != "BORRADO").OrderBy(z => z.RangoId).ThenBy(z => z.Utc))
 				motor.LvnDesdeSuite(z);
 
+			foreach (var z in canal.Todos<EdgeZone>().Where(z => z.Estado != "BORRADO").OrderBy(z => z.RangoId).ThenBy(z => z.Utc))
+				motor.EdgeDesdeSuite(z);
+
 			_fuentesAlCargar = Enum.GetValues<FuenteSuite>().Where(f => canal.Estado(f, DateTime.UtcNow) != EstadoFuente.NoCargado).ToHashSet();
 		}
 
@@ -142,6 +145,15 @@ public partial class SessionSweepsPro
 			{
 				case LvnZone or RangeReset:
 					motor.LvnDesdeSuite(e);
+
+					if (e is RangeReset)
+						motor.EdgeDesdeSuite(e);
+
+					RedrawChart();
+					break;
+
+				case EdgeZone:
+					motor.EdgeDesdeSuite(e);
 					RedrawChart();
 					break;
 

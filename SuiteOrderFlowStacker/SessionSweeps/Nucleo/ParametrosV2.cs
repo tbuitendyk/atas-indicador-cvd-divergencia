@@ -22,6 +22,29 @@ public enum ModoStop
 	PocVelaArranque
 }
 
+/// <summary>Objetivo de la operación (v3, 17.2): a R múltiplos (por defecto 2R) o al próximo LVN / EDGE.</summary>
+public enum ModoObjetivo
+{
+	[Display(Name = "R múltiplos (TpRMultiple)")]
+	RMultiplo,
+
+	[Display(Name = "Próximo LVN / EDGE (si no hay: R)")]
+	LvnEdge
+}
+
+/// <summary>Salida (v3, 17.2): TP, cierre de 1m al otro lado de la EMA 15, o lo primero de los dos (por defecto).</summary>
+public enum ModoSalida
+{
+	[Display(Name = "TP o EMA 15, lo primero")]
+	TpOEma15,
+
+	[Display(Name = "Solo TP")]
+	SoloTp,
+
+	[Display(Name = "Solo cierre al otro lado de la EMA 15")]
+	SoloEma15
+}
+
 public enum EstadoMinimoAlerta
 {
 	[Display(Name = "BARRIDO REAL")]
@@ -142,7 +165,20 @@ public sealed class ParametrosV2
 	public int ConfluenceBonus { get; set; } = 10;
 	public int TargetMinDistTicks { get; set; } = 8;
 
-	// Modelos
+	// Modelos v3 (1, 10): solo Modelo A (barrido) y Modelo B (retroceso a LVN / EDGE / FVG).
+	public bool EnableModelA { get; set; } = true;
+	public bool EnableModelB { get; set; } = true;
+	public bool ModelBEnableLvn { get; set; } = true;
+	public bool ModelBEnableEdge { get; set; } = true;
+	public bool ModelBEnableFvg { get; set; } = true;
+	public bool ModelBEnableEma { get; set; } = true;
+	public bool ModelBEnableNivel { get; set; } = true;
+	public int MaxAttemptsPerZone { get; set; } = 2;
+	public decimal TpRMultiple { get; set; } = 2.0m;
+	public ModoObjetivo TargetMode { get; set; } = ModoObjetivo.RMultiplo;
+	public ModoSalida ExitMode { get; set; } = ModoSalida.TpOEma15;
+
+	// Modelos (v2)
 	public bool Mod3InvalidatesAllMod1Mod2 { get; set; }
 	public bool Mod4AllowInternal { get; set; }
 	public int Mod4MaxWaitMin { get; set; } = 45;
@@ -164,7 +200,6 @@ public sealed class ParametrosV2
 	public decimal AccountSize { get; set; } = 50000;
 	public bool ReadAtasAccount { get; set; }
 	public int MicroImpulseEmaLen { get; set; } = 15;
-	public bool MicroImpulseFromEntry { get; set; }
 
 	// Manual
 	public int ManualZoneTicks { get; set; } = 4;

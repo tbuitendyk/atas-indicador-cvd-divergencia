@@ -20,7 +20,7 @@ public sealed partial class MotorSweeps
 		M15 = ContextoV2.M15,
 		Ema15 = ContextoV2.Ema15.Valor,
 		CvdAFavor = ContextoV2.CvdAFavor,
-		Objetivo = (entrada, s) => Lvn.Proximo(entrada, s, P2.TargetMinDistTicks * Cfg.TamanoTick)?.Centro,
+		Objetivo = P2.TargetMode == ModoObjetivo.LvnEdge ? ProximoObjetivo : (_, _) => null,
 		Ahora = _ahoraV2
 	};
 

@@ -53,7 +53,7 @@ internal static class PruebasV2Alertas
 		c.Check("cero alertas al recargar: las novedades del historial se descartan",
 			despacho.Procesar(novedadesB, enVivo: false, p0, "NQ", b.M.Precio, RaizInstrumento.NQ).Count.ToString(), "0");
 		var vivas = despacho.Procesar(novedadesA, enVivo: true, p0, "NQ", a.M.Precio, RaizInstrumento.NQ);
-		c.Check("en vivo, la misma ruptura sí avisa (RUPTURA arma MOD4)", vivas.Any(x => x.Texto.Contains("MOD4-C RUPTURA-RETROCESO armado", StringComparison.Ordinal)) ? "sí" : string.Join(" / ", vivas.Select(x => x.Texto)), "sí");
+		c.Check("en vivo, la misma ruptura sí avisa (RUPTURA arma MOD4)", vivas.Any(x => x.Texto.Contains("B - RETROCESO TRAS ROMPIMIENTO armado", StringComparison.Ordinal)) ? "sí" : string.Join(" / ", vivas.Select(x => x.Texto)), "sí");
 		c.Check("una vez por evento: repetir las mismas novedades no vuelve a sonar", despacho.Procesar(novedadesA, enVivo: true, p0, "NQ", a.M.Precio, RaizInstrumento.NQ).Count.ToString(), "0");
 
 		c.Seccion("S10 Alertas (13): estado mínimo, NOTICIA, una vez por evento");

@@ -31,7 +31,7 @@ public sealed class ZonaOperable
 	/// <summary>Dirección de la operación: +1 largo, -1 corto.</summary>
 	public int Signo;
 
-	public long? FvgId, BarridoId, LvnId;
+	public long? FvgId, BarridoId, LvnId, EdgeId;
 	public string LvnOrigen = "";
 	public int Calidad;
 	public DateTime Utc, ExpiraUtc;
@@ -118,7 +118,9 @@ public sealed class MotorFvgV2
 	public static int CalidadTipo(string tipo) => tipo switch
 	{
 		"FVG+LVN" or "BFVG+LVN" => 40,
+		"FVG+EDGE" or "BFVG+EDGE" => 35,
 		"LVN" => 30,
+		"EDGE" => 25,
 		"FVG" or "BFVG" => 20,
 		"ICEBERG" => 20,
 		"EMA" => 15,
@@ -126,11 +128,13 @@ public sealed class MotorFvgV2
 	};
 
 	/// <summary>Una zona a partir de un FVG: con LVN solapado (>= 1 tick) es FVG+LVN; 'bfvg' = BFVG / BFVG+LVN (+ConfluenceBonus).</summary>
-	public static ZonaOperable ZonaDeFvg(long id, FvgV2 f, RepositorioLvn lvn, ParametrosV2 p, decimal tick, bool bfvg, long? barrido, string modelo)
+	public static ZonaOperable ZonaDeFvg(long id, FvgV2 f, RepositorioLvn lvn, ParametrosV2 p, decimal tick, bool bfvg, long? barrido, string modelo,
+		RepositorioEdge? edge = null)
 	{
-		// El LVN cuenta aunque la pierna que formó el FVG lo haya atravesado (MITIGADO); solo un BORRADO no cuenta.
-		var conLvn = lvn.Todas.Where(z => z.Estado != "BORRADO").FirstOrDefault(z => Math.Min(f.Alto, z.Alto) - Math.Max(f.Bajo, z.Bajo) >= 0);
-		var tipo = (bfvg ? "BFVG" : "FVG") + (conLvn is not null ? "+LVN" : "");
+		// El LVN cuenta aunque la pierna que formó el FVG lo haya atravesado; no cuentan un BORRADO ni uno PROVISIONAL.
+		var conLvn = lvn.Todas.Where(z => z.Estado != "BORRADO" && !z.Provisional).FirstOrDefault(z => Math.Min(f.Alto, z.Alto) - Math.Max(f.Bajo, z.Bajo) >= 0);
+		var conEdge = conLvn is null ? edge?.Solapan(f.Bajo, f.Alto).FirstOrDefault() : null;
+		var tipo = (bfvg ? "BFVG" : "FVG") + (conLvn is not null ? "+LVN" : conEdge is not null ? "+EDGE" : "");
 
 		return new ZonaOperable
 		{
@@ -142,8 +146,9 @@ public sealed class MotorFvgV2
 			FvgId = f.Id,
 			BarridoId = barrido,
 			LvnId = conLvn?.Id,
+			EdgeId = conEdge?.Id,
 			LvnOrigen = conLvn?.Origen ?? "",
-			Calidad = CalidadTipo(tipo) + (bfvg && conLvn is not null ? p.ConfluenceBonus : 0),
+			Calidad = CalidadTipo(tipo) + (bfvg && (conLvn is not null || conEdge is not null) ? p.ConfluenceBonus : 0),
 			Utc = f.Utc,
 			Modelo = modelo
 		};
