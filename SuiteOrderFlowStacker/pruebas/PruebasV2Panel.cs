@@ -17,24 +17,40 @@ internal static class PruebasV2Panel
 
 	public static void Ejecutar(Comprobador c)
 	{
-		c.Seccion("v3 S7 Panel: cabecera de 3 líneas, 17 recuadros, hora CDMX, dirección y aviso legal");
+		c.Seccion("v4 G6 Panel: cabecera (estado y activo, contexto, barrido, gatillo) y 16 recuadros en el orden del propietario");
 		var s = new SimMotor();
 		s.Fuentes.Estados[FuenteSuite.Thermal] = EstadoFuente.NoCargado;
 		s.Ruptura();
 		var panel = s.M.Panel(new OpcionesPanel { ArchivoCsv = "x.csv" });
 		var texto = Texto(panel);
 		var secciones = panel.Lineas.Where(l => l.Titulo).Select(l => l.Texto.Split('.')[0]).ToList();
-		c.Check("17 recuadros en orden", string.Join(",", secciones), string.Join(",", Enumerable.Range(1, 17)));
-		c.Check("cada recuadro con su clave desplegable b1..b17", string.Join(",", panel.Lineas.Where(l => l.Titulo).Select(l => l.Grupo)),
-			string.Join(",", Enumerable.Range(1, 17).Select(i => "b" + i)));
+		c.Check("16 recuadros en orden", string.Join(",", secciones), string.Join(",", Enumerable.Range(1, 16)));
+		c.Check("orden del documento: contexto, barrido, absorción y modelos, LVN/FVG, gatillo, riesgo, micro-impulso… y los trackers al final",
+			string.Join(" | ", panel.Lineas.Where(l => l.Titulo).Select(l => l.Texto[(l.Texto.IndexOf(' ') + 1)..])),
+			"CONTEXTO Y ESTRUCTURA | BARRIDO DE LIQUIDEZ EXTERNA Y RECUPERACIÓN | RESUMEN DE ABSORCIÓN Y MODELOS | PRÓXIMO LVN OBJETIVO Y/O FVG | FOOTPRINT GATILLO | " +
+			"PLAN DE RIESGO | GESTIÓN DE MICRO-IMPULSO | CVD | INSTRUMENTO Y CALIBRACIÓN | ALERTAS | MT5 | CALIDAD Y TRAZABILIDAD | ICEBERG | STACKED / IMBALANCE | STOPS | SWEEPS");
+		c.Check("cada recuadro con su clave desplegable b1..b16", string.Join(",", panel.Lineas.Where(l => l.Titulo).Select(l => l.Grupo)),
+			string.Join(",", Enumerable.Range(1, 16).Select(i => "b" + i)));
 		var sinGrupo = panel.Lineas.TakeWhile(l => !l.Titulo).Where(l => !l.Separador).ToList();
-		c.Check("cabecera: 3 líneas siempre visibles (estado, gatillo, instrumento)", $"{sinGrupo.Count} {sinGrupo.All(l => l.Grupo is null)} {sinGrupo[0].Texto.StartsWith("ESTADO: ", StringComparison.Ordinal)} " +
-			$"{sinGrupo[1].Texto.StartsWith("NO SE HA CUMPLIDO", StringComparison.Ordinal) || sinGrupo[1].Texto.StartsWith("GATILLO", StringComparison.Ordinal)} {sinGrupo[2].Texto.StartsWith("NQ · ", StringComparison.Ordinal)}",
-			"3 True True True True");
+		c.Check("cabecera: 4 líneas siempre visibles (estado del indicador y activo, contexto, barrido, gatillo)",
+			$"{sinGrupo.Count} {sinGrupo.All(l => l.Grupo is null)} {sinGrupo[0].Texto.StartsWith("PROVISIONAL · ACTIVO · NQ (NQ)", StringComparison.Ordinal) || sinGrupo[0].Texto.Contains(" · ACTIVO · NQ", StringComparison.Ordinal)} " +
+			$"{sinGrupo[1].Texto.StartsWith("CONTEXTO: H1 ", StringComparison.Ordinal)} {sinGrupo[2].Texto.StartsWith("ESTADO: ", StringComparison.Ordinal)} " +
+			$"{sinGrupo[3].Texto.StartsWith("NO SE HA CUMPLIDO", StringComparison.Ordinal) || sinGrupo[3].Texto.StartsWith("GATILLO", StringComparison.Ordinal)}",
+			"4 True True True True True");
+		c.Check("título: INDICADOR GLOBAL SESSION SWEEP", panel.Titulo.StartsWith("INDICADOR GLOBAL SESSION SWEEP · ", StringComparison.Ordinal).ToString(), "True");
 		var contenido = panel.Lineas.SkipWhile(l => !l.Titulo).Where(l => !l.Titulo && !l.Separador).ToList();
 		c.Check("todo el contenido de los recuadros pertenece a uno (se puede plegar)", contenido.All(l => l.Grupo is not null) ? "sí" : "no", "sí");
-		c.Check("barrido externo con hora CDMX (T0 al cruzar 21420 a las 09:42 ET del 30-oct = 07:42 CDMX)",
-			Linea(panel, "MAX Dia anterior")?.Texto.Contains("T0 07:42 CDMX", StringComparison.Ordinal) == true ? "sí" : Linea(panel, "MAX Dia anterior")?.Texto ?? "", "sí");
+		c.Check("barrido externo con fecha y hora exactas CDMX (T0 al cruzar 21420 a las 09:42 ET del 30-oct = 07:42 CDMX)",
+			Linea(panel, "MAX Dia anterior")?.Texto.Contains("30/10/2026 07:42:", StringComparison.Ordinal) == true ? "sí" : Linea(panel, "MAX Dia anterior")?.Texto ?? "", "sí");
+		c.Check("detalle del nivel con su precio y su hora", Linea(panel, "Nivel: MAX Dia anterior 21,420.00 · formado ")?.Grupo ?? "sin línea", "b2");
+		c.Check("stops tomados y el estado del Stops Tracker ProSuite", Linea(panel, "Stops tomados:")?.Texto.Contains("Stops Tracker ProSuite", StringComparison.Ordinal).ToString() ?? "sin línea", "True");
+		c.Check("resumen de absorción: recuadro con Iceberg, Stops, Sweeps, Stacked e Imbalance",
+			panel.Lineas.FirstOrDefault(l => l.Recuadro == ColorPanel.Gris && l.Grupo == "b3")?.Texto.Split(" · ").Select(x => x.Split(':')[0]).Aggregate((a, b) => a + "," + b) ?? "sin recuadro",
+			"Iceberg,Stops,Sweeps,Stacked,Imbalance");
+		c.Check("sumatoria: la ruptura del PDH sale ROTO (no 'falso')", Linea(panel, "Sumatoria: ")?.Segmentos[1].Texto ?? "sin línea", "ROTO");
+		c.Check("los tres modelos en el resumen", string.Join(" ", panel.Lineas.Where(l => l.Grupo == "b3" && l.Texto.StartsWith("M", StringComparison.Ordinal)).Select(l => l.Texto.Split(':')[0]).Take(3)),
+			"M1 barrido M2 LVN / EDGE / FVG M3 iceberg rebasado");
+		c.Check("micro-impulso: EMA 15 de 1 minuto con su precio", Linea(panel, "EMA 15 (1m): ")?.Grupo ?? "sin línea", "b7");
 		var dir = Linea(panel, "MAX Dia anterior")?.Segmentos.Last();
 		c.Check("RUPTURA alcista: nueva dirección ALCISTA en verde negrita", dir is null ? "sin línea" : $"{dir.Texto} {dir.Color} {dir.Negrita}", "ALCISTA Verde True");
 		c.Check("sin Thermal: SIN FUENTE LVN en amarillo", Linea(panel, "SIN FUENTE LVN")?.Segmentos[0].Color.ToString() ?? "no", "Amarillo");
@@ -45,11 +61,11 @@ internal static class PruebasV2Panel
 			$"{texto.Contains("CSV x.csv")} {Linea(panel, "Datos:")?.Texto}", "True Datos: TICKS · INFERIDO · volumen y delta en contratos de NQ");
 		var grafico = panel.Lineas.FirstOrDefault(l => l.Grafico is not null);
 		var velasCvd = s.M.Leer(m => m.Cvd.Velas.Count);
-		c.Check("recuadro 9: minigráfico de velas de CVD (las últimas 40) dentro del recuadro CVD",
-			grafico is null ? "sin gráfico" : $"{grafico.Grupo} {grafico.Grafico!.Velas.Count == Math.Min(40, velasCvd)} {grafico.Texto.StartsWith("[CVD:", StringComparison.Ordinal)}", "b9 True True");
+		c.Check("recuadro 8: minigráfico de velas de CVD (las últimas 40) dentro del recuadro CVD",
+			grafico is null ? "sin gráfico" : $"{grafico.Grupo} {grafico.Grafico!.Velas.Count == Math.Min(40, velasCvd)} {grafico.Texto.StartsWith("[CVD:", StringComparison.Ordinal)}", "b8 True True");
 		c.Check("recuadro 9: CVD y delta con unidades (contratos)", Linea(panel, "CVD ")?.Texto.Contains(" contratos · delta última vela ", StringComparison.Ordinal) == true ? "sí" : "no", "sí");
 		c.Check("recuadro 1: valor del contrato validado (NQ 5 USD/tick, 20 USD/punto)", Linea(panel, "NQ · contrato")?.Texto.Contains("5 USD/tick · 20 USD/punto", StringComparison.Ordinal) == true ? "sí" : Linea(panel, "NQ · contrato")?.Texto ?? "sin línea", "sí");
-		c.Check("recuadro 16 sin MT5 configurado: APAGADO (también en la cabecera)", $"{Linea(panel, "MT5: APAGADO")?.Grupo} {sinGrupo[2].Texto.EndsWith("MT5: APAGADO", StringComparison.Ordinal)}", "b16 True");
+		c.Check("recuadro 11 sin MT5 configurado: APAGADO (también en la cabecera)", $"{Linea(panel, "MT5: APAGADO")?.Grupo} {sinGrupo[0].Texto.EndsWith("MT5: APAGADO", StringComparison.Ordinal)}", "b11 True");
 		c.Check("recuadro 15: canales sin configurar en naranja", Linea(panel, "Correo SIN CONFIGURAR")?.Segmentos[0].Color.ToString() ?? "sin línea", "Naranja");
 		var conEnvios = s.M.Panel(new OpcionesPanel
 		{
@@ -58,7 +74,7 @@ internal static class PruebasV2Panel
 			Mt5 = new[] { "MT5: SIMULACION · USTEC VALIDADO · sin posición" }
 		});
 		c.Check("recuadro 15: último envío por canal con hora CDMX y resultado", Linea(conEnvios, "Último envío telegram")?.Texto ?? "sin línea", "Último envío telegram: 07:45 CDMX · ERROR · timeout");
-		c.Check("recuadro 16 y cabecera: el estado de MT5 que da la carcasa", $"{Linea(conEnvios, "MT5: SIMULACION")?.Grupo} {conEnvios.Lineas[2].Texto.EndsWith("MT5: SIMULACION · USTEC VALIDADO · sin posición", StringComparison.Ordinal)}", "b16 True");
+		c.Check("recuadro 11 y cabecera: el estado de MT5 que da la carcasa", $"{Linea(conEnvios, "MT5: SIMULACION")?.Grupo} {conEnvios.Lineas[0].Texto.EndsWith("MT5: SIMULACION · USTEC VALIDADO · sin posición", StringComparison.Ordinal)}", "b11 True");
 
 		c.Seccion("S8 Panel: validación por iceberg (T3: 'Probable' si es inferido; 'Certificada' solo con MBO y AGUANTANDO)");
 		var e = s.Pdh!;

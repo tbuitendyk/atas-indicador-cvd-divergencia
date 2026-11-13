@@ -58,7 +58,7 @@ internal static class PruebasV3Modelos
 
 		c.Seccion("v3 S7 Cabecera del panel: gatillo (LÍNEA 2) con un Modelo B en un EDGE");
 		var tocado = ConEdge(true);
-		var linea2 = tocado.M.Panel(new OpcionesPanel()).Lineas[1];
+		var linea2 = tocado.M.Panel(new OpcionesPanel()).Lineas[3];
 		c.Check("el precio tocó el EDGE sin gatillo VÁLIDO: nunca 'CUMPLIDO'", linea2.Texto.Contains("CUMPLIDO", StringComparison.Ordinal) && !linea2.Texto.StartsWith("NO SE HA", StringComparison.Ordinal) ? linea2.Texto : "no", "no");
 		var lejos = new SimMotor(sinBarridos: true);
 		lejos.M.Leer(m => { m.SesgoForzado = 1; return 0; });
@@ -74,7 +74,7 @@ internal static class PruebasV3Modelos
 		});
 		var setupLejos = lejos.Setups.FirstOrDefault(x => x.Id == 999);
 		c.Check("zona armada sin tocar: 'NO SE HA CUMPLIDO — EN CAMINO A EDGE PISO HVN 21,396.00' con la distancia",
-			$"{setupLejos?.Estado} | {lejos.M.Panel(new OpcionesPanel()).Lineas[1].Texto}", "Armado | NO SE HA CUMPLIDO — EN CAMINO A EDGE PISO HVN 21,396.00 · a 52 ticks / 13 pts");
+			$"{setupLejos?.Estado} | {lejos.M.Panel(new OpcionesPanel()).Lineas[3].Texto}", "Armado | NO SE HA CUMPLIDO — EN CAMINO A EDGE PISO HVN 21,396.00 · a 52 ticks / 13 pts");
 
 		c.Seccion("v3 S12 FVG+LVN > FVG+EDGE > FVG; BFVG+EDGE (prueba 20)");
 		var lvn = new RepositorioLvn();
