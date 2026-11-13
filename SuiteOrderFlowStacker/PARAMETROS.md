@@ -30,8 +30,8 @@ con 1-2 semanas de CSV ([OPERATIVA.md](OPERATIVA.md#8-calibración-con-los-csv))
 | `FontSize` | Tamaño de letra | entero | 11 | 6-30 | Tamaño de fuente de etiquetas y panel. Recomendado: 11. |
 | `EventLifetimeMin` | Vida de un evento (min) | entero | 30 | 1-1440 | Minutos que un evento sigue visible y 'reciente'. Recomendado: 30. |
 | `InstrumentProfile` | Perfil de instrumento | lista | Automático (por el nombre) |  | Auto = por el símbolo de ATAS (NQ, MNQ, ES, MES, YM, MYM; sin reconocer: NQ). Elige la tabla de umbrales por sesión y los umbrales en contratos de esa familia. |
-| `EnableAlerts` | Alertas | sí/no | Sí |  | Una alerta por evento y por cambio de estado, solo en vivo (nunca al recalcular el historial). |
-| `ShowInfoPanel` | Panel propio en el gráfico | sí/no | Sí |  | v3: los trackers lo traen apagado; su último evento se ve en el panel de Sessions Sweeps Pro. Su dibujo en el gráfico no cambia. |
+| `TrackerAlerts` | Alertas | sí/no | Sí |  | v4: apagadas en los trackers (tapaban la vista y el panel de órdenes); el Indicador Global Session Sweep solo avisa lo del barrido. Una alerta por evento, solo en vivo. |
+| `ShowOwnPanel` | Panel propio en el gráfico | sí/no | Sí |  | Apagado en los trackers: su último evento se ve en el panel del Indicador Global Session Sweep. Su dibujo en el gráfico no cambia. |
 | `AlertSoundFile` | Sonido de la alerta | texto | alert1 |  | Sonido de ATAS para las alertas. Por defecto: alert1. |
 | `EnableRecording` | Grabar en CSV | sí/no | Sí |  | Graba cada evento en %APPDATA%\ATAS\OrderFlowSuite\{Instrumento}\yyyy-MM-dd.csv (para calibrar). |
 | `RealTimeOnly` | Solo tiempo real | sí/no | No |  | Si se activa, no se reconstruyen eventos con las velas del historial (solo los de ahora en adelante). |

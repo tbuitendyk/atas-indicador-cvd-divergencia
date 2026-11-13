@@ -46,6 +46,9 @@ public partial class StopsTrackerPro
 		_c.General.InfoPanelPosition = EsquinaPanel.BottomRight;
 		_c.General.InfoPanelOffsetY = 0;
 		_c.General.ShowInfoPanel = false;
+
+		// v4: solo el Absorption Master avisa por defecto; los trackers no (sus alertas tapaban la vista).
+		_c.General.EnableAlerts = false;
 	}
 
 	/// <summary>Cambio de un parámetro: recalcula las velas solo si hace falta (los eventos en vivo se conservan).</summary>
@@ -88,11 +91,11 @@ public partial class StopsTrackerPro
 	[Display(Name = "Perfil de instrumento", GroupName = "0. General", Order = 80, Description = "Auto = por el símbolo de ATAS (NQ, MNQ, ES, MES, YM, MYM; sin reconocer: NQ). Elige la tabla de umbrales por sesión y los umbrales en contratos de esa familia.")]
 	public PerfilInstrumento InstrumentProfile { get => _c.General.InstrumentProfile; set { _c.General.InstrumentProfile = value; Cambio(false); } }
 
-	[Display(Name = "Alertas", GroupName = "0. General", Order = 90, Description = "Una alerta por evento y por cambio de estado, solo en vivo (nunca al recalcular el historial).")]
-	public bool EnableAlerts { get => _c.General.EnableAlerts; set { _c.General.EnableAlerts = value; Cambio(false); } }
+	[Display(Name = "Alertas", GroupName = "0. General", Order = 90, Description = "v4: apagadas en los trackers (tapaban la vista y el panel de órdenes); el Indicador Global Session Sweep solo avisa lo del barrido. Una alerta por evento, solo en vivo.")]
+	public bool TrackerAlerts { get => _c.General.EnableAlerts; set { _c.General.EnableAlerts = value; Cambio(false); } }
 
-	[Display(Name = "Panel propio en el gráfico", GroupName = "0. General", Order = 100, Description = "v3: los trackers lo traen apagado; su último evento se ve en el panel de Sessions Sweeps Pro. Su dibujo en el gráfico no cambia.")]
-	public bool ShowInfoPanel { get => _c.General.ShowInfoPanel; set { _c.General.ShowInfoPanel = value; Cambio(false); } }
+	[Display(Name = "Panel propio en el gráfico", GroupName = "0. General", Order = 100, Description = "Apagado en los trackers: su último evento se ve en el panel del Indicador Global Session Sweep. Su dibujo en el gráfico no cambia.")]
+	public bool ShowOwnPanel { get => _c.General.ShowInfoPanel; set { _c.General.ShowInfoPanel = value; Cambio(false); } }
 
 	[Display(Name = "Sonido de la alerta", GroupName = "0. General", Order = 110, Description = "Sonido de ATAS para las alertas. Por defecto: alert1.")]
 	[SoundComboBoxEditor]

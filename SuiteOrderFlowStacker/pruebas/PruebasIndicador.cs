@@ -52,7 +52,8 @@ internal static class PruebasIndicador
 		};
 
 		// Estas pruebas leen el panel propio de cada indicador: v3 lo trae apagado en los trackers (se enciende aquí).
-		typeof(T).GetProperty("ShowInfoPanel")?.SetValue(ind, true);
+		typeof(T).GetProperty("ShowOwnPanel")?.SetValue(ind, true);
+		typeof(T).GetProperty("TrackerAlerts")?.SetValue(ind, true);
 		ajustes?.Invoke(ind);
 		ind.TestInitialize();
 		ind.TestCalcAll();
@@ -238,16 +239,19 @@ internal static class PruebasIndicador
 		ind.TestDispose();
 
 		c.Seccion("v3 S6: el panel propio de los trackers viene apagado (el del Absorption Master no); su dibujo no cambia");
-		c.Check("ShowInfoPanel por defecto: Stacked, Iceberg, Stops, Sweeps, Master",
+		c.Check("ShowOwnPanel por defecto (propiedad nueva v4: también con plantillas guardadas): Stacked, Iceberg, Stops, Sweeps, Master",
 			string.Join(" ", new object[] { new StackedImbalancePro(), new IcebergTrackerPro(), new StopsTrackerPro(), new SweepsTrackerPro(), new AbsorptionMaster() }
-				.Select(x => x.GetType().GetProperty("ShowInfoPanel")!.GetValue(x))), "False False False False True");
-		var sinPanel = Crear<SweepsTrackerPro>(ajustes: i => i.ShowInfoPanel = false);
+				.Select(x => x.GetType().GetProperty("ShowOwnPanel")!.GetValue(x))), "False False False False True");
+		c.Check("v4 G7: alertas de los trackers apagadas por defecto (tapaban la vista y el panel de órdenes); el Master sí avisa",
+			string.Join(" ", new object[] { new StackedImbalancePro(), new IcebergTrackerPro(), new StopsTrackerPro(), new SweepsTrackerPro(), new AbsorptionMaster() }
+				.Select(x => x.GetType().GetProperty("TrackerAlerts")!.GetValue(x))), "False False False False True");
+		var sinPanel = Crear<SweepsTrackerPro>(ajustes: i => i.ShowOwnPanel = false);
 		c.Check("apagado: no dibuja el panel", Textos(sinPanel.TestRender()).Contains("SWEEPS TRACKER").ToString(), "False");
 		sinPanel.TestDispose();
 
 		var nombres = typeof(AbsorptionMaster).GetProperties().Select(p => p.Name).ToHashSet();
 
-		foreach (var nombre in new[] { "DisplayMode", "InfoPanelPosition", "InfoPanelMaxLines", "FontSize", "EventLifetimeMin", "InstrumentProfile", "EnableAlerts",
+		foreach (var nombre in new[] { "DisplayMode", "InfoPanelPosition", "InfoPanelMaxLines", "FontSize", "EventLifetimeMin", "InstrumentProfile", "TrackerAlerts",
 			         "AlertSoundFile", "EnableRecording", "RealTimeOnly", "ImbalanceRatioPercent", "MinStackedLevels", "MinLevelVolumeContracts", "OffHoursFactor",
 			         "IgnoreZeroSide", "ZoneExtendBars", "MinBreakTicks", "MaxActiveZones", "AsiaMinExecutedContracts", "AsiaHighProbContracts", "AsiaMinRefills",
 			         "LondonMinExecutedContracts", "PremarketMinutes", "MnqNyOpenMinExecutedContracts", "MinExecVisibleRatio", "HighProbExecVisibleRatio",

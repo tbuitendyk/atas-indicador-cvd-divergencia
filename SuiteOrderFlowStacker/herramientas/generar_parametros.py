@@ -41,10 +41,10 @@ GENERAL = ("General", [
      "Minutos que un evento sigue visible y 'reciente'. Recomendado: 30.", 1, 1440, False),
     ("InstrumentProfile", "enum:PerfilInstrumento", "_c.General.InstrumentProfile", "Perfil de instrumento",
      "Auto = por el símbolo de ATAS (NQ, MNQ, ES, MES, YM, MYM; sin reconocer: NQ). Elige la tabla de umbrales por sesión y los umbrales en contratos de esa familia.", None, None, False),
-    ("EnableAlerts", "bool", "_c.General.EnableAlerts", "Alertas",
-     "Una alerta por evento y por cambio de estado, solo en vivo (nunca al recalcular el historial).", None, None, False),
-    ("ShowInfoPanel", "bool", "_c.General.ShowInfoPanel", "Panel propio en el gráfico",
-     "v3: los trackers lo traen apagado; su último evento se ve en el panel de Sessions Sweeps Pro. Su dibujo en el gráfico no cambia.", None, None, False),
+    ("TrackerAlerts", "bool", "_c.General.EnableAlerts", "Alertas",
+     "v4: apagadas en los trackers (tapaban la vista y el panel de órdenes); el Indicador Global Session Sweep solo avisa lo del barrido. Una alerta por evento, solo en vivo.", None, None, False),
+    ("ShowOwnPanel", "bool", "_c.General.ShowInfoPanel", "Panel propio en el gráfico",
+     "Apagado en los trackers: su último evento se ve en el panel del Indicador Global Session Sweep. Su dibujo en el gráfico no cambia.", None, None, False),
     ("AlertSoundFile", "sonido", "_c.General.AlertSoundFile", "Sonido de la alerta",
      "Sonido de ATAS para las alertas. Por defecto: alert1.", None, None, False),
     ("EnableRecording", "bool", "_c.General.EnableRecording", "Grabar en CSV",
@@ -345,6 +345,9 @@ public partial class {clase}
 		_c.General.InfoPanelPosition = EsquinaPanel.{esquina};
 		_c.General.InfoPanelOffsetY = {offy};
 		_c.General.ShowInfoPanel = {"true" if master else "false"};
+
+		// v4: solo el Absorption Master avisa por defecto; los trackers no (sus alertas tapaban la vista).
+		_c.General.EnableAlerts = {"true" if master else "false"};
 	}}
 
 	/// <summary>Cambio de un parámetro: recalcula las velas solo si hace falta (los eventos en vivo se conservan).</summary>
