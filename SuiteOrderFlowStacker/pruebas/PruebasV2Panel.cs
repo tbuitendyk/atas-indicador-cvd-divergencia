@@ -114,6 +114,13 @@ internal static class PruebasV2Panel
 		var vieja = System.Text.Json.JsonSerializer.Deserialize<PosicionVentana>("{\"Left\":10,\"Top\":10,\"Width\":520,\"Height\":760,\"Topmost\":false,\"Letra\":11,\"Opacidad\":1,\"Detalle\":false,\"Minimizada\":false}")!;
 		c.Check("un archivo de posición de la v2 (sin plegados) sigue abriendo", vieja.Plegadas is null ? "sin plegados" : "otro", "sin plegados");
 
+		c.Seccion("v4 G2: la ventana queda fijada (no se esconde detrás de ATAS); el detector heredado dice ROMPIMIENTO");
+		var migrada = vieja.Migrada();
+		c.Check("una posición guardada antes de la v4 (sin fijar) se fija una vez", $"{vieja.Topmost} → {migrada.Topmost} v{migrada.Version}", "False → True v4");
+		var desfijada = migrada with { Topmost = false };
+		c.Check("si el usuario la desfija en la v4, se respeta", desfijada.Migrada().Topmost.ToString(), "False");
+		c.Check("lo que el Pine llamaba FALSO (aceptación más allá) es ROMPIMIENTO", Clasificacion.Falso.Texto(), "ROMPIMIENTO");
+
 		c.Seccion("S8 CVD: velas del delta acumulado y divergencias macro y micro (anexo)");
 		var et0 = new DateTime(2026, 10, 29, 17, 58, 0);
 		var velas = CalculoCvd.Velas(new[]

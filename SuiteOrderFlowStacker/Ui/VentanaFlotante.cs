@@ -56,6 +56,10 @@ internal sealed class VentanaFlotante : Window
 		Width = 520;
 		Height = 760;
 		Background = new SolidColorBrush(Color.FromRgb(20, 23, 28));
+
+		// v4: fijada (siempre visible) por defecto: al hacer clic en el gráfico ya no queda detrás de ATAS. Solo se
+		// oculta al minimizarla; "Fijado" la desfija.
+		Topmost = true;
 		Foreground = Brocha(ColorPanel.Blanco);
 		ShowInTaskbar = true;
 
@@ -379,7 +383,7 @@ internal sealed class VentanaFlotante : Window
 			if (!File.Exists(Archivo()) || JsonSerializer.Deserialize<PosicionVentana>(File.ReadAllText(Archivo())) is not { } p)
 				return;
 
-			var ajustada = Colocacion.Ajustar(p,
+			var ajustada = Colocacion.Ajustar(p.Migrada(),
 				(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop, SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight),
 				(SystemParameters.WorkArea.Left, SystemParameters.WorkArea.Top, SystemParameters.WorkArea.Width, SystemParameters.WorkArea.Height));
 
@@ -405,6 +409,6 @@ internal sealed class VentanaFlotante : Window
 		Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Archivo())!);
 		var r = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
 		File.WriteAllText(Archivo(), JsonSerializer.Serialize(new PosicionVentana(r.Left, r.Top, r.Width, r.Height, Topmost, _letra, Opacity, _detalle,
-			WindowState == WindowState.Minimized, new List<string>(_plegadas).ToArray())));
+			WindowState == WindowState.Minimized, new List<string>(_plegadas).ToArray(), PosicionVentana.VersionActual)));
 	}
 }

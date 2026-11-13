@@ -110,9 +110,10 @@ public partial class SessionSweepsPro
 		if (ShowFvg)
 			DibujarFvg(context, foto, Visible);
 
-		DibujarZonas(context, foto, Visible);
+		if (ShowPineZones)
+			DibujarZonas(context, foto, Visible);
 
-		if (ShowTargets && foto.Ultima?.Proyeccion is { } p)
+		if (ShowPineTargets && foto.Ultima?.Proyeccion is { } p)
 			DibujarObjetivos(context, foto.Ultima, p, area, motor);
 
 		DibujarChoch(context, foto, Visible);
@@ -121,7 +122,7 @@ public partial class SessionSweepsPro
 		if (ShowLevelLabels)
 			DibujarEtiquetas(context, area);
 
-		if (ShowTable)
+		if (ShowSessionsTable)
 			DibujarTabla(context, area, foto.H1);
 
 		if (ShowSweepPanel && foto.Panel.Length > 0)

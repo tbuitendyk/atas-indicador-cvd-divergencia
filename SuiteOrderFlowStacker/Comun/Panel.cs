@@ -84,9 +84,18 @@ public sealed record TramoMini(int I1, int I2, decimal V1, decimal V2, bool Alci
 /// <summary>Minigráfico de velas de CVD con sus divergencias (v3, 6 y 13.9).</summary>
 public sealed record GraficoMini(IReadOnlyList<VelaMini> Velas, IReadOnlyList<TramoMini> Tramos);
 
-/// <summary>Posición guardada de una ventana flotante (y los recuadros plegados).</summary>
+/// <summary>
+/// Posición guardada de una ventana flotante (y los recuadros plegados). Version: 0 = archivo de la v3 o anterior, 4 =
+/// desde la v4 (la ventana viene fijada: solo se oculta al minimizarla).
+/// </summary>
 public sealed record PosicionVentana(double Left, double Top, double Width, double Height, bool Topmost, double Letra, double Opacidad, bool Detalle, bool Minimizada,
-	string[]? Plegadas = null);
+	string[]? Plegadas = null, int Version = 0)
+{
+	public const int VersionActual = 4;
+
+	/// <summary>v4: una posición guardada antes venía sin fijar (por eso la ventana se escondía detrás de ATAS): se fija una vez.</summary>
+	public PosicionVentana Migrada() => Version >= VersionActual ? this : this with { Topmost = true, Version = VersionActual };
+}
 
 /// <summary>
 /// Colocación de una ventana flotante (11.1, T30): se respeta la posición guardada en cualquier monitor; si quedó fuera

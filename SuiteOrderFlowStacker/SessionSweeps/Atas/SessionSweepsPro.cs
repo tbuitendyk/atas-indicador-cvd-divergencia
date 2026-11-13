@@ -88,8 +88,11 @@ public partial class SessionSweepsPro : Indicator
 
 	// --- 2. Tabla --------------------------------------------------------------------------------------------------
 
-	[Display(Name = "Mostrar la tabla de sesiones", GroupName = G2, Order = 10)]
-	public bool ShowTable { get; set; } = true;
+	// v4: propiedad nueva (la antigua ShowTable venía encendida y las plantillas la guardaban): la tabla de la esquina
+	// se apaga para todos y su información está en el panel.
+	[Display(Name = "Mostrar la tabla de sesiones (esquina)", GroupName = G2, Order = 10,
+		Description = "Apagada: el H1 y el estado de cada sesión están en el panel (recuadro de contexto).")]
+	public bool ShowSessionsTable { get; set; }
 
 	[Display(Name = "Tamaño del texto", GroupName = G2, Order = 20)]
 	public TamanoTexto TableTextSize { get; set; } = TamanoTexto.Pequeno;
@@ -170,6 +173,10 @@ public partial class SessionSweepsPro : Indicator
 	[Display(Name = "Detectar una vez por sesión", GroupName = G4, Order = 80)]
 	public bool DetectOncePerSession { get => _cfg.DetectOncePerSession; set { _cfg.DetectOncePerSession = value; Recalcular(); } }
 
+	[Display(Name = "Mostrar las cajas del detector heredado", GroupName = G4, Order = 5,
+		Description = "Cajas del Pine con SWEEP REAL / ROMPIMIENTO / SIN LIQ. Apagadas: el barrido se ve con las cajas del clasificador (28. Panel y dibujo). El Pine sigue sumando en el bloque E.")]
+	public bool ShowPineZones { get; set; }
+
 	[Display(Name = "Ocultar zonas falsas", GroupName = G4, Order = 90)]
 	public bool HideFakeSweepZones { get; set; }
 
@@ -226,8 +233,8 @@ public partial class SessionSweepsPro : Indicator
 	[Display(Name = "Valor del punto", GroupName = G7, Order = 30)]
 	public ContratoValor Contrato { get => _cfg.Contrato; set { _cfg.Contrato = value; Recalcular(); } }
 
-	[Display(Name = "Mostrar T1 / T2 / T3", GroupName = G7, Order = 40)]
-	public bool ShowTargets { get; set; } = true;
+	[Display(Name = "Mostrar T1 / T2 / T3 (heredado)", GroupName = G7, Order = 40, Description = "Objetivos del detector heredado; apagado para no ensuciar el gráfico.")]
+	public bool ShowPineTargets { get; set; }
 
 	// --- 8. FVG / IFVG ---------------------------------------------------------------------------------------------
 

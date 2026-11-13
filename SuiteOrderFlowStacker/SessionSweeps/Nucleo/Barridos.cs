@@ -79,7 +79,7 @@ public sealed class ZonaBarrido
 
 	public string Nombre => $"{Lado.Extremo()} {Nivel.Origen}";
 
-	/// <summary>Etiqueta junto a la caja: "SWEEP REAL 8/10", "FALSO", "SIN LIQ", "DUDOSO 5/10" o "PENDIENTE".</summary>
+	/// <summary>Etiqueta junto a la caja: "SWEEP REAL 8/10", "ROMPIMIENTO", "SIN LIQ", "DUDOSO 5/10" o "PENDIENTE".</summary>
 	public string Etiqueta
 	{
 		get

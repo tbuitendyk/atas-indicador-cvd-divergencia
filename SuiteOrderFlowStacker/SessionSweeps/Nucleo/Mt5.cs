@@ -86,6 +86,9 @@ public sealed class GestorMt5
 	public bool PermitirSinCalibrarEnSimulacion { get; set; }
 	public int MaxSlippagePuntos { get; set; } = 10;
 	public DateTime? UltimoContactoUtc { get; private set; }
+
+	/// <summary>Reloj del gestor (en vivo, la hora actual; en las pruebas, una fija).</summary>
+	public Func<DateTime> Reloj { get; set; } = () => DateTime.UtcNow;
 	public List<string> Registro { get; } = new();
 
 	public MapeoMt5 Mapeo(RaizInstrumento r) => _mapeos.TryGetValue(r, out var m) ? m : new MapeoMt5 { Raiz = r };
@@ -110,7 +113,7 @@ public sealed class GestorMt5
 
 	private void Anotar(string texto)
 	{
-		Registro.Add($"{DateTime.UtcNow:HH:mm:ss} {texto}");
+		Registro.Add($"{Reloj():HH:mm:ss} {texto}");
 
 		if (Registro.Count > 200)
 			Registro.RemoveAt(0);
@@ -220,7 +223,7 @@ public sealed class GestorMt5
 	{
 		lock (_sync)
 		{
-			UltimoContactoUtc = DateTime.UtcNow;
+			UltimoContactoUtc = Reloj();
 			var r = _comandos.ToList();
 			_comandos.Clear();
 			return r;
@@ -262,7 +265,7 @@ public sealed class GestorMt5
 
 		lock (_sync)
 		{
-			UltimoContactoUtc = DateTime.UtcNow;
+			UltimoContactoUtc = Reloj();
 
 			switch (c[0])
 			{
@@ -286,7 +289,7 @@ public sealed class GestorMt5
 					break;
 
 				case "CLOSED" when c.Length >= 3:
-					NuevoDia(DateTime.UtcNow);
+					NuevoDia(Reloj());
 					_perdidaDia += Math.Max(0, -D(2));
 
 					foreach (var m in _mapeos.Values.Where(m => m.Simbolo == c[1]))
@@ -313,7 +316,7 @@ public sealed class GestorMt5
 			if (Modo == ModoMt5.Apagado)
 				return l;
 
-			var hoy = Zonas.DiaOperativo(DateTime.UtcNow);
+			var hoy = Zonas.DiaOperativo(Reloj());
 			l.Add(Mapeo(raiz).PruebaConversion(spec));
 			l.Add($"Hoy: {_operaciones.Count(o => Zonas.DiaOperativo(o.Utc) == hoy)}/{MaxOperacionesDia} operaciones · pérdida " +
 				$"{(_dia == hoy ? _perdidaDia : 0).ToString("0", CultureInfo.InvariantCulture)} de {MaxPerdidaDiaUsd.ToString("0", CultureInfo.InvariantCulture)} USD");
@@ -328,7 +331,7 @@ public sealed class GestorMt5
 		{
 			var m = Mapeo(raiz);
 			var conexion = Modo is ModoMt5.Demo or ModoMt5.Real
-				? UltimoContactoUtc is { } u && DateTime.UtcNow - u < TimeSpan.FromSeconds(10) ? "EA CONECTADO" : "EA SIN CONTACTO"
+				? UltimoContactoUtc is { } u && Reloj() - u < TimeSpan.FromSeconds(10) ? "EA CONECTADO" : "EA SIN CONTACTO"
 				: "";
 			var pos = _posiciones.TryGetValue(raiz, out var p) ? $"posición {(p.Direccion > 0 ? "LARGA" : "CORTA")} {p.Lotes.ToString(CultureInfo.InvariantCulture)}" : "sin posición";
 			var bloqueo = Pausado ? " · PAUSADO" : OrdenesDeshabilitadas ? " · ÓRDENES DESHABILITADAS" : "";

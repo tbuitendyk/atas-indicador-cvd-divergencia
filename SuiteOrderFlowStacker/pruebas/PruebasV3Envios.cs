@@ -80,7 +80,7 @@ internal static class PruebasV3Envios
 		var rs = Orden(simulacion, 2);
 		c.Check("prueba 31: SIMULACIÓN simula dentro y no manda comandos", $"{rs.Simulada} {rs.Enviada} {simulacion.TomarComandos().Count} {simulacion.Posiciones.Count}", "True False 0 1");
 
-		var demo = new GestorMt5 { Modo = ModoMt5.Demo };
+		var demo = new GestorMt5 { Modo = ModoMt5.Demo, Reloj = () => ahora };
 		demo.Mapeo(RaizInstrumento.NQ).Simbolo = "USTEC";
 		c.Check("prueba 32: con símbolo pero sin ficha ni validación: sin orden", Orden(demo, 3).Texto, "SIN ORDEN #3: mapeo NQ → MT5 sin validar");
 		demo.Reporte("INFO|USTEC|0.01|0.01|2|0.1|100|0.1|0.01");

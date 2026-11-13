@@ -155,7 +155,7 @@ public static class Textos
 	public static string Texto(this Clasificacion c) => c switch
 	{
 		Clasificacion.Real => "SWEEP REAL",
-		Clasificacion.Falso => "FALSO",
+		Clasificacion.Falso => "ROMPIMIENTO",
 		Clasificacion.SinLiquidez => "SIN LIQ",
 		Clasificacion.Dudoso => "DUDOSO",
 		_ => "PENDIENTE"
