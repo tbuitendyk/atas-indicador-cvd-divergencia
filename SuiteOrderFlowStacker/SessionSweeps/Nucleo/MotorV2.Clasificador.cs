@@ -17,6 +17,9 @@ public sealed class NovedadV2
 
 	/// <summary>El setup del modelo (GATILLO VÁLIDO, MODELO CERRADO, MODELO INVALIDADO): correo y CSV.</summary>
 	public SetupModelo? Setup;
+
+	/// <summary>v4: la línea de sesión rota (LÍNEA DE SESIÓN) o con BOS (BOS DE SESIÓN).</summary>
+	public LineaSesion? Linea;
 }
 
 /// <summary>S3: detección de T0 en el tick, seguimiento de extremos y evaluación del clasificador en cada barra de volumen.</summary>
@@ -59,6 +62,7 @@ public sealed partial class MotorSweeps
 	private void TickV2(DateTime utc, decimal precio)
 	{
 		_ahoraV2 = utc;
+		TickLineas(utc, precio);
 
 		foreach (var e in Evaluaciones)
 		{

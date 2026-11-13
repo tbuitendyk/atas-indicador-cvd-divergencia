@@ -179,7 +179,9 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `InChartPanelY` | Panel en el gráfico: Y | 60 | 0-5000 |  |
 | `ShowSweepBoxes` | Cajas de barrido | Sí |  | Coloreadas por estado (REAL, PREMIUM, RUPTURA / ACEPTACIÓN, FALLIDO…). |
 | `ShowModelBoxes` | Zonas de los modelos | Sí |  | Modelo A (barrido, BFVG) y Modelo B (LVN / EDGE / FVG) con entrada, stop y objetivo. |
-| `ShowFvgV2` | FVG / BFVG (v2) | Sí |  |  |
+| `ShowFvgV2` | FVG / BFVG | Sí |  |  |
+| `FvgOnlyAfterSweep` | FVG solo después de un barrido validado | Sí |  | Dibuja solo los FVG nacidos después de un BARRIDO REAL o PREMIUM y a favor de su giro (oculta los demás). |
+| `BreakBannerSec` | Aviso de ruptura de línea: segundos | 60 | 0-600 | Cuánto queda el aviso arriba a la derecha del gráfico (0 = sin aviso). |
 | `ShowInternalLiquidity` | Liquidez interna | Sí |  | Niveles de sesión e iguales. |
 | `ShowExternalLiquidity` | Liquidez externa | Sí |  | PDH/PDL y semana anterior. |
 | `ShowLvnLines` | LVN del Thermal | Sí |  | Las zonas que llegan del Thermal (activas y mitigadas). |
@@ -205,6 +207,13 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `AlertEntradaBAtas` | GATILLO VÁLIDO B: ATAS (sonido y ventana) | Sí |  |  |
 | `AlertEntradaBEmail` | GATILLO VÁLIDO B: correo | Sí |  |  |
 | `AlertEntradaBTelegram` | GATILLO VÁLIDO B: Telegram | Sí |  |  |
+| `AlertLineaAtas` | RUPTURA DE LÍNEA DE SESIÓN: ATAS (sonido y aviso) | Sí |  | Sonido y aviso arriba a la derecha del gráfico al romperse la línea de un máximo o mínimo de sesión. |
+| `AlertLineaEmail` | RUPTURA DE LÍNEA DE SESIÓN: correo | No |  |  |
+| `AlertLineaTelegram` | RUPTURA DE LÍNEA DE SESIÓN: Telegram | No |  |  |
+| `LineaAlertaAsia` | Ruptura de línea: Asia | Sí |  |  |
+| `LineaAlertaLondres` | Ruptura de línea: Londres | Sí |  |  |
+| `LineaAlertaPremercado` | Ruptura de línea: Premercado | Sí |  |  |
+| `LineaAlertaNy` | Ruptura de línea: NY | Sí |  | Incluye el último máximo y mínimo recientes de NY. |
 
 ## 30. Instrumentos
 

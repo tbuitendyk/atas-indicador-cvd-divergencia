@@ -184,6 +184,9 @@ public sealed partial class MotorSweeps
 
 		Niveles.RomperNoVigilados(v);
 
+		// v4: líneas de sesión (ruptura que no vio el tick, BOS, líneas nuevas).
+		ProcesarLineas(v, terminadas);
+
 		// Las rupturas en vivo de la vela que acaba de cerrar ya quedaron en sus zonas.
 		foreach (var id in _rupturas.Where(r => r.Value.Vela <= v.InicioUtc).Select(r => r.Key).ToList())
 			_rupturas.Remove(id);

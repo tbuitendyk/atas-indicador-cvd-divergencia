@@ -343,6 +343,6 @@ internal static class PruebasV2Clasificador
 		c.Check("T8 una evaluación del PDH con T0 = 09:41:50 ET (no la apertura del minuto)",
 			ev.Count == 1 ? $"{ev[0].Nombre} {TiempoV2.HoraEt(ev[0].T0Utc)}" : $"{ev.Count}", "MAX Dia anterior 09:41:50 ET");
 		c.Check("T8 los máximos de sesión (21405) también se evaluaron, cada uno con su T0", motor.Leer(m => m.Evaluaciones.Count(e => e.Nivel.Grupo != "dia" && e.T0Utc == t0.AddSeconds(-5))).ToString(), "3");
-		c.Check("T8 aviso 'rompe' en el tick", motor.TomarNovedadesV2().Select(n => n.Tipo).FirstOrDefault() ?? "", "ROMPE NIVEL");
+		c.Check("T8 aviso 'rompe' en el tick", motor.TomarNovedadesV2().Select(n => n.Tipo).FirstOrDefault(t => t != "LÍNEA DE SESIÓN") ?? "", "ROMPE NIVEL");
 	}
 }

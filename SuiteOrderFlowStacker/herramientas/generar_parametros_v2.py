@@ -194,7 +194,11 @@ GRUPOS = [
         ("InChartPanelY", "int", "_v.InChartPanelY", "Panel en el gráfico: Y", "", 0, 5000, False),
         ("ShowSweepBoxes", "bool", "_v.ShowSweepBoxes", "Cajas de barrido", "Coloreadas por estado (REAL, PREMIUM, RUPTURA / ACEPTACIÓN, FALLIDO…).", None, None, False),
         ("ShowModelBoxes", "bool", "_v.ShowModelBoxes", "Zonas de los modelos", "Modelo A (barrido, BFVG) y Modelo B (LVN / EDGE / FVG) con entrada, stop y objetivo.", None, None, False),
-        ("ShowFvgV2", "bool", "_v.ShowFvgV2", "FVG / BFVG (v2)", "", None, None, False),
+        ("ShowFvgV2", "bool", "_v.ShowFvgV2", "FVG / BFVG", "", None, None, False),
+        ("FvgOnlyAfterSweep", "bool", "_v.FvgOnlyAfterSweep", "FVG solo después de un barrido validado",
+         "Dibuja solo los FVG nacidos después de un BARRIDO REAL o PREMIUM y a favor de su giro (oculta los demás).", None, None, False),
+        ("BreakBannerSec", "int", "_v.BreakBannerSec", "Aviso de ruptura de línea: segundos",
+         "Cuánto queda el aviso arriba a la derecha del gráfico (0 = sin aviso).", 0, 600, False),
         ("ShowInternalLiquidity", "bool", "_v.ShowInternalLiquidity", "Liquidez interna", "Niveles de sesión e iguales.", None, None, False),
         ("ShowExternalLiquidity", "bool", "_v.ShowExternalLiquidity", "Liquidez externa", "PDH/PDL y semana anterior.", None, None, False),
         ("ShowLvnLines", "bool", "_v.ShowLvnLines", "LVN del Thermal", "Las zonas que llegan del Thermal (activas y mitigadas).", None, None, False),
@@ -275,6 +279,14 @@ GRUPOS.append(("37. Alertas y canales", [
     ("AlertEntradaBAtas", "bool", P + "AlertEntradaBAtas", "GATILLO VÁLIDO B: ATAS (sonido y ventana)", "", None, None, False),
     ("AlertEntradaBEmail", "bool", P + "AlertEntradaBEmail", "GATILLO VÁLIDO B: correo", "", None, None, False),
     ("AlertEntradaBTelegram", "bool", P + "AlertEntradaBTelegram", "GATILLO VÁLIDO B: Telegram", "", None, None, False),
+    ("AlertLineaAtas", "bool", P + "AlertLineaAtas", "RUPTURA DE LÍNEA DE SESIÓN: ATAS (sonido y aviso)",
+     "Sonido y aviso arriba a la derecha del gráfico al romperse la línea de un máximo o mínimo de sesión.", None, None, False),
+    ("AlertLineaEmail", "bool", P + "AlertLineaEmail", "RUPTURA DE LÍNEA DE SESIÓN: correo", "", None, None, False),
+    ("AlertLineaTelegram", "bool", P + "AlertLineaTelegram", "RUPTURA DE LÍNEA DE SESIÓN: Telegram", "", None, None, False),
+    ("LineaAlertaAsia", "bool", P + "LineaAlertaAsia", "Ruptura de línea: Asia", "", None, None, False),
+    ("LineaAlertaLondres", "bool", P + "LineaAlertaLondres", "Ruptura de línea: Londres", "", None, None, False),
+    ("LineaAlertaPremercado", "bool", P + "LineaAlertaPremercado", "Ruptura de línea: Premercado", "", None, None, False),
+    ("LineaAlertaNy", "bool", P + "LineaAlertaNy", "Ruptura de línea: NY", "Incluye el último máximo y mínimo recientes de NY.", None, None, False),
 ]))
 
 GRUPOS.append(("30. Instrumentos", [

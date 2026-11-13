@@ -76,6 +76,10 @@ public static class PoliticaAlertasV2
 				return Crear(clave, s.ModeloOperativo == "A" ? CategoriaAlerta.EntradaA : CategoriaAlerta.EntradaB,
 					$"GATILLO VÁLIDO DEL MODELO {s.ModeloOperativo}", n, s.Signo, s, ctx);
 
+			// v4: ruptura de una línea de sesión (sobre todo NY): sonido y aviso arriba a la derecha.
+			case "LÍNEA DE SESIÓN" when n.Linea is { } l && p.AlertaDeLinea(l):
+				return Crear($"LINEA|{l.Id}", CategoriaAlerta.LineaSesion, $"RUPTURA DE LÍNEA: {l.Nombre}", n, l.Alto ? 1 : -1, null, ctx);
+
 			default:
 				return null;
 		}

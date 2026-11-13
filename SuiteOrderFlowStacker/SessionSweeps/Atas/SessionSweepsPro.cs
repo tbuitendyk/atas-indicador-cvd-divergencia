@@ -238,8 +238,10 @@ public partial class SessionSweepsPro : Indicator
 
 	// --- 8. FVG / IFVG ---------------------------------------------------------------------------------------------
 
-	[Display(Name = "Mostrar FVG / IFVG", GroupName = G8, Order = 10)]
-	public bool ShowFvg { get; set; } = true;
+	// v4: el FVG del detector heredado se dibujaba además del FVG / BFVG de la sección 28: apagado (propiedad nueva).
+	[Display(Name = "Mostrar FVG / IFVG (heredado)", GroupName = G8, Order = 10,
+		Description = "El FVG del detector heredado. Los FVG / BFVG del barrido están en 28. Panel y dibujo (con 'solo después de un barrido validado').")]
+	public bool ShowLegacyFvg { get; set; }
 
 	[Display(Name = "Filtro de anchura (× ATR144)", GroupName = G8, Order = 20)]
 	[Range(0, 10)]

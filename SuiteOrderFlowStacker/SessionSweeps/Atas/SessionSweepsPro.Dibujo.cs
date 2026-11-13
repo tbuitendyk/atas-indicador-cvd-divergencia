@@ -105,9 +105,10 @@ public partial class SessionSweepsPro
 		_etiquetas.Clear();
 
 		DibujarSesiones(context, foto, Visible);
+		DibujarLineasSesion(context, motor, area, Visible);
 		DibujarNiveles(context, foto, Visible, area, motor);
 
-		if (ShowFvg)
+		if (ShowLegacyFvg)
 			DibujarFvg(context, foto, Visible);
 
 		if (ShowPineZones)
@@ -127,6 +128,8 @@ public partial class SessionSweepsPro
 
 		if (ShowSweepPanel && foto.Panel.Length > 0)
 			Recuadro(context, PanelX, PanelY, foto.Panel, Color.Gainsboro);
+
+		DibujarAviso(context, area);
 	}
 
 	private void Punteada(RenderContext context, RenderPen pluma, int x1, int x2, int y)
@@ -172,8 +175,9 @@ public partial class SessionSweepsPro
 			if (s.Abierta)
 				continue;
 
-			// Al cerrar: máximo, mínimo y línea media punteados hasta que se barren o la sesión vuelve a empezar.
-			if (def.ExtenderMaxMin)
+			// Al cerrar: máximo, mínimo y línea media punteados hasta que se barren o la sesión vuelve a empezar (modo
+			// Original; en el modo v4 las líneas blancas las dibuja DibujarLineasSesion y se detienen al romperse).
+			if (def.ExtenderMaxMin && SessionLinesMode == ModoLineasSesion.Original)
 			{
 				Punteada(context, pluma, x2, X(finAlto) + AnchoVela, yAlto);
 				Punteada(context, pluma, x2, X(finBajo) + AnchoVela, yBajo);

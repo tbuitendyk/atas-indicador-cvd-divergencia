@@ -82,8 +82,8 @@ internal static class PruebasV2Alertas
 		c.Check("con NOTICIA nunca", Al(N("CONFIRMADO", Ev(EstadoBarrido.Premium, noticia: true))) is null ? "nada" : "suena", "nada");
 		var pn = new ParametrosV2 { NewsTimes = "09:55", NewsBlockMin = 5 };
 		c.Check("dentro del bloqueo de una hora de noticia tampoco", Al(N("CONFIRMADO", Ev(EstadoBarrido.Premium)), pn) is null ? "nada" : "suena", "nada");
-		c.Check("canales por categoría: ATAS en las cinco; correo y Telegram por defecto en PREMIUM y en los gatillos A y B",
-			string.Join(" ", Enum.GetValues<CategoriaAlerta>().Select(k => p.Canales(k)).Select(k => $"{(k.Atas ? 1 : 0)}{(k.Correo ? 1 : 0)}{(k.Telegram ? 1 : 0)}")), "100 111 100 111 111");
+		c.Check("canales por categoría: ATAS en todas; correo y Telegram por defecto en PREMIUM y en los gatillos A y B (no en la línea de sesión)",
+			string.Join(" ", Enum.GetValues<CategoriaAlerta>().Select(k => p.Canales(k)).Select(k => $"{(k.Atas ? 1 : 0)}{(k.Correo ? 1 : 0)}{(k.Telegram ? 1 : 0)}")), "100 111 100 111 111 100");
 
 		c.Seccion("v3 S14 Mensaje (correo y Telegram): instrumento, contrato, dirección, horas, clasificación, zona, gatillo, plan, trackers y MT5");
 		var gatillo = new AnalisisGatillo { Resultado = ResultadoGatillo.Valido, Tipo = TipoGatillo.Arranque, Score = 81, Direccion = 1 };

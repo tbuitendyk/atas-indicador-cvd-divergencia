@@ -109,6 +109,10 @@ public partial class SessionSweepsPro
 			if (canales.Atas)
 				AddAlert(string.IsNullOrWhiteSpace(AlertSoundFile) ? "alert1" : AlertSoundFile, a.Texto);
 
+			// v4: la ruptura de una línea de sesión también se avisa arriba a la derecha del gráfico.
+			if (a.Categoria == CategoriaAlerta.LineaSesion && canales.Atas)
+				AvisoLinea(a.Texto);
+
 			if (canales.Correo)
 				Enviar(a.Clave, a.Asunto, a.Cuerpo);
 

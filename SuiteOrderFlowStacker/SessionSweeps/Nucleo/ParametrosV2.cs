@@ -178,12 +178,31 @@ public sealed class ParametrosV2
 	public bool AlertEntradaBEmail { get; set; } = true;
 	public bool AlertEntradaBTelegram { get; set; } = true;
 
+	// v4: ruptura de una línea de sesión (sonido y aviso arriba a la derecha), por sesión.
+	public bool AlertLineaAtas { get; set; } = true;
+	public bool AlertLineaEmail { get; set; }
+	public bool AlertLineaTelegram { get; set; }
+	public bool LineaAlertaAsia { get; set; } = true;
+	public bool LineaAlertaLondres { get; set; } = true;
+	public bool LineaAlertaPremercado { get; set; } = true;
+	public bool LineaAlertaNy { get; set; } = true;
+
+	public bool AlertaDeLinea(LineaSesion l) => l.SesionId switch
+	{
+		ConfiguracionSweeps.Asia => LineaAlertaAsia,
+		ConfiguracionSweeps.Londres => LineaAlertaLondres,
+		ConfiguracionSweeps.Premercado => LineaAlertaPremercado,
+		ConfiguracionSweeps.NyAm or ConfiguracionSweeps.NyPm => LineaAlertaNy,
+		_ => false
+	};
+
 	public CanalesAlerta Canales(CategoriaAlerta c) => c switch
 	{
 		CategoriaAlerta.Real => new(AlertRealAtas, AlertRealEmail, AlertRealTelegram),
 		CategoriaAlerta.Premium => new(AlertPremiumAtas, AlertPremiumEmail, AlertPremiumTelegram),
 		CategoriaAlerta.Ruptura => new(AlertRupturaAtas, AlertRupturaEmail, AlertRupturaTelegram),
 		CategoriaAlerta.EntradaA => new(AlertEntradaAAtas, AlertEntradaAEmail, AlertEntradaATelegram),
+		CategoriaAlerta.LineaSesion => new(AlertLineaAtas, AlertLineaEmail, AlertLineaTelegram),
 		_ => new(AlertEntradaBAtas, AlertEntradaBEmail, AlertEntradaBTelegram)
 	};
 

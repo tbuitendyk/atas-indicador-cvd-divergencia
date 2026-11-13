@@ -96,7 +96,7 @@ public partial class SessionSweepsPro
 				e.T0Utc, e.TimeConfirmUtc, e.Nombre, e.Total, e.Provisional)).ToList(),
 			Modelos = m.Setups.Select(s => (s.Modelo, s.Etiqueta, s.Signo, s.Zona.Bajo, s.Zona.Alto, s.ArmadoUtc, s.CierreUtc ?? (s.Pendiente ? (DateTime?)null : s.ExpiraUtc),
 				s.Pendiente, s.Abierta, s.Entrada, s.Stop, s.Tp1, s.Tp2)).ToList(),
-			Fvgs = m.Fvg2.Fvgs.Where(f => f.Vivo).Select(f => (f.Alcista, f.Marco, f.Bajo, f.Alto, f.Utc)).ToList(),
+			Fvgs = m.Fvg2.Fvgs.Where(f => f.Vivo && (!_v.FvgOnlyAfterSweep || m.FvgRelevante(f))).Select(f => (f.Alcista, f.Marco, f.Bajo, f.Alto, f.Utc)).ToList(),
 			Lvns = m.Lvn.Todas.Select(z => (z.Bajo, z.Alto, z.Manual, z.Activo)).ToList()
 		});
 

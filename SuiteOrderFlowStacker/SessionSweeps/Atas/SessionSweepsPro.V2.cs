@@ -31,6 +31,8 @@ public partial class SessionSweepsPro
 		public bool ShowLvnLines = true;
 		public bool ShowManualTriggerBoxes;
 		public bool ShowTrackerDiagnostics;
+		public bool FvgOnlyAfterSweep = true;
+		public int BreakBannerSec = 60;
 	}
 
 	private const int MaximoRecalculosPorFuentes = 3;

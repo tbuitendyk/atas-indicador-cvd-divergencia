@@ -10,14 +10,15 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-/// <summary>Las cinco alertas que pide el prompt v3 (15).</summary>
+/// <summary>Las alertas: las cinco del prompt v3 (15) y, en la v4, la ruptura de una línea de sesión.</summary>
 public enum CategoriaAlerta
 {
 	Real,
 	Premium,
 	Ruptura,
 	EntradaA,
-	EntradaB
+	EntradaB,
+	LineaSesion
 }
 
 /// <summary>Canales de una alerta: ATAS (sonido y ventana), correo y Telegram.</summary>
