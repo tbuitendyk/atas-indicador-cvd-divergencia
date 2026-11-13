@@ -237,7 +237,7 @@ public sealed class GrabadorEventos : IDisposable
 					if (string.IsNullOrWhiteSpace(linea))
 						continue;
 
-					if (Fila(Campos(linea), col) is not { } e || (indicador is not null && e.Indicador != indicador))
+					if (Fila(Campos(linea), col) is not { } e || (indicador is not null && e.Indicador != indicador && !(indicador == "Global" && e.Indicador != "Master")))
 						continue;
 
 					if (!porId.TryGetValue(e.Id, out var previo) || previo.Version <= e.Version)

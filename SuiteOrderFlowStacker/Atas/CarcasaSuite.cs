@@ -68,14 +68,15 @@ public sealed class CarcasaSuite : IDisposable
 		Indicador = indicador;
 		Suite = new MotorSuite(Cfg, conMaster);
 
-		// Bus de la suite: cada indicador publica SOLO sus eventos (aunque corra todos los motores por dentro).
+		// Bus de la suite: cada indicador publica SOLO sus eventos (aunque corra todos los motores por dentro); el
+		// Indicador Global Session Sweep (v4) publica los de todos los trackers.
 		Suite.Eventos.AlPublicar = e =>
 		{
-			if (e.Indicador == Indicador && AEventoBus(e) is { } x)
+			if (EsSuyo(e.Indicador) && AEventoBus(e) is { } x)
 				_paraBus.Add(x);
 		};
 
-		if (indicador == "Imbalance")
+		if (indicador is "Imbalance" or "Global")
 		{
 			Suite.Imbalance.AlImbalances = (utc, lado, precios) => _paraBus.Add(new ImbalanceEvent
 			{
@@ -90,9 +91,13 @@ public sealed class CarcasaSuite : IDisposable
 		}
 	}
 
+	/// <summary>v4: el Global representa a los cuatro trackers (no al Absorption Master).</summary>
+	public bool EsSuyo(string indicador) => indicador == Indicador || (Indicador == "Global" && indicador != "Master");
+
 	/// <summary>Fuentes del bus que representa este indicador (para el latido).</summary>
 	public IReadOnlyList<FuenteSuite> Fuentes => Indicador switch
 	{
+		"Global" => new[] { FuenteSuite.Stacked, FuenteSuite.Imbalance, FuenteSuite.Iceberg, FuenteSuite.Stops, FuenteSuite.Sweeps },
 		"Imbalance" => new[] { FuenteSuite.Stacked, FuenteSuite.Imbalance },
 		"Iceberg" => new[] { FuenteSuite.Iceberg },
 		"Stops" => new[] { FuenteSuite.Stops },
@@ -426,7 +431,7 @@ public sealed class CarcasaSuite : IDisposable
 
 		lock (Suite.Cerrojo)
 		{
-			novedades = Suite.Eventos.TomarNovedades().Where(n => n.Indicador == Indicador).ToList();
+			novedades = Suite.Eventos.TomarNovedades().Where(n => EsSuyo(n.Indicador)).ToList();
 			cambios = Suite.Eventos.Publicaciones != _publicacionesDibujadas;
 			_publicacionesDibujadas = Suite.Eventos.Publicaciones;
 

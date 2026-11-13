@@ -504,11 +504,52 @@ public partial class {clase}
             f.write(texto)
 
 
+# v4: el Indicador Global Session Sweep (clase SessionSweepsPro) corre los cuatro trackers por dentro (AnfitrionTrackers)
+# y expone sus ajustes con el prefijo "Trk" en los grupos 40+ (sin panel propio ni alertas: no se incluyen).
+GLOBAL_GENERAL = ("General", [p for p in GENERAL[1] if p[0] in (
+    "DisplayMode", "FontSize", "EventLifetimeMin", "InstrumentProfile", "EnableRecording", "RealTimeOnly", "LoadRecordedEvents", "RecordedDaysToLoad")])
+GLOBAL_BLOQUES = [GLOBAL_GENERAL, IMBALANCE, ICEBERG, UMBRALES_NQ, UMBRALES_MNQ, UMBRALES_ES, UMBRALES_MES, UMBRALES_YM, UMBRALES_MYM, SESGO, STOPS, BARRIDOS]
+SALIDA_GLOBAL = os.path.join(RAIZ, "SessionSweeps", "Atas", "Generado")
+
+
+def generar_global():
+    props = []
+    for i, (titulo, params) in enumerate(GLOBAL_BLOQUES):
+        grupo = f"{40 + i}. Trackers · {titulo}"
+        props.append(f"\t#region {grupo}\n")
+        for j, p in enumerate(params):
+            nombre, tipo, destino, tit, desc, mn, mx, recalc = p
+            q = ("Trk" + nombre, tipo, destino.replace("_c.", "_trk.C."), tit, desc, mn, mx, recalc)
+            props.append(propiedad(q, grupo, (j + 1) * 10).replace("Cambio(", "CambioTrackers("))
+        props.append("\t#endregion\n")
+    codigo = f"""{CABECERA}#nullable enable
+namespace ATAS.Indicators.Custom;
+
+using System;
+using System.ComponentModel.DataAnnotations;
+
+using OFT.Attributes.Editors;
+
+using OrderFlowSuite.Atas;
+using OrderFlowSuite.Nucleo;
+
+/// <summary>Ajustes de los trackers que corren dentro del Indicador Global Session Sweep (v4).</summary>
+public partial class SessionSweepsPro
+{{
+{chr(10).join(props)}}}
+"""
+    os.makedirs(SALIDA_GLOBAL, exist_ok=True)
+    with open(os.path.join(SALIDA_GLOBAL, "SessionSweepsPro.Trackers.g.cs"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(codigo)
+
+
 def main():
     os.makedirs(SALIDA, exist_ok=True)
     for ind in INDICADORES:
         generar(*ind)
         print("generado:", ind[0])
+    generar_global()
+    print("generado: SessionSweepsPro.Trackers (Indicador Global)")
 
 
 if __name__ == "__main__":

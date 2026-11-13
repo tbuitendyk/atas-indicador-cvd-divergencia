@@ -104,6 +104,7 @@ public partial class SessionSweepsPro
 		bool Visible(int a, int b) => b >= desde && a <= hasta;
 		_etiquetas.Clear();
 
+		DibujarTrackers(context);
 		DibujarSesiones(context, foto, Visible);
 		DibujarLineasSesion(context, motor, area, Visible);
 		DibujarNiveles(context, foto, Visible, area, motor);

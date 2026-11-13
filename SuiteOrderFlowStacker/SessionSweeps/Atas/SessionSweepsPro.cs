@@ -402,12 +402,16 @@ public partial class SessionSweepsPro : Indicator
 		EnableCustomDrawing = true;
 		DrawAbovePrice = true;
 		SubscribeToDrawingEvents(DrawingLayouts.Final);
+		ConfigurarTrackers();
 	}
 
 	#region Cálculo
 
 	protected override void OnCalculate(int bar, decimal value)
 	{
+		// v4: primero los trackers de dentro (sus eventos llegan al bus antes de que el barrido los consulte).
+		CalcularTrackers(bar);
+
 		try
 		{
 			lock (_sync)
@@ -528,6 +532,7 @@ public partial class SessionSweepsPro : Indicator
 	{
 		try
 		{
+			TradeTrackers(trade);
 			bool? compra = trade.Direction == TradeDirection.Buy ? true : trade.Direction == TradeDirection.Sell ? false : null;
 
 			if (!_enVivo || _motor is not { } motor || CurrentBar == 0)
@@ -551,6 +556,7 @@ public partial class SessionSweepsPro : Indicator
 
 	protected override void OnDispose()
 	{
+		_trk.Dispose();
 		CerrarV2();
 		PararPuente();
 		_grabador?.Dispose();
