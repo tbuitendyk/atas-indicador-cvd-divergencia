@@ -46,7 +46,8 @@ public sealed class DespachoAlertasV2
 /// <summary>
 /// Alertas v3 (15), solo estas cinco: BARRIDO DE LIQUIDEZ REAL; BARRIDO DE LIQUIDEZ REAL PREMIUM (un upgrade de REAL a
 /// PREMIUM se etiqueta UPGRADE PREMIUM, sin repetir la de REAL); RUPTURA / ACEPTACIÓN CONFIRMADA (aviso de contexto);
-/// GATILLO VÁLIDO DEL MODELO A; GATILLO VÁLIDO DEL MODELO B. Nunca en el historial (la carcasa), con NOTICIA ni dos veces.
+/// GATILLO VÁLIDO DEL MODELO M1 / M2 / M3; v4: M3 ACTIVADO y RUPTURA DE LÍNEA DE SESIÓN. Nunca en el historial (la
+/// carcasa), con NOTICIA ni dos veces.
 /// </summary>
 public static class PoliticaAlertasV2
 {
@@ -73,8 +74,12 @@ public static class PoliticaAlertasV2
 				return Crear(clave, CategoriaAlerta.Ruptura, "RUPTURA / ACEPTACIÓN CONFIRMADA (contexto)", n, e.Signo, null, ctx);
 
 			case "GATILLO VÁLIDO" when n.Setup is { } s:
-				return Crear(clave, s.ModeloOperativo == "A" ? CategoriaAlerta.EntradaA : CategoriaAlerta.EntradaB,
+				return Crear(clave, s.ModeloOperativo switch { "M1" => CategoriaAlerta.EntradaM1, "M3" => CategoriaAlerta.EntradaM3, _ => CategoriaAlerta.EntradaM2 },
 					$"GATILLO VÁLIDO DEL MODELO {s.ModeloOperativo}", n, s.Signo, s, ctx);
+
+			// v4: la señal propia del Modelo 3 (iceberg rebasado con continuidad).
+			case "MOD3 ACTIVADO" when p.EnableModelM3:
+				return Crear(clave + "|" + n.Utc.Ticks, CategoriaAlerta.M3Activado, "M3 ACTIVADO: ROMPIMIENTO CONTINUIDAD", n, n.Texto.Contains("ALCISTA", StringComparison.Ordinal) ? 1 : -1, null, ctx);
 
 			// v4: ruptura de una línea de sesión (sobre todo NY): sonido y aviso arriba a la derecha.
 			case "LÍNEA DE SESIÓN" when n.Linea is { } l && p.AlertaDeLinea(l):

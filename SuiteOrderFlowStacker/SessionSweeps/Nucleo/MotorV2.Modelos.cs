@@ -48,7 +48,14 @@ public sealed class SetupModelo
 	public long? RupturaId;
 
 	/// <summary>v3 (1): solo dos modelos operativos. A = barrido (MOD1 y BFVG); B = retroceso a LVN / EDGE / FVG (MOD2 y MOD4).</summary>
-	public string ModeloOperativo => Modelo is "MOD1" or "BFVG" ? "A" : "B";
+	/// <summary>v4: tres modelos. M1 = barrido (MOD1, BFVG); M2 = retroceso a LVN / EDGE / FVG (MOD2, MOD4); M3 = iceberg
+	/// rebasado con continuidad (MOD3).</summary>
+	public string ModeloOperativo => Modelo switch
+	{
+		"MOD1" or "BFVG" => "M1",
+		"MOD3" => "M3",
+		_ => "M2"
+	};
 
 	/// <summary>Zona de la pierna de un rompimiento con iceberg roto (contexto, antes MOD3).</summary>
 	public bool TrasIcebergRoto;
@@ -105,7 +112,7 @@ public sealed partial class MotorSweeps
 		// Instrumento no soportado (2.2): sin señales automáticas; el setup queda a la vista, invalidado.
 		if (Instrumento.Bloqueo is { } bloqueo)
 			(s.Estado, s.Motivo) = (EstadoModelo.Invalidado, bloqueo);
-		else if (s.ModeloOperativo == "A" ? !P2.EnableModelA : !P2.EnableModelB)
+		else if (!(s.ModeloOperativo switch { "M1" => P2.EnableModelA, "M3" => P2.EnableModelM3, _ => P2.EnableModelB }))
 			(s.Estado, s.Motivo) = (EstadoModelo.Invalidado, $"MODELO {s.ModeloOperativo} APAGADO");
 		else if (Setups.Count(x => x.EntradaUtc is not null && x.Signo == s.Signo && ClaveZona(x.Zona) == ClaveZona(z)) >= Math.Max(1, P2.MaxAttemptsPerZone))
 			(s.Estado, s.Motivo) = (EstadoModelo.Invalidado, $"máximo de {P2.MaxAttemptsPerZone} intentos en la zona");
@@ -144,7 +151,7 @@ public sealed partial class MotorSweeps
 				BarridoId = e.Id, Calidad = 10, Utc = utc, BarraToque = e.BarraT0
 			};
 
-			Armar("MOD1", "A - BARRIDO", z, e, utc, utc.AddMinutes(Math.Max(1, P2.BfvgWindowMin)), continuidad: false);
+			Armar("MOD1", "M1 - BARRIDO", z, e, utc, utc.AddMinutes(Math.Max(1, P2.BfvgWindowMin)), continuidad: false);
 			Invalidar(s => s.Modelo == "MOD4" && s.Signo == -e.SignoGiro, $"BARRIDO REAL {e.Nombre}", utc);
 			return;
 		}
@@ -201,7 +208,7 @@ public sealed partial class MotorSweeps
 			Calidad = MotorFvgV2.CalidadTipo("NIVEL"), Utc = utc
 		};
 
-		Armar("MOD4", "B - RETROCESO TRAS ROMPIMIENTO", retest, e, utc, espera, continuidad: true).RupturaId = e.Id;
+		Armar("MOD4", "M2 - RETROCESO TRAS ROMPIMIENTO", retest, e, utc, espera, continuidad: true).RupturaId = e.Id;
 		ZonasPiernaMod4(e, utc);
 	}
 
@@ -212,7 +219,7 @@ public sealed partial class MotorSweeps
 	private void ZonasPiernaMod4(EvaluacionBarrido e, DateTime utc)
 	{
 		var comoMod2 = e.IcebergEstado == "ROTO";
-		var (modelo, etiqueta) = comoMod2 ? ("MOD2", "B - RETROCESO TRAS ROMPIMIENTO (iceberg roto)") : ("MOD4", "B - RETROCESO TRAS ROMPIMIENTO");
+		var (modelo, etiqueta) = comoMod2 ? ("MOD3", Mod3Etiqueta) : ("MOD4", "M2 - RETROCESO TRAS ROMPIMIENTO");
 		var extremo = e.ExtremoPierna != 0 ? e.ExtremoPierna : e.Extremo;
 		var (bajo, alto) = (Math.Min(e.L, extremo), Math.Max(e.L, extremo));
 		var espera = e.TimeConfirmUtc?.AddMinutes(Math.Max(1, P2.Mod4MaxWaitMin)) ?? utc.AddMinutes(P2.Mod4MaxWaitMin);
@@ -269,18 +276,22 @@ public sealed partial class MotorSweeps
 		}
 	}
 
+	private const string Mod3Etiqueta = "M3 - ROMPIMIENTO CONTINUIDAD";
+
 	/// <summary>
-	/// Rompimiento con iceberg (o super big trade) ROTO, imbalance, stops y aceptación (antes MOD3). v3 (1): es CONTEXTO y
-	/// confirmación del Modelo B, no un modelo propio: no arma una zona ni una señal suya; anula los setups contrarios y sus
-	/// retrocesos se operan como "B - RETROCESO TRAS ROMPIMIENTO (iceberg roto)".
+	/// v4 MODELO 3: un iceberg (o super big trade) rebasado con imbalance, toma de stops y aceptación genera continuidad.
+	/// Es un modelo operativo con su señal: sus retrocesos se operan como "M3 - ROMPIMIENTO CONTINUIDAD" y al activarse
+	/// invalida los M1 y M2 pendientes (todos, como pide el propietario; o solo los contrarios con M3InvalidaTodos apagado).
 	/// </summary>
 	private void ActivarMod3(int signo, decimal precio, DateTime utc, EvaluacionBarrido? e, string motivo)
 	{
 		Mod3Activo = (signo, utc, precio);
-		Novedad(e, "MOD3 ACTIVADO", utc, $"ROMPIMIENTO CON ICEBERG ROTO {(signo > 0 ? "ALCISTA" : "BAJISTA")} en {Precio(precio)} ({motivo}) · contexto del Modelo B");
+		Novedad(e, "MOD3 ACTIVADO", utc, $"M3 ROMPIMIENTO CONTINUIDAD {(signo > 0 ? "ALCISTA" : "BAJISTA")}: iceberg rebasado en {Precio(precio)} ({motivo})");
 
-		// Anula los A y B contrarios (o todos, si se pidió); los B a favor siguen.
-		Invalidar(s => s.Modelo is "MOD1" or "BFVG" or "MOD2" && (P2.Mod3InvalidatesAllMod1Mod2 || s.Signo == -signo), "INVALIDADO POR ROMPIMIENTO (iceberg roto)", utc);
+		if (!P2.EnableModelM3)
+			return;
+
+		Invalidar(s => s.Modelo is "MOD1" or "BFVG" or "MOD2" or "MOD4" && (P2.M3InvalidaTodos || s.Signo == -signo), "INVALIDADO POR M3 (iceberg rebasado)", utc);
 
 		// Una B de la misma ruptura no se duplica: sus zonas pasan a "tras iceberg roto".
 		if (e is not null)
@@ -313,7 +324,7 @@ public sealed partial class MotorSweeps
 		foreach (var z in Zonas2.Where(z => z.Modelo == "BFVG" && _zonasModelo.Add($"BFVG|{z.Id}")).ToList())
 		{
 			var padre = Evaluaciones.FirstOrDefault(x => x.Id == z.BarridoId);
-			Armar("BFVG", "A - " + z.Tipo, z, padre, utc, z.ExpiraUtc, continuidad: true);
+			Armar("BFVG", "M1 - " + z.Tipo, z, padre, utc, z.ExpiraUtc, continuidad: true);
 		}
 
 		DetectarMod3(b);
@@ -380,8 +391,8 @@ public sealed partial class MotorSweeps
 			z.Utc = b.FinUtc;
 			z.BarraToque = b.Indice;
 			var tras = Mod3Activo is { } m && m.Signo == d;
-			var etiqueta = tras ? "B - RETROCESO TRAS ROMPIMIENTO (iceberg roto)" : "B - " + z.Tipo;
-			var s = Armar("MOD2", etiqueta, z, null, b.FinUtc, b.FinUtc.AddMinutes(30), continuidad: true);
+			var etiqueta = tras ? $"{Mod3Etiqueta} · {z.Tipo}" : "M2 - " + z.Tipo;
+			var s = Armar(tras ? "MOD3" : "MOD2", etiqueta, z, null, b.FinUtc, b.FinUtc.AddMinutes(30), continuidad: true);
 			(s.DependeSoloDeLvn, s.TrasIcebergRoto) = (soloLvn, tras);
 		}
 	}
@@ -528,7 +539,7 @@ public sealed partial class MotorSweeps
 		var tick = Cfg.TamanoTick;
 
 		// Modelo A (17.2): el stop va más allá del extremo del barrido con el margen (nunca más cerca que el del gatillo).
-		if (s.ModeloOperativo == "A" && s.Barrido is { } barrido)
+		if (s.ModeloOperativo == "M1" && s.Barrido is { } barrido)
 		{
 			var stopA = barrido.Extremo - s.Signo * P2.StopBufferTicks * tick;
 

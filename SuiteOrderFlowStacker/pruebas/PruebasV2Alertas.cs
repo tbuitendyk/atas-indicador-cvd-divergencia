@@ -72,10 +72,10 @@ internal static class PruebasV2Alertas
 		c.Check("UPGRADE PREMIUM: categoría PREMIUM con su etiqueta (no repite la de REAL)",
 			Al(N("UPGRADE PREMIUM", Ev(EstadoBarrido.Premium))) is { } up ? $"{up.Categoria} {up.Asunto.Contains("UPGRADE PREMIUM", StringComparison.Ordinal)} {up.Clave != Al(N("CONFIRMADO", Ev(EstadoBarrido.Real)))!.Clave}" : "-",
 			"Premium True True");
-		c.Check("fuera de las cinco: INDETERMINADO, FALLIDO, RUPTURA FALLIDA, rompimiento con iceberg, arma B, modelos cerrados",
+		c.Check("v4: no suenan INDETERMINADO, FALLIDO, RUPTURA FALLIDA, arma M2 ni modelos cerrados; M3 ACTIVADO sí (su señal propia)",
 			string.Join(" ", new[] { ("CONFIRMADO", EstadoBarrido.Indeterminado), ("FALLIDO", EstadoBarrido.Fallido), ("RUPTURA FALLIDA", EstadoBarrido.RupturaFallida),
 				("MOD3 ACTIVADO", EstadoBarrido.Ruptura), ("RUPTURA (arma MOD4)", EstadoBarrido.Ruptura), ("MODELO CERRADO", EstadoBarrido.Real) }.Select(t => Cat(Al(N(t.Item1, Ev(t.Item2)))))),
-			"- - - - - -");
+			"- - - M3Activado - -");
 		var soloPremium = new ParametrosV2 { NewsTimes = "", AlertMinState = EstadoMinimoAlerta.Premium };
 		c.Check("con mínimo PREMIUM, un REAL no suena y un PREMIUM sí",
 			$"{Al(N("CONFIRMADO", Ev(EstadoBarrido.Real)), soloPremium) is null} {Al(N("CONFIRMADO", Ev(EstadoBarrido.Premium)), soloPremium) is null}", "True False");
@@ -83,7 +83,7 @@ internal static class PruebasV2Alertas
 		var pn = new ParametrosV2 { NewsTimes = "09:55", NewsBlockMin = 5 };
 		c.Check("dentro del bloqueo de una hora de noticia tampoco", Al(N("CONFIRMADO", Ev(EstadoBarrido.Premium)), pn) is null ? "nada" : "suena", "nada");
 		c.Check("canales por categoría: ATAS en todas; correo y Telegram por defecto en PREMIUM y en los gatillos A y B (no en la línea de sesión)",
-			string.Join(" ", Enum.GetValues<CategoriaAlerta>().Select(k => p.Canales(k)).Select(k => $"{(k.Atas ? 1 : 0)}{(k.Correo ? 1 : 0)}{(k.Telegram ? 1 : 0)}")), "100 111 100 111 111 100");
+			string.Join(" ", Enum.GetValues<CategoriaAlerta>().Select(k => p.Canales(k)).Select(k => $"{(k.Atas ? 1 : 0)}{(k.Correo ? 1 : 0)}{(k.Telegram ? 1 : 0)}")), "100 111 100 111 111 100 111 100");
 
 		c.Seccion("v3 S14 Mensaje (correo y Telegram): instrumento, contrato, dirección, horas, clasificación, zona, gatillo, plan, trackers y MT5");
 		var gatillo = new AnalisisGatillo { Resultado = ResultadoGatillo.Valido, Tipo = TipoGatillo.Arranque, Score = 81, Direccion = 1 };
@@ -95,15 +95,18 @@ internal static class PruebasV2Alertas
 			Estado = EstadoModelo.Entrada, Gatillo = gatillo, Entrada = 21385.25m, Stop = 21377.25m, Tp1 = 21401.25m, Riesgo = new PlanRiesgo(200, 5, 32, 5, false)
 		};
 		var aviso = Al(N("GATILLO VÁLIDO", conIceberg, setup));
-		c.Check("gatillo VÁLIDO de un setup A: categoría EntradaA", Cat(aviso), "EntradaA");
-		c.Check("asunto con instrumento, contrato, título y dirección", aviso?.Asunto ?? "", "Sessions Sweeps Pro · NQ NQZ6 · GATILLO VÁLIDO DEL MODELO A ALCISTA");
+		c.Check("gatillo VÁLIDO de un setup M1: categoría EntradaM1", Cat(aviso), "EntradaM1");
+		c.Check("asunto con instrumento, contrato, título y dirección", aviso?.Asunto ?? "", "Sessions Sweeps Pro · NQ NQZ6 · GATILLO VÁLIDO DEL MODELO M1 ALCISTA");
 		var cuerpo = aviso?.Cuerpo ?? "";
 		c.Check("cuerpo completo (15)",
-			new[] { "Instrumento: NQ · contrato NQZ6 · 07:55 CDMX (09:55 ET)", "BARRIDO REAL 72/100 · certificada por iceberg (MBO)", "Modelo A: A - BARRIDO · zona BARRIDO",
+			new[] { "Instrumento: NQ · contrato NQZ6 · 07:55 CDMX (09:55 ET)", "BARRIDO REAL 72/100 · certificada por iceberg (MBO)", "Modelo M1: A - BARRIDO · zona BARRIDO",
 				"ENTRADA 21,385.25 · SL 21,377.25 · TP 21,401.25 · R:R 2.0", "5 NQ", "iceberg AGUANTANDO MBO · stops STOP RUN 220c", "MT5: APAGADO", PoliticaAlertasV2.AvisoLegal }
 				.Where(t => !cuerpo.Contains(t, StringComparison.Ordinal)).DefaultIfEmpty("completo").First(), "completo");
 		setup.Modelo = "MOD2";
-		c.Check("el de un setup B: EntradaB", Cat(Al(N("GATILLO VÁLIDO", conIceberg, setup))), "EntradaB");
+		c.Check("el de un setup M2: EntradaM2", Cat(Al(N("GATILLO VÁLIDO", conIceberg, setup))), "EntradaM2");
+		setup.Modelo = "MOD3";
+		c.Check("el de un setup M3: EntradaM3", Cat(Al(N("GATILLO VÁLIDO", conIceberg, setup))), "EntradaM3");
+		setup.Modelo = "MOD2";
 
 		c.Seccion("S10 T28: gatillo manual con compuesta = una de tres respuestas + CSV MANUAL, sin alerta");
 		var m = new SimMotor();
@@ -154,10 +157,10 @@ internal static class PruebasV2Alertas
 		var filaB = CsvV2.FilaModelo(setupB, Utc(new DateTime(2026, 10, 30, 9, 50, 0)), ctxNq, "TpOEma15");
 		string M3(string n) => Col(filaB, CsvV2.CabeceraModelos, n);
 		c.Check("modelos: tantas celdas como la cabecera (también la fila manual)", $"{CsvV2.Separar(filaB).Count == CsvV2.CabeceraModelos.Split(',').Length} {fila.Count == cab.Length}", "True True");
-		c.Check("modelos: Modelo B, centro, estado del gatillo, LVN/FVG, R:R y salida",
+		c.Check("modelos: Modelo M2, centro, estado del gatillo, LVN/FVG, R:R y salida",
 			$"{M3("ModelAB")} {M3("ZoneCenter")} {M3("ZoneState")} {M3("LvnId")} {M3("FvgId")} [{M3("EdgeId")}] {M3("RewardRisk")} {M3("ExitMode")} {M3("InstrumentRoot")}",
-			"B 21401 VÁLIDO 5 9 [] 2 TpOEma15 NQ");
-		c.Check("MOD1 y BFVG son Modelo A", $"{new SetupModelo { Modelo = "MOD1", Zona = setupB.Zona }.ModeloOperativo}{new SetupModelo { Modelo = "BFVG", Zona = setupB.Zona }.ModeloOperativo}", "AA");
+			"M2 21401 VÁLIDO 5 9 [] 2 TpOEma15 NQ");
+		c.Check("MOD1 y BFVG son Modelo 1", $"{new SetupModelo { Modelo = "MOD1", Zona = setupB.Zona }.ModeloOperativo}{new SetupModelo { Modelo = "BFVG", Zona = setupB.Zona }.ModeloOperativo}", "M1M1");
 
 		var carpeta = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ssp-csv-" + Guid.NewGuid().ToString("N"));
 		using (var g = new GrabadorCsvV2(carpeta, "NQZ6") { Contexto = () => ctxNq })

@@ -114,22 +114,23 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 
 | Parámetro | En ATAS | Defecto | Rango | Descripción |
 |---|---|---|---|---|
-| `EnableModelA` | Modelo A: barrido de liquidez | Sí |  | Prioridad A: barrido real (o premium) y recuperación; incluye los BFVG. |
-| `EnableModelB` | Modelo B: retroceso a LVN / EDGE / FVG | Sí |  | Prioridad B (la de mayor interés): retroceso a una zona con gatillo confirmado. Incluye B - RETROCESO TRAS ROMPIMIENTO. |
-| `ModelBEnableLvn` | Modelo B: LVN del Thermal | Sí |  |  |
-| `ModelBEnableEdge` | Modelo B: EDGE del Thermal | Sí |  |  |
-| `ModelBEnableFvg` | Modelo B: FVG | Sí |  | También FVG+LVN y FVG+EDGE. |
-| `ModelBEnableEma` | Modelo B: EMA 15 | Sí |  |  |
-| `ModelBEnableNivel` | Modelo B: nivel roto | Sí |  |  |
+| `EnableModelA` | Modelo 1 (M1): barrido de liquidez | Sí |  | Barrido real (o premium) y recuperación; incluye los BFVG. |
+| `EnableModelB` | Modelo 2 (M2): retroceso a LVN / EDGE / FVG | Sí |  | Retroceso a una zona con gatillo confirmado (las líneas LVN manuales valen). Incluye M2 - RETROCESO TRAS ROMPIMIENTO. |
+| `EnableModelM3` | Modelo 3 (M3): iceberg rebasado con continuidad | Sí |  | Un iceberg (o super big trade) rebasado con imbalance, stops y aceptación: señal propia y retrocesos M3 - ROMPIMIENTO CONTINUIDAD. |
+| `M3InvalidaTodos` | M3 invalida todos los M1 y M2 pendientes | Sí |  | Encendido (como pide el propietario): al activarse M3 se invalidan los M1 y M2 pendientes. Apagado: solo los contrarios. |
+| `ModelBEnableLvn` | M2: LVN del Thermal | Sí |  |  |
+| `ModelBEnableEdge` | M2: EDGE del Thermal | Sí |  |  |
+| `ModelBEnableFvg` | M2: FVG | Sí |  | También FVG+LVN y FVG+EDGE. |
+| `ModelBEnableEma` | M2: EMA 15 | Sí |  |  |
+| `ModelBEnableNivel` | M2: nivel roto | Sí |  |  |
 | `MaxAttemptsPerZone` | Intentos máximos por zona | 2 | 1-20 | Entradas en la misma zona y dirección. |
 | `TpRMultiple` | TP (R múltiplos) | 2.0 | 0.5-20 | Objetivo a este múltiplo del riesgo (2R). |
 | `TargetMode` | Objetivo | RMultiplo |  | R múltiplos, o el próximo LVN / EDGE (si no hay, R). |
 | `ExitMode` | Salida | TpOEma15 |  | TP o cierre de 1 minuto al otro lado de la EMA 15, lo primero (por defecto). El SL nunca se amplía. |
-| `Mod3InvalidatesAllMod1Mod2` | Iceberg roto anula todos los A y B | No |  | Desactivado: solo los contrarios a la dirección del rompimiento (contexto). |
-| `Mod4AllowInternal` | B tras rompimiento en liquidez interna | No |  | Por defecto solo externa. |
-| `Mod4MaxWaitMin` | B tras rompimiento: espera máxima (min) | 45 | 1-480 |  |
-| `Mod4MaxRetracePct` | B tras rompimiento: retroceso máximo | 0.618 | 0.1-1 | Fracción de la pierna (0,618). |
-| `Mod4MaxAttempts` | B tras rompimiento: intentos máximos | 2 | 1-10 | Entradas por ruptura. |
+| `Mod4AllowInternal` | M2 tras rompimiento en liquidez interna | No |  | Por defecto solo externa. |
+| `Mod4MaxWaitMin` | M2 tras rompimiento: espera máxima (min) | 45 | 1-480 |  |
+| `Mod4MaxRetracePct` | M2 tras rompimiento: retroceso máximo | 0.618 | 0.1-1 | Fracción de la pierna (0,618). |
+| `Mod4MaxAttempts` | M2 tras rompimiento: intentos máximos | 2 | 1-10 | Entradas por ruptura. |
 | `MinRR` | R:R mínimo | 1.5 | 0.5-10 |  |
 | `StopMode` | Modo del stop | ZonaEstructura |  |  |
 
@@ -178,7 +179,7 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `InChartPanelX` | Panel en el gráfico: X | 25 | 0-5000 |  |
 | `InChartPanelY` | Panel en el gráfico: Y | 60 | 0-5000 |  |
 | `ShowSweepBoxes` | Cajas de barrido | Sí |  | Coloreadas por estado (REAL, PREMIUM, RUPTURA / ACEPTACIÓN, FALLIDO…). |
-| `ShowModelBoxes` | Zonas de los modelos | Sí |  | Modelo A (barrido, BFVG) y Modelo B (LVN / EDGE / FVG) con entrada, stop y objetivo. |
+| `ShowModelBoxes` | Zonas de los modelos | Sí |  | M1 (barrido, BFVG), M2 (LVN / EDGE / FVG) y M3 (iceberg rebasado) con entrada, stop y objetivo. |
 | `ShowFvgV2` | FVG / BFVG | Sí |  |  |
 | `FvgOnlyAfterSweep` | FVG solo después de un barrido validado | Sí |  | Dibuja solo los FVG nacidos después de un BARRIDO REAL o PREMIUM y a favor de su giro (oculta los demás). |
 | `BreakBannerSec` | Aviso de ruptura de línea: segundos | 60 | 0-600 | Cuánto queda el aviso arriba a la derecha del gráfico (0 = sin aviso). |
@@ -201,12 +202,18 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `AlertRupturaAtas` | RUPTURA / ACEPTACIÓN: ATAS (sonido y ventana) | Sí |  |  |
 | `AlertRupturaEmail` | RUPTURA / ACEPTACIÓN: correo | No |  |  |
 | `AlertRupturaTelegram` | RUPTURA / ACEPTACIÓN: Telegram | No |  |  |
-| `AlertEntradaAAtas` | GATILLO VÁLIDO A: ATAS (sonido y ventana) | Sí |  |  |
-| `AlertEntradaAEmail` | GATILLO VÁLIDO A: correo | Sí |  |  |
-| `AlertEntradaATelegram` | GATILLO VÁLIDO A: Telegram | Sí |  |  |
-| `AlertEntradaBAtas` | GATILLO VÁLIDO B: ATAS (sonido y ventana) | Sí |  |  |
-| `AlertEntradaBEmail` | GATILLO VÁLIDO B: correo | Sí |  |  |
-| `AlertEntradaBTelegram` | GATILLO VÁLIDO B: Telegram | Sí |  |  |
+| `AlertEntradaAAtas` | GATILLO VÁLIDO M1: ATAS (sonido y ventana) | Sí |  |  |
+| `AlertEntradaAEmail` | GATILLO VÁLIDO M1: correo | Sí |  |  |
+| `AlertEntradaATelegram` | GATILLO VÁLIDO M1: Telegram | Sí |  |  |
+| `AlertEntradaBAtas` | GATILLO VÁLIDO M2: ATAS (sonido y ventana) | Sí |  |  |
+| `AlertEntradaBEmail` | GATILLO VÁLIDO M2: correo | Sí |  |  |
+| `AlertEntradaBTelegram` | GATILLO VÁLIDO M2: Telegram | Sí |  |  |
+| `AlertEntradaM3Atas` | GATILLO VÁLIDO M3: ATAS (sonido y ventana) | Sí |  |  |
+| `AlertEntradaM3Email` | GATILLO VÁLIDO M3: correo | Sí |  |  |
+| `AlertEntradaM3Telegram` | GATILLO VÁLIDO M3: Telegram | Sí |  |  |
+| `AlertM3ActivadoAtas` | M3 ACTIVADO (iceberg rebasado): ATAS (sonido y ventana) | Sí |  |  |
+| `AlertM3ActivadoEmail` | M3 ACTIVADO: correo | No |  |  |
+| `AlertM3ActivadoTelegram` | M3 ACTIVADO: Telegram | No |  |  |
 | `AlertLineaAtas` | RUPTURA DE LÍNEA DE SESIÓN: ATAS (sonido y aviso) | Sí |  | Sonido y aviso arriba a la derecha del gráfico al romperse la línea de un máximo o mínimo de sesión. |
 | `AlertLineaEmail` | RUPTURA DE LÍNEA DE SESIÓN: correo | No |  |  |
 | `AlertLineaTelegram` | RUPTURA DE LÍNEA DE SESIÓN: Telegram | No |  |  |

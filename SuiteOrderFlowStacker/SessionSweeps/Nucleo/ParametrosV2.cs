@@ -179,6 +179,13 @@ public sealed class ParametrosV2
 	public bool AlertEntradaBTelegram { get; set; } = true;
 
 	// v4: ruptura de una línea de sesión (sonido y aviso arriba a la derecha), por sesión.
+	public bool AlertEntradaM3Atas { get; set; } = true;
+	public bool AlertEntradaM3Email { get; set; } = true;
+	public bool AlertEntradaM3Telegram { get; set; } = true;
+	public bool AlertM3ActivadoAtas { get; set; } = true;
+	public bool AlertM3ActivadoEmail { get; set; }
+	public bool AlertM3ActivadoTelegram { get; set; }
+
 	public bool AlertLineaAtas { get; set; } = true;
 	public bool AlertLineaEmail { get; set; }
 	public bool AlertLineaTelegram { get; set; }
@@ -201,7 +208,9 @@ public sealed class ParametrosV2
 		CategoriaAlerta.Real => new(AlertRealAtas, AlertRealEmail, AlertRealTelegram),
 		CategoriaAlerta.Premium => new(AlertPremiumAtas, AlertPremiumEmail, AlertPremiumTelegram),
 		CategoriaAlerta.Ruptura => new(AlertRupturaAtas, AlertRupturaEmail, AlertRupturaTelegram),
-		CategoriaAlerta.EntradaA => new(AlertEntradaAAtas, AlertEntradaAEmail, AlertEntradaATelegram),
+		CategoriaAlerta.EntradaM1 => new(AlertEntradaAAtas, AlertEntradaAEmail, AlertEntradaATelegram),
+		CategoriaAlerta.EntradaM3 => new(AlertEntradaM3Atas, AlertEntradaM3Email, AlertEntradaM3Telegram),
+		CategoriaAlerta.M3Activado => new(AlertM3ActivadoAtas, AlertM3ActivadoEmail, AlertM3ActivadoTelegram),
 		CategoriaAlerta.LineaSesion => new(AlertLineaAtas, AlertLineaEmail, AlertLineaTelegram),
 		_ => new(AlertEntradaBAtas, AlertEntradaBEmail, AlertEntradaBTelegram)
 	};
@@ -218,6 +227,10 @@ public sealed class ParametrosV2
 	// Modelos v3 (1, 10): solo Modelo A (barrido) y Modelo B (retroceso a LVN / EDGE / FVG).
 	public bool EnableModelA { get; set; } = true;
 	public bool EnableModelB { get; set; } = true;
+
+	// v4: el Modelo 3 vuelve como modelo operativo e invalida los M1 y M2 pendientes.
+	public bool EnableModelM3 { get; set; } = true;
+	public bool M3InvalidaTodos { get; set; } = true;
 	public bool ModelBEnableLvn { get; set; } = true;
 	public bool ModelBEnableEdge { get; set; } = true;
 	public bool ModelBEnableFvg { get; set; } = true;
@@ -229,7 +242,6 @@ public sealed class ParametrosV2
 	public ModoSalida ExitMode { get; set; } = ModoSalida.TpOEma15;
 
 	// Modelos (v2)
-	public bool Mod3InvalidatesAllMod1Mod2 { get; set; }
 	public bool Mod4AllowInternal { get; set; }
 	public int Mod4MaxWaitMin { get; set; } = 45;
 	public decimal Mod4MaxRetracePct { get; set; } = 0.618m;

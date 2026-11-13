@@ -26,17 +26,17 @@ internal static class PruebasV3Modelos
 		var utc = Utc(new DateTime(2026, 10, 30, 9, 55, 0));
 
 		c.Seccion("v3 S11 Modelo A: solo con un BARRIDO REAL o PREMIUM (prueba 22)");
-		foreach (var (estado, esperado) in new[] { (EstadoBarrido.Indeterminado, "0"), (EstadoBarrido.SinLiquidez, "0"), (EstadoBarrido.Real, "1 A - BARRIDO A"), (EstadoBarrido.Premium, "1 A - BARRIDO A") })
+		foreach (var (estado, esperado) in new[] { (EstadoBarrido.Indeterminado, "0"), (EstadoBarrido.SinLiquidez, "0"), (EstadoBarrido.Real, "1 M1 - BARRIDO M1"), (EstadoBarrido.Premium, "1 M1 - BARRIDO M1") })
 		{
 			var s = new SimMotor(sinBarridos: true);
 			s.M.Leer(m => { m.ModelosAlEstado(Barrido(estado), "CONFIRMADO", utc); return 0; });
 			var a = s.Setups.Where(x => x.Modelo == "MOD1").ToList();
-			c.Check($"{estado}: Modelo A", a.Count == 0 ? "0" : $"{a.Count} {a[0].Etiqueta} {a[0].ModeloOperativo}", esperado);
+			c.Check($"{estado}: Modelo 1", a.Count == 0 ? "0" : $"{a.Count} {a[0].Etiqueta} {a[0].ModeloOperativo}", esperado);
 		}
 
 		var apagado = new SimMotor(sinBarridos: true, ajustar: cfg => cfg.V2.EnableModelA = false);
 		apagado.M.Leer(m => { m.ModelosAlEstado(Barrido(EstadoBarrido.Premium), "CONFIRMADO", utc); return 0; });
-		c.Check("Modelo A apagado: el setup queda a la vista, invalidado", apagado.Setups.Single().Motivo, "MODELO A APAGADO");
+		c.Check("Modelo 1 apagado: el setup queda a la vista, invalidado", apagado.Setups.Single().Motivo, "MODELO M1 APAGADO");
 
 		c.Seccion("v3 S12 Modelo B en un EDGE del Thermal; sin gatillo cumplido antes de la confirmación (prueba 21)");
 		SimMotor ConEdge(bool activo)
@@ -51,7 +51,7 @@ internal static class PruebasV3Modelos
 		}
 
 		var b = ConEdge(true).Setups.Where(x => x.Zona.Tipo == "EDGE").ToList();
-		c.Check("retroceso al EDGE a favor del sesgo: B - EDGE", b.Count > 0 ? $"{b[0].Etiqueta} {b[0].ModeloOperativo} {b[0].Zona.EdgeId}" : "sin setup", "B - EDGE B 77");
+		c.Check("retroceso al EDGE a favor del sesgo: M2 - EDGE", b.Count > 0 ? $"{b[0].Etiqueta} {b[0].ModeloOperativo} {b[0].Zona.EdgeId}" : "sin setup", "M2 - EDGE M2 77");
 		c.Check("prueba 21: sin gatillo VÁLIDO no hay entrada ni gatillo cumplido",
 			b.All(x => x.Gatillo?.Resultado == ResultadoGatillo.Valido || (x.Entrada is null && x.Estado != EstadoModelo.Entrada)).ToString(), "True");
 		c.Check("con ModelBEnableEdge apagado no se arma", ConEdge(false).Setups.Count(x => x.Zona.Tipo == "EDGE").ToString(), "0");

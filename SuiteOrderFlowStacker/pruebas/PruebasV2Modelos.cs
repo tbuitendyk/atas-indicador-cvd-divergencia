@@ -138,20 +138,20 @@ internal static class PruebasV2Modelos
 			.Concat(SimMotor.CaminoT(21430, 21437, 4.5m, 0.5m, 45, 47)));
 		var entrada = s.Setups.FirstOrDefault(x => x.Modelo == "MOD4" && x.Zona.Tipo == "FVG+LVN");
 		c.Check("T23 entrada MOD4 en la zona FVG+LVN con gatillo de ARRANQUE",
-			entrada is null ? "sin setup" : $"{entrada.TextoEstado} {entrada.Gatillo?.Tipo} {entrada.Etiqueta} {entrada.ModeloOperativo}", "ENTRADA Arranque B - RETROCESO TRAS ROMPIMIENTO B");
+			entrada is null ? "sin setup" : $"{entrada.TextoEstado} {entrada.Gatillo?.Tipo} {entrada.Etiqueta} {entrada.ModeloOperativo}", "ENTRADA Arranque M2 - RETROCESO TRAS ROMPIMIENTO M2");
 		c.Check("T23 riesgo calculado (NQ)", entrada?.Riesgo?.Contratos > 0 ? "ok" : $"{entrada?.Riesgo}", "ok");
 
-		c.Seccion("S7 T24: la misma ruptura con un iceberg ROTO = manda MOD3, sin duplicar MOD4");
+		c.Seccion("S7 T24 (v4): la misma ruptura con un iceberg ROTO = Modelo 3, sin duplicar el M2 de la ruptura");
 		var s24 = new SimMotor();
 		s24.M.LvnDesdeSuite(PruebasV2Lvn.Z(1, 1, 21429.5m, 21430m, manual: false));
 		var t0 = Utc(new DateTime(2026, 10, 30, 9, 42, 10));
 		s24.Fuentes.Eventos.Add(new IcebergEvent { Id = 50, Fuente = FuenteSuite.Iceberg, Utc = t0, CambioUtc = t0.AddSeconds(5), Precio = 21420.25m, Compra = false, Estado = "ROTO", Mbo = true, Ejecutado = 250 });
 		s24.Ruptura();
 		var modelos24 = s24.Setups;
-		c.Check("T24 v3: el rompimiento con iceberg ROTO es contexto (activo, sin modelo propio) y no duplica la B de la ruptura",
-			$"{s24.Pdh?.IcebergEstado} {s24.M.Leer(m => m.Mod3Activo?.Signo)} {modelos24.Count(x => x.Modelo == "MOD3")} {modelos24.Count(x => x.Modelo == "MOD4")}", "ROTO 1 0 0");
-		c.Check("T24 las zonas de la pierna se operan como 'B - RETROCESO TRAS ROMPIMIENTO (iceberg roto)'",
-			modelos24.Any(x => x.TrasIcebergRoto && x.ModeloOperativo == "B" && x.Etiqueta == "B - RETROCESO TRAS ROMPIMIENTO (iceberg roto)" && x.Zona.Tipo == "FVG+LVN").ToString(), "True");
+		c.Check("T24 v4: el iceberg ROTO activa el Modelo 3 con sus zonas (FVG+LVN y LVN de la pierna) y no duplica el M2 de la ruptura",
+			$"{s24.Pdh?.IcebergEstado} {s24.M.Leer(m => m.Mod3Activo?.Signo)} {modelos24.Count(x => x.Modelo == "MOD3")} {modelos24.Count(x => x.Modelo == "MOD4")}", "ROTO 1 2 0");
+		c.Check("T24 las zonas de la pierna se operan como 'M3 - ROMPIMIENTO CONTINUIDAD'",
+			modelos24.Any(x => x.TrasIcebergRoto && x.ModeloOperativo == "M3" && x.Etiqueta == "M3 - ROMPIMIENTO CONTINUIDAD" && x.Zona.Tipo == "FVG+LVN").ToString(), "True");
 
 		c.Seccion("S7 T25: MOD4 cancelado por RUPTURA FALLIDA");
 		var s25 = new SimMotor();
@@ -164,7 +164,7 @@ internal static class PruebasV2Modelos
 			$"{s25.M.Leer(m => m.Evaluaciones.Any(e => e.Estado == EstadoBarrido.RupturaFallida))} {string.Join(",", fallida.Select(x => $"{x.TextoEstado}:{x.Motivo}"))}",
 			"True INVALIDADO:RUPTURA FALLIDA");
 
-		c.Seccion("S7 T26: MOD3 activo invalida MOD1 y MOD2 contrarios y deja MOD2 a favor");
+		c.Seccion("S7 T26 (v4): M3 activo invalida los M1 y M2 pendientes (todos, por defecto; o solo los contrarios)");
 		var s26 = new SimMotor(sinBarridos: true);
 		var lejos = new ZonaOperable { Bajo = 21300, Alto = 21301 };
 		var futuro = Utc(new DateTime(2026, 10, 30, 11, 0, 0));
@@ -181,10 +181,23 @@ internal static class PruebasV2Modelos
 		s26.Fuentes.Eventos.Add(new StopsEvent { Id = 62, Fuente = FuenteSuite.Stops, Utc = tr, CambioUtc = tr, Desde = 21403, Extremo = 21405, Compra = true, Contratos = 200 });
 		s26.Minuto(new DateTime(2026, 10, 30, 9, 41, 0), SimMotor.Camino(21402, 21412, 8, 2));
 		var st = s26.Setups.ToDictionary(x => x.Id);
-		c.Check("T26 rompimiento con iceberg roto (largo): contexto, sin modelo propio", $"{s26.M.Leer(m => m.Mod3Activo?.Signo)} {s26.Setups.Count(x => x.Modelo == "MOD3")}", "1 0");
-		c.Check("T26 A y B cortos: INVALIDADO POR ROMPIMIENTO; B largo sigue ARMADO",
+		c.Check("T26 iceberg rebasado (largo): M3 activo", $"{s26.M.Leer(m => m.Mod3Activo?.Signo)}", "1");
+		c.Check("T26 v4: M1 y M2 cortos y también el M2 largo: INVALIDADO POR M3 (el propietario: invalida los Modelos 1 y 2)",
 			$"{st[901].TextoEstado}:{st[901].Motivo} {st[902].TextoEstado}:{st[902].Motivo} {st[903].TextoEstado}",
-			"INVALIDADO:INVALIDADO POR ROMPIMIENTO (iceberg roto) INVALIDADO:INVALIDADO POR ROMPIMIENTO (iceberg roto) ARMADO");
+			"INVALIDADO:INVALIDADO POR M3 (iceberg rebasado) INVALIDADO:INVALIDADO POR M3 (iceberg rebasado) INVALIDADO");
+
+		// Con "M3 invalida todos" apagado: solo los contrarios (el M2 largo sigue armado).
+		var s26b = new SimMotor(sinBarridos: true, ajustar: cfg => cfg.V2.M3InvalidaTodos = false);
+		s26b.M.Leer(m =>
+		{
+			m.Setups.Add(new SetupModelo { Id = 911, Modelo = "MOD1", Etiqueta = "M1", Signo = -1, Zona = new ZonaOperable { Bajo = 21300, Alto = 21301, Signo = -1 }, ExpiraUtc = futuro });
+			m.Setups.Add(new SetupModelo { Id = 913, Modelo = "MOD2", Etiqueta = "M2", Signo = 1, Zona = new ZonaOperable { Bajo = 21300, Alto = 21301, Signo = 1 }, ExpiraUtc = futuro });
+			return 0;
+		});
+		s26b.Fuentes.Eventos.AddRange(s26.Fuentes.Eventos);
+		s26b.Minuto(new DateTime(2026, 10, 30, 9, 41, 0), SimMotor.Camino(21402, 21412, 8, 2));
+		var stb = s26b.Setups.ToDictionary(x => x.Id);
+		c.Check("T26 con 'M3 invalida todos' apagado: el M1 corto se invalida, el M2 largo sigue", $"{stb[911].TextoEstado} {stb[913].TextoEstado}", "INVALIDADO ARMADO");
 
 		c.Seccion("S7 T27 y T20: MOD1 no acepta continuidad; un LVN MANUAL del botón LVN arma MOD2");
 		var s27 = new SimMotor();

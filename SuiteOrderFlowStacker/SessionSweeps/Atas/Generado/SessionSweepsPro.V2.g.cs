@@ -286,64 +286,67 @@ public partial class SessionSweepsPro
 
 	// --- 24. Modelos -----------------------------------------------------------------------------------------
 
-	[Display(Name = "Modelo A: barrido de liquidez", GroupName = "24. Modelos", Order = 10, Description = "Prioridad A: barrido real (o premium) y recuperación; incluye los BFVG.")]
+	[Display(Name = "Modelo 1 (M1): barrido de liquidez", GroupName = "24. Modelos", Order = 10, Description = "Barrido real (o premium) y recuperación; incluye los BFVG.")]
 	public bool EnableModelA { get => _cfg.V2.EnableModelA; set { _cfg.V2.EnableModelA = value; Recalcular(); } }
 
-	[Display(Name = "Modelo B: retroceso a LVN / EDGE / FVG", GroupName = "24. Modelos", Order = 20, Description = "Prioridad B (la de mayor interés): retroceso a una zona con gatillo confirmado. Incluye B - RETROCESO TRAS ROMPIMIENTO.")]
+	[Display(Name = "Modelo 2 (M2): retroceso a LVN / EDGE / FVG", GroupName = "24. Modelos", Order = 20, Description = "Retroceso a una zona con gatillo confirmado (las líneas LVN manuales valen). Incluye M2 - RETROCESO TRAS ROMPIMIENTO.")]
 	public bool EnableModelB { get => _cfg.V2.EnableModelB; set { _cfg.V2.EnableModelB = value; Recalcular(); } }
 
-	[Display(Name = "Modelo B: LVN del Thermal", GroupName = "24. Modelos", Order = 30, Description = "")]
+	[Display(Name = "Modelo 3 (M3): iceberg rebasado con continuidad", GroupName = "24. Modelos", Order = 30, Description = "Un iceberg (o super big trade) rebasado con imbalance, stops y aceptación: señal propia y retrocesos M3 - ROMPIMIENTO CONTINUIDAD.")]
+	public bool EnableModelM3 { get => _cfg.V2.EnableModelM3; set { _cfg.V2.EnableModelM3 = value; Recalcular(); } }
+
+	[Display(Name = "M3 invalida todos los M1 y M2 pendientes", GroupName = "24. Modelos", Order = 40, Description = "Encendido (como pide el propietario): al activarse M3 se invalidan los M1 y M2 pendientes. Apagado: solo los contrarios.")]
+	public bool M3InvalidaTodos { get => _cfg.V2.M3InvalidaTodos; set { _cfg.V2.M3InvalidaTodos = value; Recalcular(); } }
+
+	[Display(Name = "M2: LVN del Thermal", GroupName = "24. Modelos", Order = 50, Description = "")]
 	public bool ModelBEnableLvn { get => _cfg.V2.ModelBEnableLvn; set { _cfg.V2.ModelBEnableLvn = value; Recalcular(); } }
 
-	[Display(Name = "Modelo B: EDGE del Thermal", GroupName = "24. Modelos", Order = 40, Description = "")]
+	[Display(Name = "M2: EDGE del Thermal", GroupName = "24. Modelos", Order = 60, Description = "")]
 	public bool ModelBEnableEdge { get => _cfg.V2.ModelBEnableEdge; set { _cfg.V2.ModelBEnableEdge = value; Recalcular(); } }
 
-	[Display(Name = "Modelo B: FVG", GroupName = "24. Modelos", Order = 50, Description = "También FVG+LVN y FVG+EDGE.")]
+	[Display(Name = "M2: FVG", GroupName = "24. Modelos", Order = 70, Description = "También FVG+LVN y FVG+EDGE.")]
 	public bool ModelBEnableFvg { get => _cfg.V2.ModelBEnableFvg; set { _cfg.V2.ModelBEnableFvg = value; Recalcular(); } }
 
-	[Display(Name = "Modelo B: EMA 15", GroupName = "24. Modelos", Order = 60, Description = "")]
+	[Display(Name = "M2: EMA 15", GroupName = "24. Modelos", Order = 80, Description = "")]
 	public bool ModelBEnableEma { get => _cfg.V2.ModelBEnableEma; set { _cfg.V2.ModelBEnableEma = value; Recalcular(); } }
 
-	[Display(Name = "Modelo B: nivel roto", GroupName = "24. Modelos", Order = 70, Description = "")]
+	[Display(Name = "M2: nivel roto", GroupName = "24. Modelos", Order = 90, Description = "")]
 	public bool ModelBEnableNivel { get => _cfg.V2.ModelBEnableNivel; set { _cfg.V2.ModelBEnableNivel = value; Recalcular(); } }
 
-	[Display(Name = "Intentos máximos por zona", GroupName = "24. Modelos", Order = 80, Description = "Entradas en la misma zona y dirección.")]
+	[Display(Name = "Intentos máximos por zona", GroupName = "24. Modelos", Order = 100, Description = "Entradas en la misma zona y dirección.")]
 	[Range(1, 20)]
 	public int MaxAttemptsPerZone { get => _cfg.V2.MaxAttemptsPerZone; set { _cfg.V2.MaxAttemptsPerZone = Math.Clamp(value, 1, 20); Recalcular(); } }
 
-	[Display(Name = "TP (R múltiplos)", GroupName = "24. Modelos", Order = 90, Description = "Objetivo a este múltiplo del riesgo (2R).")]
+	[Display(Name = "TP (R múltiplos)", GroupName = "24. Modelos", Order = 110, Description = "Objetivo a este múltiplo del riesgo (2R).")]
 	[Range(0.5, 20)]
 	public decimal TpRMultiple { get => _cfg.V2.TpRMultiple; set { _cfg.V2.TpRMultiple = Math.Clamp(value, 0.5m, 20m); Recalcular(); } }
 
-	[Display(Name = "Objetivo", GroupName = "24. Modelos", Order = 100, Description = "R múltiplos, o el próximo LVN / EDGE (si no hay, R).")]
+	[Display(Name = "Objetivo", GroupName = "24. Modelos", Order = 120, Description = "R múltiplos, o el próximo LVN / EDGE (si no hay, R).")]
 	public ModoObjetivo TargetMode { get => _cfg.V2.TargetMode; set { _cfg.V2.TargetMode = value; Recalcular(); } }
 
-	[Display(Name = "Salida", GroupName = "24. Modelos", Order = 110, Description = "TP o cierre de 1 minuto al otro lado de la EMA 15, lo primero (por defecto). El SL nunca se amplía.")]
+	[Display(Name = "Salida", GroupName = "24. Modelos", Order = 130, Description = "TP o cierre de 1 minuto al otro lado de la EMA 15, lo primero (por defecto). El SL nunca se amplía.")]
 	public ModoSalida ExitMode { get => _cfg.V2.ExitMode; set { _cfg.V2.ExitMode = value; Recalcular(); } }
 
-	[Display(Name = "Iceberg roto anula todos los A y B", GroupName = "24. Modelos", Order = 120, Description = "Desactivado: solo los contrarios a la dirección del rompimiento (contexto).")]
-	public bool Mod3InvalidatesAllMod1Mod2 { get => _cfg.V2.Mod3InvalidatesAllMod1Mod2; set { _cfg.V2.Mod3InvalidatesAllMod1Mod2 = value; Recalcular(); } }
-
-	[Display(Name = "B tras rompimiento en liquidez interna", GroupName = "24. Modelos", Order = 130, Description = "Por defecto solo externa.")]
+	[Display(Name = "M2 tras rompimiento en liquidez interna", GroupName = "24. Modelos", Order = 140, Description = "Por defecto solo externa.")]
 	public bool Mod4AllowInternal { get => _cfg.V2.Mod4AllowInternal; set { _cfg.V2.Mod4AllowInternal = value; Recalcular(); } }
 
-	[Display(Name = "B tras rompimiento: espera máxima (min)", GroupName = "24. Modelos", Order = 140, Description = "")]
+	[Display(Name = "M2 tras rompimiento: espera máxima (min)", GroupName = "24. Modelos", Order = 150, Description = "")]
 	[Range(1, 480)]
 	public int Mod4MaxWaitMin { get => _cfg.V2.Mod4MaxWaitMin; set { _cfg.V2.Mod4MaxWaitMin = Math.Clamp(value, 1, 480); Recalcular(); } }
 
-	[Display(Name = "B tras rompimiento: retroceso máximo", GroupName = "24. Modelos", Order = 150, Description = "Fracción de la pierna (0,618).")]
+	[Display(Name = "M2 tras rompimiento: retroceso máximo", GroupName = "24. Modelos", Order = 160, Description = "Fracción de la pierna (0,618).")]
 	[Range(0.1, 1)]
 	public decimal Mod4MaxRetracePct { get => _cfg.V2.Mod4MaxRetracePct; set { _cfg.V2.Mod4MaxRetracePct = Math.Clamp(value, 0.1m, 1m); Recalcular(); } }
 
-	[Display(Name = "B tras rompimiento: intentos máximos", GroupName = "24. Modelos", Order = 160, Description = "Entradas por ruptura.")]
+	[Display(Name = "M2 tras rompimiento: intentos máximos", GroupName = "24. Modelos", Order = 170, Description = "Entradas por ruptura.")]
 	[Range(1, 10)]
 	public int Mod4MaxAttempts { get => _cfg.V2.Mod4MaxAttempts; set { _cfg.V2.Mod4MaxAttempts = Math.Clamp(value, 1, 10); Recalcular(); } }
 
-	[Display(Name = "R:R mínimo", GroupName = "24. Modelos", Order = 170, Description = "")]
+	[Display(Name = "R:R mínimo", GroupName = "24. Modelos", Order = 180, Description = "")]
 	[Range(0.5, 10)]
 	public decimal MinRR { get => _cfg.V2.MinRR; set { _cfg.V2.MinRR = Math.Clamp(value, 0.5m, 10m); Recalcular(); } }
 
-	[Display(Name = "Modo del stop", GroupName = "24. Modelos", Order = 180, Description = "")]
+	[Display(Name = "Modo del stop", GroupName = "24. Modelos", Order = 190, Description = "")]
 	public ModoStop StopMode { get => _cfg.V2.StopMode; set { _cfg.V2.StopMode = value; Recalcular(); } }
 
 	// --- 25. Riesgo ------------------------------------------------------------------------------------------
@@ -451,7 +454,7 @@ public partial class SessionSweepsPro
 	[Display(Name = "Cajas de barrido", GroupName = "28. Panel y dibujo", Order = 50, Description = "Coloreadas por estado (REAL, PREMIUM, RUPTURA / ACEPTACIÓN, FALLIDO…).")]
 	public bool ShowSweepBoxes { get => _v.ShowSweepBoxes; set { _v.ShowSweepBoxes = value; RedrawChart(); } }
 
-	[Display(Name = "Zonas de los modelos", GroupName = "28. Panel y dibujo", Order = 60, Description = "Modelo A (barrido, BFVG) y Modelo B (LVN / EDGE / FVG) con entrada, stop y objetivo.")]
+	[Display(Name = "Zonas de los modelos", GroupName = "28. Panel y dibujo", Order = 60, Description = "M1 (barrido, BFVG), M2 (LVN / EDGE / FVG) y M3 (iceberg rebasado) con entrada, stop y objetivo.")]
 	public bool ShowModelBoxes { get => _v.ShowModelBoxes; set { _v.ShowModelBoxes = value; RedrawChart(); } }
 
 	[Display(Name = "FVG / BFVG", GroupName = "28. Panel y dibujo", Order = 70, Description = "")]
@@ -508,43 +511,61 @@ public partial class SessionSweepsPro
 	[Display(Name = "RUPTURA / ACEPTACIÓN: Telegram", GroupName = "37. Alertas y canales", Order = 90, Description = "")]
 	public bool AlertRupturaTelegram { get => _cfg.V2.AlertRupturaTelegram; set { _cfg.V2.AlertRupturaTelegram = value; RedrawChart(); } }
 
-	[Display(Name = "GATILLO VÁLIDO A: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 100, Description = "")]
+	[Display(Name = "GATILLO VÁLIDO M1: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 100, Description = "")]
 	public bool AlertEntradaAAtas { get => _cfg.V2.AlertEntradaAAtas; set { _cfg.V2.AlertEntradaAAtas = value; RedrawChart(); } }
 
-	[Display(Name = "GATILLO VÁLIDO A: correo", GroupName = "37. Alertas y canales", Order = 110, Description = "")]
+	[Display(Name = "GATILLO VÁLIDO M1: correo", GroupName = "37. Alertas y canales", Order = 110, Description = "")]
 	public bool AlertEntradaAEmail { get => _cfg.V2.AlertEntradaAEmail; set { _cfg.V2.AlertEntradaAEmail = value; RedrawChart(); } }
 
-	[Display(Name = "GATILLO VÁLIDO A: Telegram", GroupName = "37. Alertas y canales", Order = 120, Description = "")]
+	[Display(Name = "GATILLO VÁLIDO M1: Telegram", GroupName = "37. Alertas y canales", Order = 120, Description = "")]
 	public bool AlertEntradaATelegram { get => _cfg.V2.AlertEntradaATelegram; set { _cfg.V2.AlertEntradaATelegram = value; RedrawChart(); } }
 
-	[Display(Name = "GATILLO VÁLIDO B: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 130, Description = "")]
+	[Display(Name = "GATILLO VÁLIDO M2: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 130, Description = "")]
 	public bool AlertEntradaBAtas { get => _cfg.V2.AlertEntradaBAtas; set { _cfg.V2.AlertEntradaBAtas = value; RedrawChart(); } }
 
-	[Display(Name = "GATILLO VÁLIDO B: correo", GroupName = "37. Alertas y canales", Order = 140, Description = "")]
+	[Display(Name = "GATILLO VÁLIDO M2: correo", GroupName = "37. Alertas y canales", Order = 140, Description = "")]
 	public bool AlertEntradaBEmail { get => _cfg.V2.AlertEntradaBEmail; set { _cfg.V2.AlertEntradaBEmail = value; RedrawChart(); } }
 
-	[Display(Name = "GATILLO VÁLIDO B: Telegram", GroupName = "37. Alertas y canales", Order = 150, Description = "")]
+	[Display(Name = "GATILLO VÁLIDO M2: Telegram", GroupName = "37. Alertas y canales", Order = 150, Description = "")]
 	public bool AlertEntradaBTelegram { get => _cfg.V2.AlertEntradaBTelegram; set { _cfg.V2.AlertEntradaBTelegram = value; RedrawChart(); } }
 
-	[Display(Name = "RUPTURA DE LÍNEA DE SESIÓN: ATAS (sonido y aviso)", GroupName = "37. Alertas y canales", Order = 160, Description = "Sonido y aviso arriba a la derecha del gráfico al romperse la línea de un máximo o mínimo de sesión.")]
+	[Display(Name = "GATILLO VÁLIDO M3: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 160, Description = "")]
+	public bool AlertEntradaM3Atas { get => _cfg.V2.AlertEntradaM3Atas; set { _cfg.V2.AlertEntradaM3Atas = value; RedrawChart(); } }
+
+	[Display(Name = "GATILLO VÁLIDO M3: correo", GroupName = "37. Alertas y canales", Order = 170, Description = "")]
+	public bool AlertEntradaM3Email { get => _cfg.V2.AlertEntradaM3Email; set { _cfg.V2.AlertEntradaM3Email = value; RedrawChart(); } }
+
+	[Display(Name = "GATILLO VÁLIDO M3: Telegram", GroupName = "37. Alertas y canales", Order = 180, Description = "")]
+	public bool AlertEntradaM3Telegram { get => _cfg.V2.AlertEntradaM3Telegram; set { _cfg.V2.AlertEntradaM3Telegram = value; RedrawChart(); } }
+
+	[Display(Name = "M3 ACTIVADO (iceberg rebasado): ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 190, Description = "")]
+	public bool AlertM3ActivadoAtas { get => _cfg.V2.AlertM3ActivadoAtas; set { _cfg.V2.AlertM3ActivadoAtas = value; RedrawChart(); } }
+
+	[Display(Name = "M3 ACTIVADO: correo", GroupName = "37. Alertas y canales", Order = 200, Description = "")]
+	public bool AlertM3ActivadoEmail { get => _cfg.V2.AlertM3ActivadoEmail; set { _cfg.V2.AlertM3ActivadoEmail = value; RedrawChart(); } }
+
+	[Display(Name = "M3 ACTIVADO: Telegram", GroupName = "37. Alertas y canales", Order = 210, Description = "")]
+	public bool AlertM3ActivadoTelegram { get => _cfg.V2.AlertM3ActivadoTelegram; set { _cfg.V2.AlertM3ActivadoTelegram = value; RedrawChart(); } }
+
+	[Display(Name = "RUPTURA DE LÍNEA DE SESIÓN: ATAS (sonido y aviso)", GroupName = "37. Alertas y canales", Order = 220, Description = "Sonido y aviso arriba a la derecha del gráfico al romperse la línea de un máximo o mínimo de sesión.")]
 	public bool AlertLineaAtas { get => _cfg.V2.AlertLineaAtas; set { _cfg.V2.AlertLineaAtas = value; RedrawChart(); } }
 
-	[Display(Name = "RUPTURA DE LÍNEA DE SESIÓN: correo", GroupName = "37. Alertas y canales", Order = 170, Description = "")]
+	[Display(Name = "RUPTURA DE LÍNEA DE SESIÓN: correo", GroupName = "37. Alertas y canales", Order = 230, Description = "")]
 	public bool AlertLineaEmail { get => _cfg.V2.AlertLineaEmail; set { _cfg.V2.AlertLineaEmail = value; RedrawChart(); } }
 
-	[Display(Name = "RUPTURA DE LÍNEA DE SESIÓN: Telegram", GroupName = "37. Alertas y canales", Order = 180, Description = "")]
+	[Display(Name = "RUPTURA DE LÍNEA DE SESIÓN: Telegram", GroupName = "37. Alertas y canales", Order = 240, Description = "")]
 	public bool AlertLineaTelegram { get => _cfg.V2.AlertLineaTelegram; set { _cfg.V2.AlertLineaTelegram = value; RedrawChart(); } }
 
-	[Display(Name = "Ruptura de línea: Asia", GroupName = "37. Alertas y canales", Order = 190, Description = "")]
+	[Display(Name = "Ruptura de línea: Asia", GroupName = "37. Alertas y canales", Order = 250, Description = "")]
 	public bool LineaAlertaAsia { get => _cfg.V2.LineaAlertaAsia; set { _cfg.V2.LineaAlertaAsia = value; RedrawChart(); } }
 
-	[Display(Name = "Ruptura de línea: Londres", GroupName = "37. Alertas y canales", Order = 200, Description = "")]
+	[Display(Name = "Ruptura de línea: Londres", GroupName = "37. Alertas y canales", Order = 260, Description = "")]
 	public bool LineaAlertaLondres { get => _cfg.V2.LineaAlertaLondres; set { _cfg.V2.LineaAlertaLondres = value; RedrawChart(); } }
 
-	[Display(Name = "Ruptura de línea: Premercado", GroupName = "37. Alertas y canales", Order = 210, Description = "")]
+	[Display(Name = "Ruptura de línea: Premercado", GroupName = "37. Alertas y canales", Order = 270, Description = "")]
 	public bool LineaAlertaPremercado { get => _cfg.V2.LineaAlertaPremercado; set { _cfg.V2.LineaAlertaPremercado = value; RedrawChart(); } }
 
-	[Display(Name = "Ruptura de línea: NY", GroupName = "37. Alertas y canales", Order = 220, Description = "Incluye el último máximo y mínimo recientes de NY.")]
+	[Display(Name = "Ruptura de línea: NY", GroupName = "37. Alertas y canales", Order = 280, Description = "Incluye el último máximo y mínimo recientes de NY.")]
 	public bool LineaAlertaNy { get => _cfg.V2.LineaAlertaNy; set { _cfg.V2.LineaAlertaNy = value; RedrawChart(); } }
 
 	// --- 30. Instrumentos ------------------------------------------------------------------------------------

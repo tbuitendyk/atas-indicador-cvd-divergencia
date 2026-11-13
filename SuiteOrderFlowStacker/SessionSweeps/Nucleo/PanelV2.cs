@@ -147,11 +147,11 @@ public sealed partial class MotorSweeps
 				ColorSigno(sm.Alcista ? 1 : -1))));
 
 		// 10) MODELO A (barrido).
-		Recuadro(L, "10. MODELO A (barrido)", "b10");
-		var a = Setups.LastOrDefault(x => x.ModeloOperativo == "A");
+		Recuadro(L, "10. MODELO M1 (barrido)", "b10");
+		var a = Setups.LastOrDefault(x => x.ModeloOperativo == "M1");
 
 		if (!P2.EnableModelA)
-			L.Add(Linea("b10", new Segmento("MODELO A APAGADO", ColorPanel.Gris)));
+			L.Add(Linea("b10", new Segmento("MODELO M1 APAGADO", ColorPanel.Gris)));
 		else if (a is null)
 			L.Add(Linea("b10", new Segmento("Sin setup: espera un BARRIDO REAL o PREMIUM", ColorPanel.Gris)));
 		else
@@ -159,12 +159,12 @@ public sealed partial class MotorSweeps
 				$"{(a.Barrido is { } ba ? $" · barrido {ba.Nombre} {Precio(ba.L)}" : "")}", ColorModelo(a), a.Abierta)));
 
 		// 11) MODELO B (LVN / EDGE / FVG): la de mayor prioridad.
-		Recuadro(L, "11. MODELO B (LVN / EDGE / FVG)", "b11");
-		var b = Setups.LastOrDefault(x => x.ModeloOperativo == "B" && (x.Pendiente || x.Abierta)) ?? Setups.LastOrDefault(x => x.ModeloOperativo == "B");
+		Recuadro(L, "11. MODELO M2 (LVN / EDGE / FVG)", "b11");
+		var b = Setups.LastOrDefault(x => x.ModeloOperativo == "M2" && (x.Pendiente || x.Abierta)) ?? Setups.LastOrDefault(x => x.ModeloOperativo == "M2");
 
 		if (!P2.EnableModelB)
 		{
-			L.Add(Linea("b11", new Segmento("MODELO B APAGADO", ColorPanel.Gris)));
+			L.Add(Linea("b11", new Segmento("MODELO M2 APAGADO", ColorPanel.Gris)));
 		}
 		else if (b is null)
 		{
@@ -299,7 +299,7 @@ public sealed partial class MotorSweeps
 		var valido = Setups.LastOrDefault(s => s.Abierta);
 		var pendiente = Setups.LastOrDefault(s => s.Estado == EstadoModelo.GatilloPendiente);
 		var camino = Setups.Where(s => s.Estado == EstadoModelo.Armado)
-			.OrderByDescending(s => s.ModeloOperativo == "B")
+			.OrderByDescending(s => s.ModeloOperativo is "M2" or "M3")
 			.ThenBy(s => Math.Abs(PrecioActual - (s.Zona.Bajo + s.Zona.Alto) / 2))
 			.FirstOrDefault();
 
