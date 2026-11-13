@@ -94,7 +94,7 @@ public static class PoliticaAlertasV2
 	{
 		var dir = direccion > 0 ? "ALCISTA" : direccion < 0 ? "BAJISTA" : "";
 		var hora = $"{TiempoV2.HoraCdmx(n.Utc)} ({TiempoV2.HoraEt(n.Utc, "HH:mm")})";
-		var asunto = $"Sessions Sweeps Pro · {ctx.Instrumento} {ctx.Contrato} · {titulo} {dir}".TrimEnd();
+		var asunto = $"Indicador Global Session Sweep · {ctx.Instrumento} {ctx.Contrato} · {titulo} {dir}".TrimEnd();
 		return new AlertaV2(clave, categoria, $"{ctx.Instrumento} {hora} · {titulo} {dir} · {n.Texto}", asunto, Cuerpo(titulo, dir, hora, n, s, ctx));
 	}
 

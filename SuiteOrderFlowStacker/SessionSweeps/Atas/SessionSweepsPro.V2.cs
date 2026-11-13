@@ -280,7 +280,7 @@ public partial class SessionSweepsPro
 			return;
 
 		_panelAbierto = true;
-		abrir(ClavePanel, $"Sessions Sweeps Pro · {_instrumentoV2}", ContenidoPanelV2, BotonesPanelV2(), _cfg.V2.PanelRefreshMs);
+		abrir(ClavePanel, $"Indicador Global Session Sweep · {_instrumentoV2}", ContenidoPanelV2, BotonesPanelV2(), _cfg.V2.PanelRefreshMs);
 	}
 
 	private ContenidoPanel ContenidoPanelV2(bool detalle)

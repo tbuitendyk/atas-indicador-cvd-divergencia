@@ -58,7 +58,7 @@ public partial class SessionSweepsPro
 		}
 		catch (Exception ex)
 		{
-			this.LogWarn($"Sessions Sweeps Pro: no se pudo guardar la credencial '{nombre}' (DPAPI): {ex.GetType().Name}");
+			this.LogWarn($"Indicador Global Session Sweep: no se pudo guardar la credencial '{nombre}' (DPAPI): {ex.GetType().Name}");
 		}
 	}
 
@@ -86,7 +86,7 @@ public partial class SessionSweepsPro
 		}
 		catch (Exception ex)
 		{
-			this.LogWarn($"Sessions Sweeps Pro: no se pudo borrar la credencial '{nombre}': {ex.GetType().Name}");
+			this.LogWarn($"Indicador Global Session Sweep: no se pudo borrar la credencial '{nombre}': {ex.GetType().Name}");
 		}
 	}
 
@@ -101,7 +101,7 @@ public partial class SessionSweepsPro
 		if (string.IsNullOrWhiteSpace(SmtpUser) || string.IsNullOrEmpty(clavePrivada))
 		{
 			if (!_avisoSinSmtp)
-				this.LogWarn("Sessions Sweeps Pro: correo sin configurar (usuario y contraseña SMTP en 13. Correo y Telegram); no se envía.");
+				this.LogWarn("Indicador Global Session Sweep: correo sin configurar (usuario y contraseña SMTP en 13. Correo y Telegram); no se envía.");
 
 			_avisoSinSmtp = true;
 			return;
@@ -129,7 +129,7 @@ public partial class SessionSweepsPro
 		if (string.IsNullOrEmpty(token) || string.IsNullOrWhiteSpace(TelegramChatId))
 		{
 			if (!_avisoSinTelegram)
-				this.LogWarn("Sessions Sweeps Pro: Telegram sin configurar (token y chat ID en 13. Correo y Telegram); no se envía.");
+				this.LogWarn("Indicador Global Session Sweep: Telegram sin configurar (token y chat ID en 13. Correo y Telegram); no se envía.");
 
 			_avisoSinTelegram = true;
 			return;
@@ -152,6 +152,6 @@ public partial class SessionSweepsPro
 	{
 		var hora = Zonas.PorNombre(EmailTimeZone);
 		var ahora = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, hora).ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-		Enviar("prueba|" + Guid.NewGuid(), "Sessions Sweeps Pro - correo de prueba", $"Correo de prueba enviado a las {ahora}.\nSi lo recibe, el correo esta bien configurado.");
+		Enviar("prueba|" + Guid.NewGuid(), "Indicador Global Session Sweep - correo de prueba", $"Correo de prueba enviado a las {ahora}.\nSi lo recibe, el correo esta bien configurado.");
 	}
 }

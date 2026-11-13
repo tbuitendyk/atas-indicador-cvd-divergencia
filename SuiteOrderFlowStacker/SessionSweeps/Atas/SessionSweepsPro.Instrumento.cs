@@ -56,7 +56,7 @@ public partial class SessionSweepsPro
 		}
 		catch (Exception ex)
 		{
-			this.LogWarn("Sessions Sweeps Pro: no se pudo guardar la calibración: " + ex.Message);
+			this.LogWarn("Indicador Global Session Sweep: no se pudo guardar la calibración: " + ex.Message);
 		}
 	}
 }

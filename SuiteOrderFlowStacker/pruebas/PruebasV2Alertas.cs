@@ -96,7 +96,7 @@ internal static class PruebasV2Alertas
 		};
 		var aviso = Al(N("GATILLO VÁLIDO", conIceberg, setup));
 		c.Check("gatillo VÁLIDO de un setup M1: categoría EntradaM1", Cat(aviso), "EntradaM1");
-		c.Check("asunto con instrumento, contrato, título y dirección", aviso?.Asunto ?? "", "Sessions Sweeps Pro · NQ NQZ6 · GATILLO VÁLIDO DEL MODELO M1 ALCISTA");
+		c.Check("asunto con instrumento, contrato, título y dirección", aviso?.Asunto ?? "", "Indicador Global Session Sweep · NQ NQZ6 · GATILLO VÁLIDO DEL MODELO M1 ALCISTA");
 		var cuerpo = aviso?.Cuerpo ?? "";
 		c.Check("cuerpo completo (15)",
 			new[] { "Instrumento: NQ · contrato NQZ6 · 07:55 CDMX (09:55 ET)", "BARRIDO REAL 72/100 · certificada por iceberg (MBO)", "Modelo M1: A - BARRIDO · zona BARRIDO",

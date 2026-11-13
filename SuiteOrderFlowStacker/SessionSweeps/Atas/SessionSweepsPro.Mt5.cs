@@ -93,7 +93,7 @@ public partial class SessionSweepsPro
 			motor.Instrumento, _enVivo, TiempoV2.EnNoticia(utc, _cfg.V2), utc, $"SSP {s.ModeloOperativo} {s.Etiqueta}");
 
 		if (r.Enviada)
-			this.LogWarn("Sessions Sweeps Pro: " + r.Texto);
+			this.LogWarn("Indicador Global Session Sweep: " + r.Texto);
 	}
 
 	/// <summary>Arranca o para el puente según el modo (solo DEMO y REAL lo necesitan).</summary>
@@ -119,7 +119,7 @@ public partial class SessionSweepsPro
 		}
 		catch (Exception ex)
 		{
-			this.LogWarn($"Sessions Sweeps Pro: no se pudo abrir el puente MT5 en 127.0.0.1:{Mt5Port}: {ex.Message}");
+			this.LogWarn($"Indicador Global Session Sweep: no se pudo abrir el puente MT5 en 127.0.0.1:{Mt5Port}: {ex.Message}");
 			PararPuente();
 		}
 	}
@@ -155,7 +155,7 @@ public partial class SessionSweepsPro
 			}
 			catch (Exception ex) when (!fin.IsCancellationRequested)
 			{
-				this.LogWarn("Sessions Sweeps Pro: puente MT5: " + ex.Message);
+				this.LogWarn("Indicador Global Session Sweep: puente MT5: " + ex.Message);
 			}
 		}
 	}

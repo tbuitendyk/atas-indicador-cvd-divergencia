@@ -322,7 +322,7 @@ public sealed class GrabadorCsvV2 : IDisposable
 		}
 		catch (Exception ex)
 		{
-			Error?.Invoke("Sessions Sweeps Pro: no se pudo leer " + ruta, ex);
+			Error?.Invoke("Indicador Global Session Sweep: no se pudo leer " + ruta, ex);
 			return new List<RegistroCsvBarrido>();
 		}
 	}
@@ -355,7 +355,7 @@ public sealed class GrabadorCsvV2 : IDisposable
 				catch (Exception ex)
 				{
 					_reintentos.AddRange(grupo);
-					Error?.Invoke("Sessions Sweeps Pro: CSV bloqueado, se reintenta: " + grupo.Key, ex);
+					Error?.Invoke("Indicador Global Session Sweep: CSV bloqueado, se reintenta: " + grupo.Key, ex);
 				}
 			}
 		}

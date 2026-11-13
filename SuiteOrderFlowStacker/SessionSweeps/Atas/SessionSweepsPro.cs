@@ -26,8 +26,10 @@ using MediaColor = System.Windows.Media.Color;
 /// FVG/IFVG, LVN y Modelos A y B, con correo. Todo el cálculo está en Nucleo/ (MotorSweeps); aquí se pasan las velas
 /// y los trades, se avisa y se dibuja. Ver LEEME.md y DECISIONES.md.
 /// </summary>
-[DisplayName("Sessions Sweeps Pro (Suite)")]
-[Description("Sessions Sweeps Pro v3 (Suite Order Flow Stacker): Modelo A (barrido de liquidez real / premium) y Modelo B (retroceso a LVN / EDGE / FVG) con gatillo de order flow, perfiles NQ / ES / YM, LVN y EDGE del Thermal, panel flotante, alertas, correo, Telegram y puente MT5 opcional.")]
+// v4: el propietario pidió UN SOLO indicador con este nombre. La clase conserva su nombre (las plantillas guardadas
+// siguen abriendo) y hereda del Thermal; corre los trackers por dentro (AnfitrionTrackers).
+[DisplayName("Indicador Global Session Sweep")]
+[Description("Indicador Global Session Sweep (Suite Order Flow Stacker, v4): un solo indicador con sesiones y líneas de sesión, barridos de liquidez con absorción (consolidación y CVD), Modelos M1 / M2 / M3, Thermal Volume Profile + LVN / EDGE, los trackers (Iceberg, Stops, Sweeps, Stacked / Imbalance), CVD, panel flotante, alertas, correo, Telegram y puente MT5 opcional.")]
 public partial class SessionSweepsPro : ThermalVolumeProfileLVN
 {
 	#region Grupos
@@ -340,7 +342,7 @@ public partial class SessionSweepsPro : ThermalVolumeProfileLVN
 		set
 		{
 			if (value)
-				EnviarTelegram("prueba|" + Guid.NewGuid(), "Sessions Sweeps Pro: mensaje de prueba de Telegram.");
+				EnviarTelegram("prueba|" + Guid.NewGuid(), "Indicador Global Session Sweep: mensaje de prueba de Telegram.");
 		}
 	}
 
@@ -473,7 +475,7 @@ public partial class SessionSweepsPro : ThermalVolumeProfileLVN
 		// Decisión 4: Session Sweeps Pro v2.0 trabaja sobre el gráfico de 1 minuto (las barras de volumen se arman por minuto).
 		if (_minutos != 1)
 		{
-			_estado = "Sessions Sweeps Pro funciona en graficos de 1 minuto (TimeFrame M1)";
+			_estado = "Indicador Global Session Sweep funciona en graficos de 1 minuto (TimeFrame M1)";
 			return;
 		}
 

@@ -354,7 +354,7 @@ public partial class ThermalVolumeProfileLVN
 		var motor = EstadoMotor();
 		L.Add(LineaPanel.Seccion("ESTADO"));
 		L.Add(LineaPanel.De(new Segmento($"LVN AUTO {auto} · MANUAL {manual} · rango {_rangoId}: {textoRango}")));
-		L.Add(LineaPanel.De(new Segmento("Sessions Sweeps Pro: "), motor switch
+		L.Add(LineaPanel.De(new Segmento("Indicador Global Session Sweep: "), motor switch
 		{
 			EstadoFuente.Cargado => new Segmento("CONECTADO", ColorPanel.Verde, true),
 			EstadoFuente.SinDatos => new Segmento("SIN DATOS", ColorPanel.Naranja),
@@ -404,7 +404,7 @@ public partial class ThermalVolumeProfileLVN
 		if (caja.Resultado is not { } res)
 		{
 			L.Add(LineaPanel.De(motor == EstadoFuente.NoCargado
-				? new Segmento("MOTOR NO CARGADO: Sessions Sweeps Pro (Suite) no está en ningún gráfico de este instrumento", ColorPanel.Amarillo)
+				? new Segmento("MOTOR NO CARGADO: el Indicador Global Session Sweep no está en ningún gráfico de este instrumento", ColorPanel.Amarillo)
 				: new Segmento("Analizando…", ColorPanel.Naranja)));
 			return c;
 		}
