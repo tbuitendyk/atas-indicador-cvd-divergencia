@@ -45,7 +45,7 @@ public sealed class DespachoAlertasV2
 
 /// <summary>
 /// Alertas v3 (15), solo estas cinco: BARRIDO DE LIQUIDEZ REAL; BARRIDO DE LIQUIDEZ REAL PREMIUM (un upgrade de REAL a
-/// PREMIUM se etiqueta UPGRADE PREMIUM, sin repetir la de REAL); RUPTURA / ACEPTACIÓN CONFIRMADA (aviso de contexto);
+/// PREMIUM se etiqueta UPGRADE PREMIUM, sin repetir la de REAL); ROMPIMIENTO / ACEPTACIÓN CONFIRMADO (aviso de contexto);
 /// GATILLO VÁLIDO DEL MODELO M1 / M2 / M3; v4: M3 ACTIVADO y RUPTURA DE LÍNEA DE SESIÓN. Nunca en el historial (la
 /// carcasa), con NOTICIA ni dos veces.
 /// </summary>
@@ -71,7 +71,7 @@ public static class PoliticaAlertasV2
 				return Crear(clave, CategoriaAlerta.Premium, "UPGRADE PREMIUM", n, e.SignoGiro, null, ctx);
 
 			case "CONFIRMADO" when e is not null && e.Estado == EstadoBarrido.Ruptura:
-				return Crear(clave, CategoriaAlerta.Ruptura, "RUPTURA / ACEPTACIÓN CONFIRMADA (contexto)", n, e.Signo, null, ctx);
+				return Crear(clave, CategoriaAlerta.Ruptura, "ROMPIMIENTO / ACEPTACIÓN CONFIRMADO (contexto)", n, e.Signo, null, ctx);
 
 			case "GATILLO VÁLIDO" when n.Setup is { } s:
 				return Crear(clave, s.ModeloOperativo switch { "M1" => CategoriaAlerta.EntradaM1, "M3" => CategoriaAlerta.EntradaM3, _ => CategoriaAlerta.EntradaM2 },

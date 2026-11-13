@@ -86,13 +86,26 @@ Plan: [PLAN_V4.md](PLAN_V4.md) · especificación: [PROMPT_V4.md](PROMPT_V4.md) 
 | Subfase | Estado | Notas |
 |---|---|---|
 | G1 Especificación y plan | **hecha** | PROMPT_V4.md (texto del propietario) y PLAN_V4.md (lo encontrado en el código, decisiones 1-13). |
-| G2 Ventana fija, tabla, ROMPIMIENTO | pendiente | |
-| G3 Barrido con consolidación y absorción por CVD | pendiente | |
-| G4 Líneas de sesión, alerta de ruptura, BOS, FVG tras barrido | pendiente | |
-| G5 Modelos M1, M2, M3 | pendiente | |
-| G6 Panel en el orden del documento | pendiente | |
-| G7 Alertas de trackers fuera | pendiente | |
-| G8 Global: trackers dentro | pendiente | |
-| G9 Global: Thermal dentro | pendiente | |
-| G10 Nombre, fuentes duplicadas, CVD | pendiente | |
-| G11 Documentación, manual, pruebas, fusión | pendiente | |
+| G2 Ventana fija, tabla, ROMPIMIENTO | **hecha** | Ventana fijada por defecto (también posiciones guardadas, una vez); tabla de la esquina apagada (propiedad nueva); el Pine heredado dice ROMPIMIENTO y sus cajas y T1-T3 se ocultan. Reloj inyectable en el gestor MT5 (la prueba de pérdida diaria ya no depende de la fecha). |
+| G3 Barrido con consolidación y absorción por CVD | **hecha** | Ventana de al menos 14 velas de 1 minuto; RUPTURA solo con desplazamiento > barrido máximo o al terminar la ventana; compuesta con compras / ventas; CVD que gira o diverge; absorción en consolidación (+5) y cierre tras consolidar (+4); BOS + FVG + LVN = ESTRUCTURA CONFIRMADA; 3 parámetros y 8 columnas de CSV. Pruebas en los dos lados. |
+| G4 Líneas de sesión, alerta de ruptura, BOS, FVG tras barrido | **hecha** | `LineasSesion.cs`: líneas blancas que se detienen al romperse (tick), NY desde el último pivote reciente, BOS al cierre; alerta RUPTURA DE LÍNEA DE SESIÓN con aviso arriba a la derecha; FVG solo tras barrido validado; FVG heredado apagado. |
+| G5 Modelos M1, M2, M3 | **hecha** | M1 (barrido + BFVG), M2 (LVN / EDGE / FVG), M3 (iceberg rebasado: señal, zonas propias, invalida los M1 y M2 pendientes); alertas GATILLO VÁLIDO M3 y M3 ACTIVADO. |
+| G6 Panel en el orden del documento | **hecha** | Cabecera de 4 líneas (estado y activo, contexto, barrido, gatillo) y 16 recuadros en el orden del propietario; resumen de absorción con sumatoria REAL / NO COMPLETADO / ROTO; trackers al final. |
+| G7 Alertas de trackers fuera | **hecha** | Trackers sin alertas ni panel propio por defecto (propiedades nuevas TrackerAlerts y ShowOwnPanel). |
+| G8 Global: trackers dentro | **hecha** | `AnfitrionTrackers` (CarcasaSuite en modo Global): publican en el bus, sin alertas, dibujo por capas; ajustes Trk* en los grupos 40-51; MBO y DOM. |
+| G9 Global: Thermal dentro | **hecha** | La clase del barrido hereda del Thermal (Suite): perfil, LVN / EDGE, herramientas y su panel flotante dentro; grupos 'Thermal · …'. Thermal suelto 123 y NQ 101 sin cambios. |
+| G10 Nombre, fuentes duplicadas, CVD | **hecha** | 'Indicador Global Session Sweep' en ATAS, títulos, asuntos y mensajes. CVD: recuadro 8 del panel (subpanel opcional aparte). Duplicados: el manual pide quitar el Thermal y los trackers sueltos. |
+| G11 Documentación, manual, pruebas, fusión | **hecha** | [LEEME.md](LEEME.md) (manual v4), [OPERATIVA.md](OPERATIVA.md) (M1, M2, M3), [DECISIONES.md](DECISIONES.md) 29-35, PARAMETROS regenerados. Suite 530 comprobaciones, Thermal 123, NQ 101. |
+
+### // VERIFICAR v4 (solo en ATAS real)
+
+- La herencia del Thermal en ATAS: que el Indicador Global aparezca una sola vez en la lista, con los ajustes del barrido,
+  "Thermal · …" y "Trackers · …", y que el perfil, las herramientas del Thermal (ratón y teclado) y sus dos ventanas
+  funcionen dentro del mismo indicador.
+- `DrawAbovePrice` del indicador (encima de las velas) con el perfil a opacidad 110.
+- Los trackers dentro: DOM (MarketDepthChanged) y MBO (SubscribeMarketByOrderData / OnMarketByOrdersChanged) en el
+  mismo indicador que el barrido.
+- La ventana fijada (Topmost) con ATAS en uno o varios monitores y gráficos en ventanas separadas.
+- La alerta y el aviso de ruptura de línea en el tick, en vivo.
+- Qué quiere decir "que los trackers aparezcan como los nativos de ATAS" (PLAN_V4, decisión 12): pendiente de una
+  captura del propietario.

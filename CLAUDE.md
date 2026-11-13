@@ -130,6 +130,17 @@ authorization.)
   (`Nucleo/Mt5.cs` + `SessionSweeps/MT5/*.mq5`, OFF by default), panel header + 17 collapsible boxes, CSV
   `_barridos_v3/_modelos_v3` with audit columns. `verificar.sh` 479 checks; Thermal 123; NQ 101. Owner manual (Spanish):
   `SessionSweeps/LEEME.md` + a Claude Doc.
+- **Indicador Global Session Sweep v4 (2026-11-13)**, owner's "Correcciones al indicador Session Sweep Pro" (verbatim in
+  `SessionSweeps/PROMPT_V4.md`; findings + decisions in `PLAN_V4.md`, `DECISIONES.md` 29-35). ONE indicator: class
+  `SessionSweepsPro` (DisplayName "Indicador Global Session Sweep") now DERIVES from the Thermal (Suite) class
+  `ThermalVolumeProfileLVN` (calls base OnCalculate/OnRender/OnDispose; Thermal groups prefixed "Thermal · " under
+  SUITE) and hosts the four trackers via `Atas/AnfitrionTrackers.cs` (CarcasaSuite "Global" publishes all trackers'
+  events; tracker settings generated as `Trk*` in groups 40-51 by `generar_parametros.py`). Three models M1/M2/M3
+  (M3 = broken iceberg continuation, invalidates pending M1/M2); sweep consolidation window ≥ 14 one-minute candles,
+  CVD turn/divergence absorption, RUPTURA only when displaced past MaxSweepTicks or the window ends; BOS+FVG+LVN
+  structure; white session lines stopping at the break (`Nucleo/LineasSesion.cs`) with a break alert + banner;
+  FVG only after a validated sweep; panel header + 16 boxes in the owner's order; window pinned by default.
+  Default changes that must reach saved templates use NEW property names (ATAS saves by name). `verificar.sh` 530.
 - **One-click install on the ATAS PC (2026-11-01):** `homs/bic.cmd` + `homs/build-indicador.ps1` live in
   `C:\homs\` behind a desktop shortcut. Each click pulls upstream, pushes origin, reads **`instalar.txt`**
   (repo root, one folder name per line) and builds `<name>\<name>.csproj` and copies the DLL to

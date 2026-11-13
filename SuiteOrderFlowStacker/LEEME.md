@@ -10,7 +10,7 @@ Los indicadores de order flow para ATAS en **una sola DLL** (`SuiteOrderFlowStac
 | 3 | **Stops Tracker Pro (Suite)** | Zonas probables de stops y cascadas de stops ya disparadas: ¿TRAMPA o CONTINUACIÓN? |
 | 4 | **Sweeps Tracker Pro (Suite)** | Barridos (una orden agresiva que se come varios niveles): LIQUIDEZ, RUPTURA o CONTRA ICEBERG. |
 | 5 | **Absorption Master (Suite)** | **La señal única.** Ejecuta todo lo anterior por dentro y solo avisa cuando hay confluencia (setups A-D). |
-| 6 | **Sessions Sweeps Pro (Suite)** | Barridos de liquidez v3: perfiles NQ/ES/YM, BARRIDO REAL / PREMIUM, Modelo A (barrido) y Modelo B (LVN / EDGE / FVG), panel con 17 recuadros, correo, Telegram, MT5 opcional. Manual: [SessionSweeps/LEEME.md](SessionSweeps/LEEME.md). |
+| 6 | **Indicador Global Session Sweep** | v4: **un solo indicador** con todo (sesiones y líneas de sesión, barridos con consolidación y CVD, Modelos M1 / M2 / M3, el Thermal + LVN / EDGE y los trackers por dentro, CVD, panel, alertas, Telegram, MT5 opcional). Manual: [SessionSweeps/LEEME.md](SessionSweeps/LEEME.md). |
 | 6b | **Sessions Sweeps CVD (Suite)** | Subpanel: CVD en velas con divergencias macro y micro. |
 
 **Principio:** mucho cálculo por dentro, **resultado simple por fuera**. Por defecto cada indicador muestra solo un

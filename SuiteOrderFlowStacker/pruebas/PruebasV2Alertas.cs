@@ -54,8 +54,8 @@ internal static class PruebasV2Alertas
 		c.Check("cero alertas al recargar: las novedades del historial se descartan (prueba 28)",
 			despacho.Procesar(novedadesB, enVivo: false, p0, ctxA).Count.ToString(), "0");
 		var vivas = despacho.Procesar(novedadesA, enVivo: true, p0, ctxA);
-		c.Check("en vivo, la misma ruptura avisa: RUPTURA / ACEPTACIÓN CONFIRMADA (contexto)",
-			vivas.Any(x => x.Categoria == CategoriaAlerta.Ruptura && x.Texto.Contains("RUPTURA / ACEPTACIÓN CONFIRMADA (contexto)", StringComparison.Ordinal)) ? "sí" : string.Join(" / ", vivas.Select(x => x.Texto)), "sí");
+		c.Check("en vivo, la misma ruptura avisa: ROMPIMIENTO / ACEPTACIÓN CONFIRMADO (contexto)",
+			vivas.Any(x => x.Categoria == CategoriaAlerta.Ruptura && x.Texto.Contains("ROMPIMIENTO / ACEPTACIÓN CONFIRMADO (contexto)", StringComparison.Ordinal)) ? "sí" : string.Join(" / ", vivas.Select(x => x.Texto)), "sí");
 		c.Check("una vez por evento: repetir las mismas novedades no vuelve a sonar", despacho.Procesar(novedadesA, enVivo: true, p0, ctxA).Count.ToString(), "0");
 
 		c.Seccion("v3 S14 Alertas: solo las cinco del prompt (15), NOTICIA, una vez por evento");

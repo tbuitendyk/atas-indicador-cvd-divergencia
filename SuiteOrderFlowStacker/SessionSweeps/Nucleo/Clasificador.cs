@@ -38,7 +38,7 @@ public static class TextosV2
 		EstadoBarrido.SinLiquidez => "SIN LIQ",
 		EstadoBarrido.Real => "BARRIDO REAL",
 		EstadoBarrido.Premium => "BARRIDO REAL PREMIUM",
-		EstadoBarrido.Ruptura => "RUPTURA / ACEPTACIÓN",
+		EstadoBarrido.Ruptura => "ROMPIMIENTO / ACEPTACIÓN",
 		EstadoBarrido.RupturaFallida => "RUPTURA FALLIDA",
 		EstadoBarrido.Fallido => "FALLIDO",
 		_ => "INDETERMINADO"

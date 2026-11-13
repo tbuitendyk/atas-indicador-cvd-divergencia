@@ -178,7 +178,7 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `ShowInChartPanel` | Panel dentro del gráfico | No |  | El mismo contenido dibujado sobre el gráfico (si no se quiere la ventana). |
 | `InChartPanelX` | Panel en el gráfico: X | 25 | 0-5000 |  |
 | `InChartPanelY` | Panel en el gráfico: Y | 60 | 0-5000 |  |
-| `ShowSweepBoxes` | Cajas de barrido | Sí |  | Coloreadas por estado (REAL, PREMIUM, RUPTURA / ACEPTACIÓN, FALLIDO…). |
+| `ShowSweepBoxes` | Cajas de barrido | Sí |  | Coloreadas por estado (REAL, PREMIUM, ROMPIMIENTO / ACEPTACIÓN, FALLIDO…). |
 | `ShowModelBoxes` | Zonas de los modelos | Sí |  | M1 (barrido, BFVG), M2 (LVN / EDGE / FVG) y M3 (iceberg rebasado) con entrada, stop y objetivo. |
 | `ShowFvgV2` | FVG / BFVG | Sí |  |  |
 | `FvgOnlyAfterSweep` | FVG solo después de un barrido validado | Sí |  | Dibuja solo los FVG nacidos después de un BARRIDO REAL o PREMIUM y a favor de su giro (oculta los demás). |
@@ -199,9 +199,9 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `AlertPremiumAtas` | BARRIDO REAL PREMIUM: ATAS (sonido y ventana) | Sí |  |  |
 | `AlertPremiumEmail` | BARRIDO REAL PREMIUM: correo | Sí |  |  |
 | `AlertPremiumTelegram` | BARRIDO REAL PREMIUM: Telegram | Sí |  |  |
-| `AlertRupturaAtas` | RUPTURA / ACEPTACIÓN: ATAS (sonido y ventana) | Sí |  |  |
-| `AlertRupturaEmail` | RUPTURA / ACEPTACIÓN: correo | No |  |  |
-| `AlertRupturaTelegram` | RUPTURA / ACEPTACIÓN: Telegram | No |  |  |
+| `AlertRupturaAtas` | ROMPIMIENTO / ACEPTACIÓN: ATAS (sonido y ventana) | Sí |  |  |
+| `AlertRupturaEmail` | ROMPIMIENTO / ACEPTACIÓN: correo | No |  |  |
+| `AlertRupturaTelegram` | ROMPIMIENTO / ACEPTACIÓN: Telegram | No |  |  |
 | `AlertEntradaAAtas` | GATILLO VÁLIDO M1: ATAS (sonido y ventana) | Sí |  |  |
 | `AlertEntradaAEmail` | GATILLO VÁLIDO M1: correo | Sí |  |  |
 | `AlertEntradaATelegram` | GATILLO VÁLIDO M1: Telegram | Sí |  |  |

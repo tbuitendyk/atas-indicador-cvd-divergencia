@@ -14,7 +14,7 @@ Un solo repositorio con una carpeta por indicador; `Indicadores.slnx` los compil
 | **Indicador Completo** (+ panel *Indicador Completo CVD*) — solución aparte | `IndicadorCompleto/` | `IndicadorCompleto.dll` |
 | **Thermal Volume Profile** (perfil térmico) — solución aparte | `ThermalVolumeProfile/` | `ThermalVolumeProfile.dll` |
 | **NQ Session Sweeps Pro** (barridos de liquidez) — solución aparte | `NQSessionSweepsPro/` | `NQSessionSweepsPro.dll` |
-| **Suite Order Flow Stacker** (Thermal VP + LVN, Stacked Imbalance, Icebergs, Stops, Sweeps, Absorption Master, Sessions Sweeps Pro v3 y su CVD) — solución aparte | `SuiteOrderFlowStacker/` | `SuiteOrderFlowStacker.dll` |
+| **Suite Order Flow Stacker** (Thermal VP + LVN, Stacked Imbalance, Icebergs, Stops, Sweeps, Absorption Master, el Indicador Global Session Sweep y su CVD) — solución aparte | `SuiteOrderFlowStacker/` | `SuiteOrderFlowStacker.dll` |
 
 **Indicador Completo** tiene su **propia solución**, `IndicadorCompleto\IndicadorCompleto.slnx`, y su propio
 manual: **[IndicadorCompleto/LEEME.md](IndicadorCompleto/LEEME.md)**. Estructura 1H, barridos de liquidez, mapas
@@ -38,8 +38,8 @@ el Thermal Volume Profile + LVN (el mismo código de `ThermalVolumeProfile/`), S
 (la señal única, setups A-D). Manual de usuario: [SuiteOrderFlowStacker/LEEME.md](SuiteOrderFlowStacker/LEEME.md);
 manual de operativa: [OPERATIVA.md](SuiteOrderFlowStacker/OPERATIVA.md); parámetros:
 [PARAMETROS.md](SuiteOrderFlowStacker/PARAMETROS.md); decisiones: [DECISIONES.md](SuiteOrderFlowStacker/DECISIONES.md).
-En la misma DLL, **Sessions Sweeps Pro (Suite)** v3 (el NQ Session Sweeps Pro rehecho con otro nombre, para no
-sobrescribirlo): perfiles NQ / ES / YM (y micros) con calibración, clasificador de barridos (BARRIDO REAL / PREMIUM,
+En la misma DLL, el **Indicador Global Session Sweep** (v4: un solo indicador que lleva dentro el Thermal y los
+trackers; antes Sessions Sweeps Pro (Suite), el NQ Session Sweeps Pro rehecho con otro nombre, para no sobrescribirlo): perfiles NQ / ES / YM (y micros) con calibración, clasificador de barridos (BARRIDO REAL / PREMIUM,
 RUPTURA) con barras de volumen y los eventos de la suite, Modelo A (barrido) y Modelo B (LVN / EDGE / FVG del Thermal)
 con gatillo de order flow, panel flotante con cabecera y 17 recuadros, CVD con minigráfico, 5 alertas por ATAS, correo
 y Telegram (credenciales cifradas), puente MT5 opcional (apagado por defecto) y CSV de auditoría. Manual: [SuiteOrderFlowStacker/SessionSweeps/LEEME.md](SuiteOrderFlowStacker/SessionSweeps/LEEME.md).

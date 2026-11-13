@@ -451,7 +451,7 @@ public partial class SessionSweepsPro
 	[Range(0, 5000)]
 	public int InChartPanelY { get => _v.InChartPanelY; set { _v.InChartPanelY = Math.Clamp(value, 0, 5000); RedrawChart(); } }
 
-	[Display(Name = "Cajas de barrido", GroupName = "28. Panel y dibujo", Order = 50, Description = "Coloreadas por estado (REAL, PREMIUM, RUPTURA / ACEPTACIÓN, FALLIDO…).")]
+	[Display(Name = "Cajas de barrido", GroupName = "28. Panel y dibujo", Order = 50, Description = "Coloreadas por estado (REAL, PREMIUM, ROMPIMIENTO / ACEPTACIÓN, FALLIDO…).")]
 	public bool ShowSweepBoxes { get => _v.ShowSweepBoxes; set { _v.ShowSweepBoxes = value; RedrawChart(); } }
 
 	[Display(Name = "Zonas de los modelos", GroupName = "28. Panel y dibujo", Order = 60, Description = "M1 (barrido, BFVG), M2 (LVN / EDGE / FVG) y M3 (iceberg rebasado) con entrada, stop y objetivo.")]
@@ -502,13 +502,13 @@ public partial class SessionSweepsPro
 	[Display(Name = "BARRIDO REAL PREMIUM: Telegram", GroupName = "37. Alertas y canales", Order = 60, Description = "")]
 	public bool AlertPremiumTelegram { get => _cfg.V2.AlertPremiumTelegram; set { _cfg.V2.AlertPremiumTelegram = value; RedrawChart(); } }
 
-	[Display(Name = "RUPTURA / ACEPTACIÓN: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 70, Description = "")]
+	[Display(Name = "ROMPIMIENTO / ACEPTACIÓN: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 70, Description = "")]
 	public bool AlertRupturaAtas { get => _cfg.V2.AlertRupturaAtas; set { _cfg.V2.AlertRupturaAtas = value; RedrawChart(); } }
 
-	[Display(Name = "RUPTURA / ACEPTACIÓN: correo", GroupName = "37. Alertas y canales", Order = 80, Description = "")]
+	[Display(Name = "ROMPIMIENTO / ACEPTACIÓN: correo", GroupName = "37. Alertas y canales", Order = 80, Description = "")]
 	public bool AlertRupturaEmail { get => _cfg.V2.AlertRupturaEmail; set { _cfg.V2.AlertRupturaEmail = value; RedrawChart(); } }
 
-	[Display(Name = "RUPTURA / ACEPTACIÓN: Telegram", GroupName = "37. Alertas y canales", Order = 90, Description = "")]
+	[Display(Name = "ROMPIMIENTO / ACEPTACIÓN: Telegram", GroupName = "37. Alertas y canales", Order = 90, Description = "")]
 	public bool AlertRupturaTelegram { get => _cfg.V2.AlertRupturaTelegram; set { _cfg.V2.AlertRupturaTelegram = value; RedrawChart(); } }
 
 	[Display(Name = "GATILLO VÁLIDO M1: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 100, Description = "")]

@@ -199,7 +199,7 @@ public sealed partial class MotorSweeps
 		var s = e.Signo;
 		var tick = Cfg.TamanoTick;
 
-		Novedad(e, "RUPTURA (arma MOD4)", utc, $"RUPTURA / ACEPTACIÓN {e.Nombre} {Precio(e.L)}: B - RETROCESO TRAS ROMPIMIENTO armado");
+		Novedad(e, "RUPTURA (arma MOD4)", utc, $"ROMPIMIENTO / ACEPTACIÓN {e.Nombre} {Precio(e.L)}: M2 - RETROCESO TRAS ROMPIMIENTO armado");
 
 		// 4) retest de L (cambio de rol).
 		var retest = new ZonaOperable

@@ -88,3 +88,26 @@ Las decisiones de diseño de la v3 están en [PLAN_V3.md](PLAN_V3.md) ("Decision
     inventa (// VERIFICAR).
 28. **Grupo "13. Correo y Telegram":** se renombró el grupo (antes "13. Correo") porque también tiene Telegram. ATAS
     guarda los valores por propiedad, así que las plantillas no pierden nada.
+
+## v4 — Indicador Global Session Sweep (correcciones del 13-11-2026)
+
+Las decisiones están en [PLAN_V4.md](PLAN_V4.md) (lo encontrado en el código y las decisiones 1-13). Además, al
+construirla:
+
+29. **Un solo indicador por herencia:** la clase del barrido hereda de la del Thermal (Suite) y aloja los trackers
+    (AnfitrionTrackers). No se envuelve el Thermal en un adaptador porque habría que nombrar tipos de ATAS que no se
+    pueden comprobar sin la DLL real; heredar solo usa lo que ya compilaba en el PC del propietario.
+30. **Ajustes que chocaban** entre el Thermal y el barrido se renombraron del lado del barrido (SweepAlertSoundFile,
+    SweepLabelFontSize, SweepMaxManualBoxes): esos tres vuelven a su valor por defecto en plantillas viejas.
+31. **Cambios de valor por defecto que deben llegar a plantillas guardadas** se hicieron con propiedades nuevas
+    (ShowSessionsTable, ShowPineZones, ShowPineTargets, ShowLegacyFvg, TrackerAlerts, ShowOwnPanel): ATAS guarda por
+    nombre de propiedad y una propiedad nueva toma su valor por defecto.
+32. **Consolidación:** la absorción en consolidación solo suma cuando no hubo recuperación inmediata (la rápida ya suma
+    con F2, F3 y el giro de delta: cada hecho una vez).
+33. **Línea reciente de NY:** un pivote nuevo reemplaza a la línea viva reciente de su lado ("el último máximo o mínimo
+    reciente"); las rotas quedan dibujadas, detenidas en la ruptura. Al terminar la sesión, sus líneas recientes las
+    sustituyen las de su máximo y su mínimo.
+34. **Ventana fija:** se fija por defecto (Topmost) y las posiciones guardadas antes de la v4 se fijan una vez; no se
+    usa una ventana "dueña" (Owner) porque ATAS puede tener gráficos en ventanas separadas.
+35. **Dibujo:** el indicador dibuja por encima de las velas (cajas, líneas, avisos); el perfil térmico baja su
+    opacidad por defecto a 110 para no tapar las velas.
