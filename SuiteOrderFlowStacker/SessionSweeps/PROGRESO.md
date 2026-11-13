@@ -78,3 +78,21 @@ sustitutos de ATAS: **no** son prueba de ejecución real.
 - MT5: EA `SessionsSweepsBridge.mq5` compilado en MetaEditor, WebRequest permitido a `http://127.0.0.1:5005`, fichas
   INFO del símbolo, órdenes con SL/TP como distancias en DEMO antes que REAL.
 - `MaxDelta` / `MinDelta` de las velas para las mechas del CVD.
+
+## v4 — Indicador Global Session Sweep (correcciones del 13-11-2026)
+
+Plan: [PLAN_V4.md](PLAN_V4.md) · especificación: [PROMPT_V4.md](PROMPT_V4.md) · rama `global-session-sweep-v4`.
+
+| Subfase | Estado | Notas |
+|---|---|---|
+| G1 Especificación y plan | **hecha** | PROMPT_V4.md (texto del propietario) y PLAN_V4.md (lo encontrado en el código, decisiones 1-13). |
+| G2 Ventana fija, tabla, ROMPIMIENTO | pendiente | |
+| G3 Barrido con consolidación y absorción por CVD | pendiente | |
+| G4 Líneas de sesión, alerta de ruptura, BOS, FVG tras barrido | pendiente | |
+| G5 Modelos M1, M2, M3 | pendiente | |
+| G6 Panel en el orden del documento | pendiente | |
+| G7 Alertas de trackers fuera | pendiente | |
+| G8 Global: trackers dentro | pendiente | |
+| G9 Global: Thermal dentro | pendiente | |
+| G10 Nombre, fuentes duplicadas, CVD | pendiente | |
+| G11 Documentación, manual, pruebas, fusión | pendiente | |
