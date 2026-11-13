@@ -191,6 +191,18 @@ public partial class SessionSweepsPro
 	[Range(0, 1)]
 	public decimal DeltaFlipMin { get => _cfg.V2.DeltaFlipMin; set { _cfg.V2.DeltaFlipMin = Math.Clamp(value, 0m, 1m); Recalcular(); } }
 
+	[Display(Name = "Consolidación: velas mínimas (1 m)", GroupName = "21. Recuperación", Order = 70, Description = "Velas de 1 minuto en el extremo, sin recuperar, con volumen: cuentan como absorción.")]
+	[Range(1, 30)]
+	public int ConsolidationMinCandles { get => _cfg.V2.ConsolidationMinCandles; set { _cfg.V2.ConsolidationMinCandles = Math.Clamp(value, 1, 30); Recalcular(); } }
+
+	[Display(Name = "Consolidación: velas máximas (1 m)", GroupName = "21. Recuperación", Order = 80, Description = "El barrido se sigue evaluando al menos estas velas de 1 minuto (10-14 es normal en NY) antes de vencer o llamarse RUPTURA.")]
+	[Range(2, 60)]
+	public int ConsolidationMaxCandles { get => _cfg.V2.ConsolidationMaxCandles; set { _cfg.V2.ConsolidationMaxCandles = Math.Clamp(value, 2, 60); Recalcular(); } }
+
+	[Display(Name = "Consolidación: volumen × mediana por minuto", GroupName = "21. Recuperación", Order = 90, Description = "Volumen por minuto de la consolidación respecto a la mediana de 1 minuto del instrumento (calibración).")]
+	[Range(0, 10)]
+	public decimal ConsolidationVolumeMult { get => _cfg.V2.ConsolidationVolumeMult; set { _cfg.V2.ConsolidationVolumeMult = Math.Clamp(value, 0m, 10m); Recalcular(); } }
+
 	// --- 22. Estados y alertas -------------------------------------------------------------------------------
 
 	[Display(Name = "Puntos BARRIDO REAL", GroupName = "22. Estados y alertas", Order = 10, Description = "Mínimo para BARRIDO DE LIQUIDEZ REAL (con toma de stops, absorción y recuperación). Puntuación, no probabilidad.")]

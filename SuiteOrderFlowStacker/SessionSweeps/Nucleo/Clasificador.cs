@@ -142,6 +142,16 @@ public sealed class EvaluacionBarrido
 	public List<PuntoDesglose> Desglose = new();
 	public List<string> Faltan = new();
 
+	// v4: consolidación en el extremo (velas de 1 minuto), compras / ventas de la vela compuesta y CVD desde T0.
+	public int ConsolidacionVelas;
+	public decimal VolumenCompra, VolumenVenta;
+	public bool CvdGiro, CvdDiverge, AbsorcionConsolidacion;
+
+	// v4: confirmación estructural después del giro (la pone el motor).
+	public bool Bos, FvgAFavor, LvnObjetivo;
+
+	public bool EstructuraConfirmada => Bos && FvgAFavor && LvnObjetivo;
+
 	// Estado y congelación (7.7).
 	public EstadoBarrido Estado = EstadoBarrido.Pendiente;
 	public bool Congelada;
@@ -194,6 +204,9 @@ public sealed class ContextoClasificador
 	public Func<EvaluacionBarrido, bool?> Pine = _ => null;
 
 	public Func<EvaluacionBarrido, int> ToquesNivel = _ => 1;
+
+	/// <summary>v4: mediana del volumen de 1 minuto en RTH del instrumento (calibración); null = sin calibrar.</summary>
+	public Func<decimal?> MedianaVolumenMinuto = () => null;
 }
 
 /// <summary>
@@ -222,13 +235,22 @@ public static class Clasificador
 		Medir(e, c);
 
 		var barras = ultima - (e.VentanaDesdeBarra ?? e.BarraT0) + 1;
-		var vencida = barras >= c.P.MaxEvaluationBars || (c.Ahora - (e.VentanaDesdeUtc ?? e.T0Utc)).TotalSeconds >= c.P.MaxEvaluationSec;
+		var minutos = (c.Ahora - (e.VentanaDesdeUtc ?? e.T0Utc)).TotalMinutes;
+
+		// v4: la ventana dura al menos ConsolidationMaxCandles velas de 1 minuto (en NY el precio puede consolidar 10-14
+		// velas en el extremo antes de girar); los límites en barras y segundos solo la alargan.
+		var dentroConsolidacion = minutos < Math.Max(1, c.P.ConsolidationMaxCandles);
+		var vencida = !dentroConsolidacion && (barras >= c.P.MaxEvaluationBars || minutos * 60 >= c.P.MaxEvaluationSec);
 		var rafaga = e.Desglose.Any(x => x.Texto.StartsWith("Ráfaga", StringComparison.Ordinal));
 		var sinLiq = e.PenetrationTicks <= 2 && e.ScoreB < 6 && !rafaga;
 		var reclaim = e.ReclaimBars >= 0;
 		var absorcion = e.ScoreC > 0;
-		var arranque = e.F3Rapida || e.DeltaFlip;
+		var arranque = e.F3Rapida || e.DeltaFlip || (e.AbsorcionConsolidacion && e.CvdGiro);
 		var tomaStops = e.ScoreB >= 6 || rafaga;
+
+		// v4: RUPTURA solo si el precio se aleja más que el barrido máximo o si termina la ventana sin recuperar; mientras
+		// consolida cerca del nivel no se llama ruptura (el "falso" prematuro del que se quejaba el propietario).
+		var desplazado = e.Signo * (b[ultima].Close - e.L) > c.P.MaxSweepTicks * c.Tick;
 
 		EstadoBarrido? nuevo = null;
 
@@ -240,7 +262,7 @@ public static class Clasificador
 		{
 			nuevo = e.Total >= c.P.ScorePremiumMin && e.PremiumGates.All(x => x == '1') ? EstadoBarrido.Premium : EstadoBarrido.Real;
 		}
-		else if (!reclaim && CondicionesRuptura(e, c) >= c.P.RuptureMinConditions)
+		else if (!reclaim && (desplazado || !dentroConsolidacion) && CondicionesRuptura(e, c) >= c.P.RuptureMinConditions)
 		{
 			nuevo = EstadoBarrido.Ruptura;
 		}
@@ -387,6 +409,12 @@ public static class Clasificador
 		var fases = DetectorFases.Detectar(b, e.BarraT0, ultima, -s, e.Extremo, p, med, tick, retroceso: false);
 		var finComp = Math.Min(ultima, e.BarraT0 + Math.Max(1, p.CompositeMaxBars) - 1);
 
+		// v4: la vela compuesta abarca también la consolidación en el extremo (hasta ConsolidationMaxCandles minutos).
+		var limiteConsolidacion = e.T0Utc.AddMinutes(Math.Max(1, p.ConsolidationMaxCandles));
+
+		for (var i = finComp + 1; i <= ultima && b[i].FinUtc <= limiteConsolidacion; i++)
+			finComp = i;
+
 		if (e.ReclaimBars >= 0)
 			finComp = Math.Min(finComp, e.BarraT0 + e.ReclaimBars);
 
@@ -396,6 +424,7 @@ public static class Clasificador
 		var comp = Compuesta.Construir(b, e.BarraT0, finComp, tick, p.ValueAreaPct);
 		e.CompositeBars = comp?.Barras ?? 0;
 		e.CompositePoc = comp?.Poc ?? 0;
+		Consolidacion(e, c, finComp);
 		e.Aprox = comp?.Aprox ?? false;
 		e.F2Bars = fases.F2Barras;
 		(e.F3Rapida, e.F3Lenta, e.F3DurationSec, e.F3RangeTicks, e.F3DeltaPct) = (fases.F3, fases.F3Lenta, fases.F3DuracionSec, fases.F3RangoTicks, fases.F3DeltaPct);
@@ -539,9 +568,18 @@ public static class Clasificador
 		if (stackedContra)
 			Punto('C', "Stacked imbalance contrario en el extremo", 2);
 
+		// v4: absorción en una consolidación en el extremo con el CVD que gira o diverge.
+		if (e.AbsorcionConsolidacion)
+		{
+			Punto('C', $"Absorción en consolidación: {e.ConsolidacionVelas} velas, {e.VolumenCompra + e.VolumenVenta:0} contratos " +
+				$"(compras {e.VolumenCompra:0} / ventas {e.VolumenVenta:0}), CVD {(e.CvdGiro ? "gira" : "diverge")}", 5);
+		}
+
 		// ============================ D RECUPERACIÓN (tope 25) ============================
 		if (e.ReclaimBars >= 0 && e.ReclaimBars <= p.ReclaimMaxBars)
 			Punto('D', $"Cierre de vuelta en {e.ReclaimBars} barras", 6);
+		else if (e.ReclaimBars >= 0 && e.AbsorcionConsolidacion)
+			Punto('D', $"Cierre de vuelta tras consolidar {e.ConsolidacionVelas} velas", 4);
 
 		if (fases.F3)
 			Punto('D', $"F3 rápida ({fases.F3RangoTicks} ticks, {fases.F3DuracionSec:0.0} s, delta {fases.F3DeltaPct:P0})", 6);
@@ -657,6 +695,59 @@ public static class Clasificador
 		};
 
 		e.PremiumGates = new string(puertas.Select(x => x ? '1' : '0').ToArray());
+	}
+
+	/// <summary>
+	/// v4: consolidación en el extremo (velas de 1 minuto entre T0 y el cierre de vuelta, el F3 o ahora), volumen de
+	/// compras y ventas de la vela compuesta y CVD desde T0: GIRA si llegó a favor del barrido y cruzó al otro lado (de
+	/// positivo a negativo en máximos, de negativo a positivo en mínimos); DIVERGE si el precio hizo un extremo nuevo con
+	/// el CVD por debajo de su pico anterior. Absorción = sin recuperación inmediata, suficientes velas, volumen y CVD que
+	/// gira o diverge.
+	/// </summary>
+	public static void Consolidacion(EvaluacionBarrido e, ContextoClasificador c, int finComp)
+	{
+		var b = c.Barras;
+		var p = c.P;
+		var s = e.Signo;
+		var minutos = new HashSet<long>();
+		decimal compra = 0, venta = 0, cvd = 0, pico = 0, cvdEnPico = 0, precioEnPico = e.L;
+		var diverge = false;
+
+		for (var i = e.BarraT0; i <= finComp && i < b.Count; i++)
+		{
+			var x = b[i];
+			minutos.Add(x.FinUtc.Ticks / TimeSpan.TicksPerMinute);
+			compra += Math.Max(0, (x.Volumen + x.Delta) / 2);
+			venta += Math.Max(0, (x.Volumen - x.Delta) / 2);
+			cvd += x.Delta;
+			var extremo = s > 0 ? x.High : x.Low;
+
+			// Divergencia: extremo de precio nuevo con el CVD (a favor del barrido) por debajo del pico anterior.
+			if (s * (extremo - precioEnPico) > 0)
+			{
+				if (s * cvd < s * cvdEnPico && s * cvdEnPico > 0)
+					diverge = true;
+
+				(precioEnPico, cvdEnPico) = (extremo, cvd);
+			}
+
+			pico = Math.Max(pico, s * cvd);
+		}
+
+		var umbral = Math.Max(1, p.DeltaFlipMin * c.ContratosPorBarra);
+		e.ConsolidacionVelas = minutos.Count;
+		(e.VolumenCompra, e.VolumenVenta) = (compra, venta);
+		e.CvdGiro = pico >= umbral && s * cvd <= -umbral / 2;
+		e.CvdDiverge = diverge;
+
+		var volumen = compra + venta;
+		var porMinuto = minutos.Count > 0 ? volumen / minutos.Count : 0;
+		var suficiente = c.MedianaVolumenMinuto() is decimal mediana && mediana > 0
+			? porMinuto >= p.ConsolidationVolumeMult * mediana
+			: volumen >= Math.Max(1, p.ConsolidationMinCandles) * c.ContratosPorBarra;
+		// Solo el caso sin recuperación inmediata (la rápida ya suma con F2, F3 y el giro de delta: cada hecho una vez).
+		var lenta = e.ReclaimBars < 0 || e.ReclaimBars > p.ReclaimMaxBars;
+		e.AbsorcionConsolidacion = lenta && minutos.Count >= Math.Max(1, p.ConsolidationMinCandles) && suficiente && (e.CvdGiro || e.CvdDiverge);
 	}
 
 	/// <summary>Condiciones de RUPTURA (de 5): aceptación, POC más allá, delta sostenido, sin absorción, retest que aguanta.</summary>

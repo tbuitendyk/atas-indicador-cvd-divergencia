@@ -138,6 +138,11 @@ public sealed class ParametrosV2
 	public decimal F3DeltaPctMin { get; set; } = 0.25m;
 	public decimal ContDeltaPctMin { get; set; } = 0.30m;
 	public decimal DeltaFlipMin { get; set; } = 0.20m;
+
+	// v4: consolidación en el extremo, contada en velas de 1 minuto.
+	public int ConsolidationMinCandles { get; set; } = 2;
+	public int ConsolidationMaxCandles { get; set; } = 14;
+	public decimal ConsolidationVolumeMult { get; set; } = 1.0m;
 	public int RecoveryTicks { get; set; } = 16;
 	public int StopBufferTicks { get; set; } = 3;
 

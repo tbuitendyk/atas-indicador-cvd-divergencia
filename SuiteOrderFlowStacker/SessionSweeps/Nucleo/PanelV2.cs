@@ -398,6 +398,13 @@ public sealed partial class MotorSweeps
 		L.Add(Linea("b4", new Segmento($"Penetración {e.PenetrationTicks} ticks · volumen más allá {e.VolBeyond:0} contratos ({e.VolBeyondRel:0.0}× la mediana) · " +
 			$"stops {(e.StopsEvento.Length > 0 ? e.StopsEvento : "sin evento")}")));
 
+		// v4: el rango de ruptura como vela compuesta (compras contra ventas), la consolidación y el CVD desde T0.
+		L.Add(Linea("b4", new Segmento($"Rango de ruptura: compras {e.VolumenCompra:#,##0} / ventas {e.VolumenVenta:#,##0} contratos · consolidación {e.ConsolidacionVelas} velas · CVD "),
+			new Segmento(e.CvdGiro ? "GIRA" : e.CvdDiverge ? "DIVERGE" : "sin giro", e.CvdGiro || e.CvdDiverge ? ColorSigno(e.SignoGiro) : ColorPanel.Gris, e.CvdGiro || e.CvdDiverge),
+			new Segmento(e.AbsorcionConsolidacion ? " · ABSORCIÓN EN CONSOLIDACIÓN" : "", ColorPanel.Verde, true)));
+		L.Add(Linea("b4", new Segmento("Estructura: "), new Segmento($"BOS {(e.Bos ? "sí" : "no")} · FVG {(e.FvgAFavor ? "sí" : "no")} · LVN {(e.LvnObjetivo ? "sí" : "no")}",
+			ColorPanel.Gris), new Segmento(e.EstructuraConfirmada ? " → ESTRUCTURA CONFIRMADA" : "", ColorSigno(e.SignoGiro), true)));
+
 		// Validación (v3, 1.3): "Certificada" SOLO con MBO e iceberg AGUANTANDO; inferido = "Probable".
 		var (validacion, cv) = e.IcebergEstado == "AGUANTANDO" && e.IcebergModo == "MBO" ? ("Certificada como real por iceberg (MBO)", ColorPanel.Verde)
 			: e.IcebergModo == "INFERIDO" ? ("Probable: iceberg inferido", ColorPanel.Naranja)

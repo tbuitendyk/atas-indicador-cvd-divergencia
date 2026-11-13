@@ -172,8 +172,42 @@ public sealed partial class MotorSweeps
 		DivergenciaCvd = ContextoV2.Divergencia,
 		Vwap = _ => ContextoV2.Vwap,
 		Pine = e => e.Nivel.Zona is { Activa: false } z && Math.Abs((z.T0Utc - e.T0Utc).TotalMinutes) <= 2 ? !z.FalsoPine : null,
-		ToquesNivel = Toques
+		ToquesNivel = Toques,
+		MedianaVolumenMinuto = () => Instrumento.Calibracion is { MedianaVolumenMinuto: > 0 } cal ? cal.MedianaVolumenMinuto : null
 	};
+
+	/// <summary>
+	/// v4: confirmación estructural del giro (la pide el propietario para el modelo): BOS a favor del giro (cierre de 1
+	/// minuto más allá del último pivote de la pierna que hizo el barrido), un FVG a favor nacido después del extremo y un
+	/// LVN o EDGE como objetivo en la dirección del giro.
+	/// </summary>
+	public void Estructura(EvaluacionBarrido e)
+	{
+		var g = e.SignoGiro;
+		var desde = e.T0Utc.AddMinutes(-30);
+		var pierna = Velas.Where(v => v.InicioUtc >= desde && v.InicioUtc <= e.ExtremoUtc).ToList();
+		decimal? referencia = null;
+
+		// El pivote más reciente de la pierna (2 velas a cada lado): un mínimo si se barrió un máximo, y al revés.
+		for (var i = pierna.Count - 3; i >= 2 && referencia is null; i--)
+		{
+			var x = g < 0 ? pierna[i].Low : pierna[i].High;
+			bool Mas(decimal y) => g < 0 ? y > x : y < x;
+
+			if (Mas(g < 0 ? pierna[i - 1].Low : pierna[i - 1].High) && Mas(g < 0 ? pierna[i - 2].Low : pierna[i - 2].High) &&
+				Mas(g < 0 ? pierna[i + 1].Low : pierna[i + 1].High) && Mas(g < 0 ? pierna[i + 2].Low : pierna[i + 2].High))
+			{
+				referencia = x;
+			}
+		}
+
+		referencia ??= pierna.Count == 0 ? null : g < 0 ? pierna.Min(v => v.Low) : pierna.Max(v => v.High);
+		e.Bos = referencia is { } r && Velas.Any(v => v.InicioUtc > e.ExtremoUtc && g * (v.Close - r) > 0);
+		e.FvgAFavor = Fvg2.Fvgs.Any(f => f.Signo == g && f.Utc >= e.ExtremoUtc);
+		var precio = BarrasV.Actual?.Close ?? BarrasV.Barras.LastOrDefault()?.Close ?? e.L;
+		var minimo = P2.TargetMinDistTicks * Cfg.TamanoTick;
+		e.LvnObjetivo = Lvn.Proximo(precio, g, minimo) is not null || Edge.Proximo(precio, g, minimo) is not null;
+	}
 
 	/// <summary>Toques del nivel antes del barrido (grupos de velas que llegaron a EqualLevelTolTicks sin pasarlo), contando su origen.</summary>
 	private int Toques(EvaluacionBarrido e)
@@ -212,6 +246,7 @@ public sealed partial class MotorSweeps
 
 			var antes = e.Estado;
 			var transicion = Clasificador.Evaluar(e, ctx);
+			Estructura(e);
 
 			if (transicion is null)
 				continue;

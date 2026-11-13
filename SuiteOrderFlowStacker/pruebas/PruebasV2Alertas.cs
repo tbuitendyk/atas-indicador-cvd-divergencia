@@ -23,8 +23,8 @@ internal static class PruebasV2Alertas
 		var novedadesA = a.M.TomarNovedadesV2();
 		var filas = FilasDe(novedadesA, Utc(new DateTime(2026, 10, 30, 9, 45, 0)));
 		var columnas = CsvV2.CabeceraBarridos.Split(',');
-		c.Check("cabecera: las 50 columnas de la v2 (EventId ... Transiciones, T0Utc) y 20 de auditoría v3 al final",
-			$"{columnas.Length} {columnas[1]} {columnas[48]} {columnas[49]} {columnas[50]} {columnas[^1]}", "70 EventId Transiciones T0Utc TimestampET ModelEligible");
+		c.Check("cabecera: las 50 columnas de la v2 (EventId ... Transiciones, T0Utc), 20 de auditoría v3 y 8 de la v4 al final",
+			$"{columnas.Length} {columnas[1]} {columnas[48]} {columnas[49]} {columnas[50]} {columnas[69]} {columnas[^1]}", "78 EventId Transiciones T0Utc TimestampET ModelEligible StructureConfirmed");
 		c.Check("cada fila tiene tantas celdas como la cabecera", filas.Skip(1).All(f => CsvV2.Separar(f).Count == columnas.Length) ? "sí" : "no", "sí");
 		var leidos = CsvV2.LeerBarridos(filas);
 		var pdh = a.Pdh!;

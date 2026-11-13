@@ -69,7 +69,8 @@ public static class CsvV2
 		"BurstRatio,AggressorShare,StopsEvent,IcebergState,IcebergMode,AbsorptionEvent,F2Bars,CompositeBars,CompositePOC,FinishedAuction," +
 		"UnfinishedAuction,StackedAgainst,StackedNewDir,ReclaimBars,F3DurationSec,F3RangeTicks,F3DeltaPct,DeltaFlip,RecoveryTicks,Recovery1mTime," +
 		"Recovery5mTime,ScoreA,ScoreB,ScoreC,ScoreD,ScoreE,Penalties,ScoreTotal,Estado,TimeConfirmUtc,PremiumGates,ConflictoPine,News,DataMode," +
-		"SourcesLoaded,Transiciones,T0Utc," + ContextoCsv.Cabecera + ",VolumeContracts,DeltaContracts,DeltaPct,VolumeRel,ModelEligible";
+		"SourcesLoaded,Transiciones,T0Utc," + ContextoCsv.Cabecera + ",VolumeContracts,DeltaContracts,DeltaPct,VolumeRel,ModelEligible," +
+		"ConsolidationCandles,BuyVolume,SellVolume,CvdTurn,BOS,FvgInFavor,LvnTarget,StructureConfirmed";
 
 	public const string CabeceraModelos =
 		"TimestampUTC,TradeId,Model,Label,Side,ParentEventId,ZoneType,ZoneLow,ZoneHigh,LvnOrigin,TriggerType,TriggerScore,TriggerReasons,Entry,Stop," +
@@ -109,7 +110,9 @@ public static class CsvV2
 		}.Concat((ctx ?? ContextoCsv.Vacio).Celdas(ahoraUtc, modoDatos)).Concat(new[]
 		{
 			D(e.VolBeyond), D(e.DeltaBeyond), e.VolBeyond > 0 ? D(Math.Round(e.DeltaBeyond / e.VolBeyond, 4)) : "", D(e.VolBeyondRel),
-			e.Estado is EstadoBarrido.Real or EstadoBarrido.Premium ? "A" : ""
+			e.Estado is EstadoBarrido.Real or EstadoBarrido.Premium ? "A" : "",
+			e.ConsolidacionVelas.ToString(CultureInfo.InvariantCulture), D(e.VolumenCompra), D(e.VolumenVenta),
+			e.CvdGiro ? "GIRA" : e.CvdDiverge ? "DIVERGE" : "", B(e.Bos), B(e.FvgAFavor), B(e.LvnObjetivo), B(e.EstructuraConfirmada)
 		});
 
 		return string.Join(",", c.Select(Celda));

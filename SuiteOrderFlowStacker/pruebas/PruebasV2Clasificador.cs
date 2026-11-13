@@ -159,12 +159,49 @@ internal static class PruebasV2Clasificador
 			c.Check($"1.6 {lado}: el stacked del extremo (C) y el de la nueva dirección (D) son zonas distintas", $"{x.E.StackedAgainst} {x.E.StackedNewDir}", "True True");
 		}
 
+		c.Seccion("v4 G3: consolidación de 10 velas de 1 minuto en el extremo con absorción y CVD que gira → BARRIDO REAL");
+
+		foreach (var s in new[] { +1, -1 })
+		{
+			Escenario Consolidacion(int maxVelas)
+			{
+				// Como Trampa(), pero con 10 minutos de consolidación entre el extremo y el F3.
+				var x = new Escenario(s, new DateTime(2026, 11, 2, 9, 31, 0));
+				x.P.ConsolidationMaxCandles = maxVelas;
+				x.Barra(20, Enumerable.Range(-14, 10).Select(k => (k, 7m, 3m)).ToArray());
+				var nivel = new NivelLiquidez { Id = 9, Precio = x.L, Lado = s > 0 ? Lado.Buyside : Lado.Sellside, Grupo = "dia", Origen = "Dia anterior", CreadoUtc = x.T.AddHours(-2) };
+				var t0 = x.T + TimeSpan.FromSeconds(6.0 / 11 * 6);
+				var b0 = x.Barra(6, (-4, 8, 0), (-3, 8, 0), (-2, 8, 0), (-1, 8, 0), (0, 8, 0), (1, 6, 5), (2, 6, 5), (3, 6, 6), (4, 5, 6), (5, 5, 5), (6, 5, 0));
+				x.E = new EvaluacionBarrido { Id = 9, Nivel = nivel, Signo = s, L = x.L, Extremo = x.Pk(6), T0Utc = t0, ExtremoUtc = x.M.Barras[b0].FinUtc, BarraT0 = b0 };
+				x.SuiteBasica();
+
+				// 10 minutos consolidando en el extremo: volumen alto con los vendedores (en un máximo) absorbiendo.
+				for (var i = 0; i < 10; i++)
+					x.Barra(60, (3, 13, 20), (4, 14, 20), (5, 13, 20));
+
+				x.Barra(4, Enumerable.Range(0, 20).Select(i => (5 - i, 1m, 4m)).ToArray());
+				x.Evaluar();
+				return x;
+			}
+
+			var lado = s > 0 ? "buyside" : "sellside";
+			var tc = Consolidacion(14);
+			c.Check($"v4 {lado}: consolida 10 velas sin llamarse RUPTURA y gira: BARRIDO REAL (no FALSO ni INDETERMINADO)", tc.E.Estado.EsReal() ? "REAL" : tc.E.Estado.ToString(), "REAL");
+			c.Check($"v4 {lado}: absorción en consolidación con compras y ventas y el CVD que gira",
+				$"{tc.E.AbsorcionConsolidacion} {tc.E.ConsolidacionVelas >= 10} {tc.E.CvdGiro} {tc.E.VolumenVenta > tc.E.VolumenCompra == (s > 0)}", "True True True True");
+			c.Check($"v4 {lado}: cierre de vuelta tras consolidar suma (+4) aunque pase de ReclaimMaxBars",
+				tc.E.Desglose.Any(d => d.Texto.StartsWith("Cierre de vuelta tras consolidar", StringComparison.Ordinal)).ToString(), "True");
+			var corta = Consolidacion(1);
+			c.Check($"v4 {lado}: con la ventana de antes (5 minutos) la misma consolidación vencía sin ser REAL", corta.E.Estado.EsReal() ? "REAL" : "vencida", "vencida");
+		}
+
 		c.Seccion("S3 T2-T4: sin iceberg ni F2 >= 3; iceberg inferido; sin liquidez");
 		var t2 = new Escenario(+1, new DateTime(2026, 11, 2, 9, 31, 0));
 		t2.Trampa();
 		t2.SuiteBasica();
 		t2.Evaluar();
 		c.Check("T2 sin iceberg ni F2 >= 3 (puerta 3): TRAMPA A", $"{t2.E.Estado} {F(t2.E.Total)} {t2.E.PremiumGates}", "Real 85 1101111");
+		c.Check("v4: recuperación inmediata: la consolidación no suma (cada hecho una vez)", t2.E.AbsorcionConsolidacion.ToString(), "False");
 
 		var t3 = new Escenario(+1, new DateTime(2026, 11, 2, 9, 31, 0));
 		t3.Trampa();
@@ -192,7 +229,11 @@ internal static class PruebasV2Clasificador
 		t5.Barra(20, Enumerable.Range(6, 10).Select(k => (k, 7m, 3m)).ToArray());
 		t5.Barra(20, Enumerable.Range(14, 10).Select(k => (k, 7m, 3m)).ToArray());
 		t5.Evaluar();
-		c.Check("T5 aceptación, POC más allá, delta sostenido y sin absorción: RUPTURA", $"{t5.E.Estado} {Clasificador.CondicionesRuptura(t5.E, t5.Ctx())}", "Ruptura 4");
+		c.Check("v4: cierra 23 ticks más allá (dentro del barrido máximo, 24) y a los 2 minutos: aún no es RUPTURA", t5.E.Estado.ToString(), "Pendiente");
+		t5.Barra(20, Enumerable.Range(24, 10).Select(k => (k, 7m, 3m)).ToArray());
+		t5.Evaluar();
+		c.Check("T5 aceptación, POC más allá, delta sostenido y sin absorción, y el precio se aleja más del barrido máximo: RUPTURA",
+			$"{t5.E.Estado} {Clasificador.CondicionesRuptura(t5.E, t5.Ctx())}", "Ruptura 4");
 
 		// T7: la ruptura vuelve 4 ticks bajo el nivel en la barra siguiente.
 		var antes = t5.M.Barras.Count;

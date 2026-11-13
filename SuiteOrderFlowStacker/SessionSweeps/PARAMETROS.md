@@ -76,6 +76,9 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `ZoneMaxBars` | Zona: barras máximas | 10 | 2-60 |  |
 | `F3RangeMult` | F3: × rango mediano | 1.5 | 0.5-10 | Barra de desplazamiento. |
 | `DeltaFlipMin` | Giro de delta mínimo | 0.20 | 0-1 |  |
+| `ConsolidationMinCandles` | Consolidación: velas mínimas (1 m) | 2 | 1-30 | Velas de 1 minuto en el extremo, sin recuperar, con volumen: cuentan como absorción. |
+| `ConsolidationMaxCandles` | Consolidación: velas máximas (1 m) | 14 | 2-60 | El barrido se sigue evaluando al menos estas velas de 1 minuto (10-14 es normal en NY) antes de vencer o llamarse RUPTURA. |
+| `ConsolidationVolumeMult` | Consolidación: volumen × mediana por minuto | 1.0 | 0-10 | Volumen por minuto de la consolidación respecto a la mediana de 1 minuto del instrumento (calibración). |
 
 ## 22. Estados y alertas
 
