@@ -47,17 +47,24 @@ public partial class ThermalVolumeProfile : Indicator
 {
 	#region Parámetros
 
-	private const string G1 = "1. Rango del perfil";
-	private const string G2 = "2. Tipo de perfil";
-	private const string G3 = "3. Área de Valor";
-	private const string G4 = "4. Térmico";
-	private const string G5 = "5. Zona de búsqueda";
-	private const string G6 = "6. CLÚSTER";
-	private const string G7 = "7. EDGE";
-	private const string G8 = "8. SPIKE";
-	private const string G9 = "9. LVN";
-	private const string G10 = "10. Etiquetas y alertas";
-	private const string G11 = "11. Barra de herramientas";
+#if SUITE
+	// v4: dentro de la suite (y del Indicador Global Session Sweep, que hereda de esta clase) los grupos del Thermal
+	// llevan el prefijo "Thermal · " para no mezclarse con los del barrido.
+	private const string Pref = "Thermal · ";
+#else
+	private const string Pref = "";
+#endif
+	private const string G1 = Pref + "1. Rango del perfil";
+	private const string G2 = Pref + "2. Tipo de perfil";
+	private const string G3 = Pref + "3. Área de Valor";
+	private const string G4 = Pref + "4. Térmico";
+	private const string G5 = Pref + "5. Zona de búsqueda";
+	private const string G6 = Pref + "6. CLÚSTER";
+	private const string G7 = Pref + "7. EDGE";
+	private const string G8 = Pref + "8. SPIKE";
+	private const string G9 = Pref + "9. LVN";
+	private const string G10 = Pref + "10. Etiquetas y alertas";
+	private const string G11 = Pref + "11. Barra de herramientas";
 
 	// --- 1. Rango del perfil ---------------------------------------------------------------------------------------
 

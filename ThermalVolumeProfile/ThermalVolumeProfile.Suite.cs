@@ -20,7 +20,7 @@ using Utils.Common.Logging;
 /// </summary>
 public partial class ThermalVolumeProfileLVN
 {
-	private const string GSuite = "12. Sessions Sweeps Pro";
+	private const string GSuite = Pref + "12. Sessions Sweeps Pro";
 	private readonly Dictionary<long, LvnZone> _lvnPublicados = new();
 	private long _rangoId = 1;
 	private string? _identidadRango;

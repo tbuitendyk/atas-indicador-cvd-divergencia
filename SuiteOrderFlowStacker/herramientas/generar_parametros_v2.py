@@ -170,7 +170,7 @@ GRUPOS = [
     ("26. Gatillo manual", [
         ("ManualZoneTicks", "int", P + "ManualZoneTicks", "Zona manual (ticks)", "Margen de la caja dibujada.", 0, 40, False),
         ("ManualLookbackBars", "int", P + "ManualLookbackBars", "Barras de contexto", "", 1, 100, False),
-        ("MaxManualBoxes", "int", P + "MaxManualBoxes", "Cajas manuales máximas", "", 1, 50, False),
+        ("SweepMaxManualBoxes", "int", P + "MaxManualBoxes", "Cajas manuales máximas", "", 1, 50, False),
     ]),
     ("27. CVD", [
         ("CvdMacroPivotBars", "int", P + "CvdMacroPivotBars", "Divergencia macro: velas por lado",

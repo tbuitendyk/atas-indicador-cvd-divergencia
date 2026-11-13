@@ -128,7 +128,7 @@ public partial class SessionSweepsPro
 			return;
 
 		var ancho = (int)Math.Min(area.Width - 20, context.MeasureString(texto, _fuente!).Width + 24);
-		var caja = new Rectangle(area.Right - ancho - 10, area.Top + 10, ancho, LabelFontSize + 14);
+		var caja = new Rectangle(area.Right - ancho - 10, area.Top + 10, ancho, SweepLabelFontSize + 14);
 		context.FillRectangle(Color.FromArgb(235, 120, 20, 20), caja);
 		context.DrawRectangle(new RenderPen(Color.FromArgb(255, 255, 193, 7), 2), caja);
 		context.DrawString(texto, _fuente!, Color.White, new Rectangle(caja.X + 12, caja.Y, caja.Width - 16, caja.Height), _izquierda);

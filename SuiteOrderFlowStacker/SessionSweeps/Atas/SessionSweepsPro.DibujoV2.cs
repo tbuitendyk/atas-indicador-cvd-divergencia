@@ -303,7 +303,7 @@ public partial class SessionSweepsPro
 	/// <summary>El contenido del panel flotante dibujado sobre el gráfico (colores y flechas vectoriales).</summary>
 	private void DibujarPanelEnGrafico(RenderContext context, Rectangle area, ContenidoPanel c)
 	{
-		var alto = LabelFontSize + 6;
+		var alto = SweepLabelFontSize + 6;
 		var lineas = c.Lineas.Where(l => !l.Separador).ToList();
 		var ancho = Math.Max(300, lineas.Select(l => context.MeasureString(l.Texto, _fuente!).Width + 16 * (l.Sangria + 1) + 20).DefaultIfEmpty(300).Max());
 		const int FilasGrafico = 4;

@@ -389,7 +389,7 @@ public partial class SessionSweepsPro
 
 	[Display(Name = "Cajas manuales máximas", GroupName = "26. Gatillo manual", Order = 30, Description = "")]
 	[Range(1, 50)]
-	public int MaxManualBoxes { get => _cfg.V2.MaxManualBoxes; set { _cfg.V2.MaxManualBoxes = Math.Clamp(value, 1, 50); RedrawChart(); } }
+	public int SweepMaxManualBoxes { get => _cfg.V2.MaxManualBoxes; set { _cfg.V2.MaxManualBoxes = Math.Clamp(value, 1, 50); RedrawChart(); } }
 
 	// --- 27. CVD ---------------------------------------------------------------------------------------------
 

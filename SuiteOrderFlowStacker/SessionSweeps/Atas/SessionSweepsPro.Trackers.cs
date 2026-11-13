@@ -27,6 +27,12 @@ public partial class SessionSweepsPro
 		Description = "Corre Iceberg, Stops, Sweeps y Stacked / Imbalance por dentro (no hace falta agregarlos al gráfico). Apagado: usa los sueltos que haya.")]
 	public bool HostTrackers { get => _trk.Activo; set { _trk.Activo = value; RecalculateValues(); } }
 
+	private bool _hostThermal = true;
+
+	[Display(Name = "Thermal Volume Profile + LVN dentro del indicador", GroupName = G39, Order = 15,
+		Description = "El perfil térmico, sus LVN / EDGE, PIERNA, el GATILLO manual y su panel flotante corren dentro (ajustes en los grupos 'Thermal · …'). Apagado: usa un Thermal (Suite) suelto.")]
+	public bool HostThermal { get => _hostThermal; set { _hostThermal = value; RecalculateValues(); } }
+
 	[Display(Name = "Dibujar: Stacked / Imbalance", GroupName = G39, Order = 20)]
 	public bool ShowTrackerStacked { get => _trk.DibujarStacked; set { _trk.DibujarStacked = value; RedrawChart(); } }
 

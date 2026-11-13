@@ -107,7 +107,7 @@ public partial class SessionSweepsPro
 			var canales = _cfg.V2.Canales(a.Categoria);
 
 			if (canales.Atas)
-				AddAlert(string.IsNullOrWhiteSpace(AlertSoundFile) ? "alert1" : AlertSoundFile, a.Texto);
+				AddAlert(string.IsNullOrWhiteSpace(SweepAlertSoundFile) ? "alert1" : SweepAlertSoundFile, a.Texto);
 
 			// v4: la ruptura de una línea de sesión también se avisa arriba a la derecha del gráfico.
 			if (a.Categoria == CategoriaAlerta.LineaSesion && canales.Atas)

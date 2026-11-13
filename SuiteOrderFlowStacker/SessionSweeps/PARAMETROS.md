@@ -152,7 +152,7 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 |---|---|---|---|---|
 | `ManualZoneTicks` | Zona manual (ticks) | 4 | 0-40 | Margen de la caja dibujada. |
 | `ManualLookbackBars` | Barras de contexto | 10 | 1-100 |  |
-| `MaxManualBoxes` | Cajas manuales máximas | 5 | 1-50 |  |
+| `SweepMaxManualBoxes` | Cajas manuales máximas | 5 | 1-50 |  |
 
 ## 27. CVD
 

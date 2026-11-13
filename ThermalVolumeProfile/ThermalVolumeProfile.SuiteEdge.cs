@@ -26,7 +26,7 @@ using Rectangle = System.Drawing.Rectangle;
 /// </summary>
 public partial class ThermalVolumeProfileLVN
 {
-	private const string GEdge = "7. EDGE";
+	private const string GEdge = Pref + "7. EDGE";
 
 	private readonly SeguidorLvn _seguidorEdge = new();
 	private readonly Dictionary<long, EdgeZone> _edgesPublicados = new();

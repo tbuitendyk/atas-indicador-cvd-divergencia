@@ -43,6 +43,10 @@ public partial class SessionSweepsPro
 
 	protected override void OnRender(RenderContext context, DrawingLayouts layout)
 	{
+		// v4: primero el perfil térmico con sus LVN / EDGE y herramientas; encima, el barrido.
+		if (HostThermal)
+			base.OnRender(context, layout);
+
 		try
 		{
 			Dibujar(context);
@@ -70,8 +74,8 @@ public partial class SessionSweepsPro
 
 		var area = Area;
 
-		if (_tamanoFuente != LabelFontSize || _fuente is null)
-			(_fuente, _tamanoFuente) = (new RenderFont("Arial", LabelFontSize), LabelFontSize);
+		if (_tamanoFuente != SweepLabelFontSize || _fuente is null)
+			(_fuente, _tamanoFuente) = (new RenderFont("Arial", SweepLabelFontSize), SweepLabelFontSize);
 
 		var tamanoTabla = TableTextSize switch { TamanoTexto.Grande => 11, TamanoTexto.Normal => 9, _ => 8 };
 
@@ -275,7 +279,7 @@ public partial class SessionSweepsPro
 	/// <summary>Etiquetas de los niveles en el borde derecho; si chocan, se desplazan.</summary>
 	private void DibujarEtiquetas(RenderContext context, Rectangle area)
 	{
-		var alto = LabelFontSize + 6;
+		var alto = SweepLabelFontSize + 6;
 		var orden = _etiquetas.Where(e => e.Y >= area.Top && e.Y <= area.Bottom).OrderBy(e => e.Y).ToList();
 		var ultima = int.MinValue;
 
@@ -319,7 +323,7 @@ public partial class SessionSweepsPro
 	private void Recuadro(RenderContext context, int x, int y, string texto, Color color)
 	{
 		var lineas = texto.Split('\n');
-		var alto = LabelFontSize + 6;
+		var alto = SweepLabelFontSize + 6;
 		var ancho = lineas.Max(l => context.MeasureString(l, _fuente!).Width) + 14;
 		var area = Area;
 		var caja = new Rectangle(area.Left + x, area.Top + y, ancho, alto * lineas.Length + 6);

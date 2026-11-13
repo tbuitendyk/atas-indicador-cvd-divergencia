@@ -28,7 +28,7 @@ using MediaColor = System.Windows.Media.Color;
 /// </summary>
 [DisplayName("Sessions Sweeps Pro (Suite)")]
 [Description("Sessions Sweeps Pro v3 (Suite Order Flow Stacker): Modelo A (barrido de liquidez real / premium) y Modelo B (retroceso a LVN / EDGE / FVG) con gatillo de order flow, perfiles NQ / ES / YM, LVN y EDGE del Thermal, panel flotante, alertas, correo, Telegram y puente MT5 opcional.")]
-public partial class SessionSweepsPro : Indicator
+public partial class SessionSweepsPro : ThermalVolumeProfileLVN
 {
 	#region Grupos
 
@@ -264,7 +264,7 @@ public partial class SessionSweepsPro : Indicator
 
 	[Display(Name = "Sonido", GroupName = G12, Order = 70)]
 	[SoundComboBoxEditor]
-	public string AlertSoundFile { get; set; } = "alert1";
+	public string SweepAlertSoundFile { get; set; } = "alert1";
 
 	// --- 13. Correo y Telegram ---------------------------------------------------------------------------------------
 
@@ -374,7 +374,7 @@ public partial class SessionSweepsPro : Indicator
 
 	[Display(Name = "Tamaño de las etiquetas", GroupName = G15, Order = 40)]
 	[Range(6, 20)]
-	public int LabelFontSize { get; set; } = 8;
+	public int SweepLabelFontSize { get; set; } = 8;
 
 	#endregion
 
@@ -392,8 +392,12 @@ public partial class SessionSweepsPro : Indicator
 	#endregion
 
 	public SessionSweepsPro()
-		: base(true)
 	{
+		// v4: hereda del Thermal Volume Profile + LVN (Suite): el perfil, los LVN / EDGE, PIERNA, el GATILLO y su panel
+		// flotante corren dentro de este indicador. Lo del barrido se dibuja por encima de las velas; el perfil, con una
+		// opacidad menor para no taparlas.
+		ProfileOpacity = 110;
+
 		DataSeries[0].IsHidden = true;
 		((ValueDataSeries)DataSeries[0]).VisualType = VisualMode.Hide;
 		OrderFlowSuite.Ui.VentanaFlotante.Registrar();
@@ -409,7 +413,11 @@ public partial class SessionSweepsPro : Indicator
 
 	protected override void OnCalculate(int bar, decimal value)
 	{
-		// v4: primero los trackers de dentro (sus eventos llegan al bus antes de que el barrido los consulte).
+		// v4: primero el Thermal y los trackers de dentro (sus LVN / EDGE y eventos llegan al bus antes de que el
+		// barrido los consulte).
+		if (HostThermal)
+			base.OnCalculate(bar, value);
+
 		CalcularTrackers(bar);
 
 		try
@@ -556,6 +564,7 @@ public partial class SessionSweepsPro : Indicator
 
 	protected override void OnDispose()
 	{
+		base.OnDispose();
 		_trk.Dispose();
 		CerrarV2();
 		PararPuente();
