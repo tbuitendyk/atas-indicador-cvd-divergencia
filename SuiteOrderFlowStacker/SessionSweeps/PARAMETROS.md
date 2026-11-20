@@ -14,6 +14,7 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `KillzoneStartNY` | Killzone: inicio (NY) | 09:30 |  | Inicio de la ventana de mayor peso (hora de Nueva York). 09:30 = 07:30 CDMX en verano, 08:30 en invierno. |
 | `KillzoneEndNY` | Killzone: fin (NY) | 11:30 |  | Fin de la killzone (hora de Nueva York). |
 | `NewsBlockMin` | Bloqueo por noticia (min) | 5 | 0-60 | Minutos antes y después de cada hora de noticia en los que no se alerta ni se entra (NOTICIA). |
+| `DetailDays` | Días con detalle (carga rápida) | 2 | 1-30 | v5: solo los últimos N días operativos se calculan con footprint, barras de volumen, clasificador y modelos; los anteriores solo aportan niveles, sesiones, H1 y calibración. Más días = carga más lenta. Recomendado: 2. |
 | `NewsTimes` | Horas de noticias (NY) | 08:30;10:00;14:00 |  | Separadas por ';' en hora de Nueva York, por ejemplo 08:30;10:00;14:00. |
 
 ## 17. Fuentes de la suite

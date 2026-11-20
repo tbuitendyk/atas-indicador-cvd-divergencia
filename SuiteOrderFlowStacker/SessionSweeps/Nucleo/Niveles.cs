@@ -207,6 +207,22 @@ public sealed class GestorNiveles
 		_semana = semana;
 	}
 
+	/// <summary>
+	/// v5 (carga rápida): en los días sin detalle no se evalúan barridos; un nivel que el precio supera queda tomado para
+	/// que no reaparezca como vigente.
+	/// </summary>
+	public void RetirarTomados(Vela v)
+	{
+		foreach (var n in Niveles.Where(n => n.Activo && n.CreadoBar < v.Indice))
+		{
+			if (n.Lado == Lado.Buyside ? v.High > n.Precio : v.Low < n.Precio)
+			{
+				n.Estado = EstadoNivel.Barrido;
+				n.FinBar = v.Indice;
+			}
+		}
+	}
+
 	/// <summary>Los niveles que no se vigilan (desactivados) y que el precio supera quedan rotos: así no reaparecen.</summary>
 	public void RomperNoVigilados(Vela v)
 	{

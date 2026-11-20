@@ -40,7 +40,11 @@ public partial class SessionSweepsPro
 	[Range(0, 60)]
 	public int NewsBlockMin { get => _cfg.V2.NewsBlockMin; set { _cfg.V2.NewsBlockMin = Math.Clamp(value, 0, 60); Recalcular(); } }
 
-	[Display(Name = "Horas de noticias (NY)", GroupName = "16. Barras de volumen y horario", Order = 70, Description = "Separadas por ';' en hora de Nueva York, por ejemplo 08:30;10:00;14:00.")]
+	[Display(Name = "Días con detalle (carga rápida)", GroupName = "16. Barras de volumen y horario", Order = 70, Description = "v5: solo los últimos N días operativos se calculan con footprint, barras de volumen, clasificador y modelos; los anteriores solo aportan niveles, sesiones, H1 y calibración. Más días = carga más lenta. Recomendado: 2.")]
+	[Range(1, 30)]
+	public int DetailDays { get => _cfg.V2.DetailDays; set { _cfg.V2.DetailDays = Math.Clamp(value, 1, 30); Recalcular(); } }
+
+	[Display(Name = "Horas de noticias (NY)", GroupName = "16. Barras de volumen y horario", Order = 80, Description = "Separadas por ';' en hora de Nueva York, por ejemplo 08:30;10:00;14:00.")]
 	public string NewsTimes { get => _cfg.V2.NewsTimes; set { _cfg.V2.NewsTimes = value ?? ""; Recalcular(); } }
 
 	// --- 17. Fuentes de la suite -----------------------------------------------------------------------------

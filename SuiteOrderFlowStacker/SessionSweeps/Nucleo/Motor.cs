@@ -52,6 +52,12 @@ public sealed partial class MotorSweeps
 
 	public MotorSesiones Sesiones { get; }
 
+	/// <summary>
+	/// v5 (carga rápida): desde cuándo hay detalle (footprint, barras de volumen, clasificador, modelos, CVD, líneas de
+	/// sesión). Lo pone la carcasa con los últimos DetailDays días operativos; MinValue = todo el historial.
+	/// </summary>
+	public DateTime DetalleDesdeUtc { get; set; } = DateTime.MinValue;
+
 	public GestorNiveles Niveles { get; }
 
 	public List<ZonaBarrido> ZonasBarrido { get; } = new();
@@ -136,7 +142,12 @@ public sealed partial class MotorSweeps
 
 		var v = Construir(e);
 		Velas.Add(v);
-		ProcesarCvd(e);
+
+		// v5 (carga rápida): fuera de los últimos días con detalle solo se hace lo barato (sesiones, niveles, H1).
+		var detalle = v.InicioUtc >= DetalleDesdeUtc;
+
+		if (detalle)
+			ProcesarCvd(e);
 
 		// El footprint solo hace falta en las velas recientes (ventanas, absorción, Modelo B).
 		if (Velas.Count > 400)
@@ -162,7 +173,8 @@ public sealed partial class MotorSweeps
 
 		// v2.0: los trades del minuto (o su reconstrucción APROX) entran ahora, con los niveles al día y antes del Pine,
 		// igual que en vivo (donde llegan durante el minuto).
-		AlimentarBarras(v);
+		if (detalle)
+			AlimentarBarras(v);
 
 		// 4. Contexto H1.
 		var antes = _a60.Velas.Count;
@@ -171,21 +183,30 @@ public sealed partial class MotorSweeps
 		if (_a60.Velas.Count > antes)
 			H1.Agregar(_a60.Velas, Cfg.H1PivotLen);
 
-		// 5. Barridos (Pine), 6. ventanas de Order Flow y clasificación.
-		ProcesarBarridos(v);
-		ProcesarVentanas(v);
+		if (detalle)
+		{
+			// 5. Barridos (Pine), 6. ventanas de Order Flow y clasificación.
+			ProcesarBarridos(v);
+			ProcesarVentanas(v);
 
-		// 7. FVG / IFVG y MSS.
-		ProcesarFvg(v);
-		Mss.Procesar(Velas, Cfg.MSSLength, Cfg.Mss, Cfg.MaxLines);
+			// 7. FVG / IFVG y MSS.
+			ProcesarFvg(v);
+			Mss.Procesar(Velas, Cfg.MSSLength, Cfg.Mss, Cfg.MaxLines);
 
-		// 8. Session Sweeps v2.0: barras de volumen, clasificador, FVG/BFVG, modelos (MotorV2).
-		ProcesarV2(v);
+			// 8. Session Sweeps v2.0: barras de volumen, clasificador, FVG/BFVG, modelos (MotorV2).
+			ProcesarV2(v);
+		}
+		else
+		{
+			// Sin detalle: los niveles que el precio ya tomó no deben reaparecer como vigentes.
+			Niveles.RetirarTomados(v);
+		}
 
 		Niveles.RomperNoVigilados(v);
 
 		// v4: líneas de sesión (ruptura que no vio el tick, BOS, líneas nuevas).
-		ProcesarLineas(v, terminadas);
+		if (detalle)
+			ProcesarLineas(v, terminadas);
 
 		// Las rupturas en vivo de la vela que acaba de cerrar ya quedaron en sus zonas.
 		foreach (var id in _rupturas.Where(r => r.Value.Vela <= v.InicioUtc).Select(r => r.Key).ToList())

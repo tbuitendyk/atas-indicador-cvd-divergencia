@@ -15,6 +15,72 @@ internal static class PruebasV4
 	{
 		Estructura(c);
 		LineasDeSesion(c);
+		CargaRapida(c);
+	}
+
+	/// <summary>v5 F3: carga rápida: solo los últimos días operativos llevan detalle; los anteriores, solo niveles.</summary>
+	private static void CargaRapida(Comprobador c)
+	{
+		c.Seccion("v5 F3: carga rápida: detalle (footprint, barras de volumen, clasificador) solo en los últimos días operativos");
+		var lunes = Utc(new DateTime(2026, 11, 16, 9, 45, 0));
+		c.Check("2 días desde un lunes: desde el jueves 18:00 ET (el viernes y el lunes; el fin de semana no cuenta)",
+			TiempoV2.HoraEt(Zonas.InicioDetalle(lunes, 2), "ddd dd HH:mm"), "Thu 12 18:00 ET");
+		c.Check("1 día desde un miércoles: desde el martes 18:00 ET", TiempoV2.HoraEt(Zonas.InicioDetalle(Utc(new DateTime(2026, 11, 18, 11, 0, 0)), 1), "ddd dd HH:mm"), "Tue 17 18:00 ET");
+
+		// 15 días operativos de velas de 1 minuto con footprint (como las de ATAS), con un vaivén diario.
+		var velas = new List<VelaEntrada>();
+		var dia = new DateTime(2026, 10, 26);
+		var rnd = new Random(7);
+		var precio = 21400m;
+
+		for (var d = 0; d < 21; d++, dia = dia.AddDays(1))
+		{
+			if (dia.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+				continue;
+
+			for (var t = dia.AddHours(-6); t < dia.AddHours(17); t = t.AddMinutes(1))
+			{
+				var o = precio;
+				precio += (rnd.Next(0, 9) - 4) * Tick;
+				var (h, l) = (Math.Max(o, precio) + Tick, Math.Min(o, precio) - Tick);
+				var e = new VelaEntrada { InicioUtc = Utc(t), Open = o, High = h, Low = l, Close = precio, Volume = 0, Delta = 0 };
+
+				for (var p = l; p <= h; p += Tick)
+				{
+					var (bid, ask) = (rnd.Next(5, 40), rnd.Next(5, 40));
+					e.Niveles.Add(new NivelVela(p, bid, ask));
+					(e.Volume, e.Delta) = (e.Volume + bid + ask, e.Delta + ask - bid);
+				}
+
+				velas.Add(e);
+			}
+		}
+
+		(long Ms, int Barras, int Activos, int Rancios) Correr(DateTime desde)
+		{
+			var cfg = new ConfiguracionSweeps { TamanoTick = Tick, MinutosGrafico = 1 };
+			cfg.V2.VolumePerBar = 500;
+			var m = new MotorSweeps(cfg) { DetalleDesdeUtc = desde };
+			var reloj = System.Diagnostics.Stopwatch.StartNew();
+
+			foreach (var e in velas)
+				m.Procesar(e);
+
+			reloj.Stop();
+			return m.Leer(x =>
+			{
+				var rancios = x.Niveles.Niveles.Count(n => n.Activo && x.Velas.Skip(n.CreadoBar + 1).Any(v => n.Lado == Lado.Buyside ? v.High > n.Precio : v.Low < n.Precio));
+				return (reloj.ElapsedMilliseconds, x.BarrasV.Barras.Count, x.Niveles.Niveles.Count(n => n.Activo), rancios);
+			});
+		}
+
+		var completo = Correr(DateTime.MinValue);
+		var rapido = Correr(Zonas.InicioDetalle(velas[^1].InicioUtc, 2));
+		c.Check($"barras de volumen construidas: {completo.Barras} con todo el historial, {rapido.Barras} con 2 días (de 15); tiempo {completo.Ms} ms → {rapido.Ms} ms",
+			(rapido.Barras * 4 < completo.Barras).ToString(), "True");
+		// Con todo el historial también quedan vigentes los niveles cruzados fuera de la ventana de barridos (comportamiento
+		// de siempre); los días sin detalle retiran los que el precio tomó, así que nunca quedan más.
+		c.Check("la carga rápida no deja más niveles vigentes ya superados que el historial completo", (rapido.Rancios <= completo.Rancios).ToString(), "True");
 	}
 
 	private static Vela V(int i, DateTime inicioEt, decimal h, decimal l, decimal cierre) => new()

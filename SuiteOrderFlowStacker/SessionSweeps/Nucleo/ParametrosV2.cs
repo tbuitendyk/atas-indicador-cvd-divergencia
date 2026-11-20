@@ -143,6 +143,9 @@ public sealed class ParametrosV2
 	public int ConsolidationMinCandles { get; set; } = 2;
 	public int ConsolidationMaxCandles { get; set; } = 14;
 	public decimal ConsolidationVolumeMult { get; set; } = 1.0m;
+
+	// v5 (carga rápida): días operativos con detalle (footprint, barras de volumen, clasificador, modelos).
+	public int DetailDays { get; set; } = 2;
 	public int RecoveryTicks { get; set; } = 16;
 	public int StopBufferTicks { get; set; } = 3;
 

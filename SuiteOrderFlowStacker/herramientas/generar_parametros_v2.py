@@ -33,6 +33,8 @@ GRUPOS = [
          "Fin de la killzone (hora de Nueva York).", None, None, True),
         ("NewsBlockMin", "int", P + "NewsBlockMin", "Bloqueo por noticia (min)",
          "Minutos antes y después de cada hora de noticia en los que no se alerta ni se entra (NOTICIA).", 0, 60, True),
+        ("DetailDays", "int", P + "DetailDays", "Días con detalle (carga rápida)",
+         "v5: solo los últimos N días operativos se calculan con footprint, barras de volumen, clasificador y modelos; los anteriores solo aportan niveles, sesiones, H1 y calibración. Más días = carga más lenta. Recomendado: 2.", 1, 30, True),
         ("NewsTimes", "string", P + "NewsTimes", "Horas de noticias (NY)",
          "Separadas por ';' en hora de Nueva York, por ejemplo 08:30;10:00;14:00.", None, None, True),
     ]),

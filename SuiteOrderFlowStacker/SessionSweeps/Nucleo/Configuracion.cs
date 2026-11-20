@@ -85,6 +85,24 @@ public static class Zonas
 	/// <summary>Día operativo de futuros: de 18:00 a 17:00 ET (la fecha es la del cierre).</summary>
 	public static DateTime DiaOperativo(DateTime utc) => AEt(utc).AddHours(6).Date;
 
+	/// <summary>
+	/// v5 (carga rápida): inicio (UTC, 18:00 ET del día anterior) de los últimos 'dias' días operativos contando el de
+	/// 'ultimaUtc'; los sábados y domingos no cuentan.
+	/// </summary>
+	public static DateTime InicioDetalle(DateTime ultimaUtc, int dias)
+	{
+		var d = DiaOperativo(ultimaUtc);
+
+		for (var k = 1; k < Math.Max(1, dias); k++)
+		{
+			do
+				d = d.AddDays(-1);
+			while (d.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday);
+		}
+
+		return AUtc(d.AddDays(-1).Add(new TimeSpan(18, 0, 0)), ZonaHoraria.NuevaYork);
+	}
+
 	/// <summary>Lunes de la semana operativa (la semana de Globex empieza el domingo a las 18:00 ET).</summary>
 	public static DateTime SemanaOperativa(DateTime utc)
 	{

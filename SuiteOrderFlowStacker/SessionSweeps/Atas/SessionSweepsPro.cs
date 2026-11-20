@@ -391,6 +391,7 @@ public partial class SessionSweepsPro : Indicator
 	private long _avisoVisto;
 	private int _minutos;
 	private string _estado = "";
+	private DateTime _detalleDesde = DateTime.MinValue;
 
 	#endregion
 
@@ -476,6 +477,10 @@ public partial class SessionSweepsPro : Indicator
 		_cfg.TamanoTick = InstrumentInfo?.TickSize is > 0 ? InstrumentInfo.TickSize : 0.25m;
 		_cfg.MinutosGrafico = _minutos;
 		_motor = new MotorSweeps(_cfg) { Simbolo = Simbolo(InstrumentInfo?.Instrument), ZonaCorreo = Zonas.PorNombre(EmailTimeZone) };
+
+		// v5 (carga rápida): solo los últimos DetailDays días operativos llevan detalle (y solo de ellos se lee el footprint).
+		_detalleDesde = CurrentBar > 0 ? Zonas.InicioDetalle(GetCandle(CurrentBar - 1).Time, _cfg.V2.DetailDays) : DateTime.MinValue;
+		_motor.DetalleDesdeUtc = _detalleDesde;
 		PrepararV2(_motor);
 		_estado = "";
 	}
@@ -520,7 +525,8 @@ public partial class SessionSweepsPro : Indicator
 			InicioUtc = c.Time, Open = c.Open, High = c.High, Low = c.Low, Close = c.Close, Volume = c.Volume, Delta = c.Delta, Ask = c.Ask, Bid = c.Bid,
 			MaxDelta = c.MaxDelta, MinDelta = c.MinDelta
 		};
-		var niveles = c.GetAllPriceLevels();
+		// v5 (carga rápida): el footprint de las velas sin detalle no se lee (es lo más pesado de la carga).
+		var niveles = c.Time >= _detalleDesde ? c.GetAllPriceLevels() : null;
 
 		if (niveles is not null)
 		{
