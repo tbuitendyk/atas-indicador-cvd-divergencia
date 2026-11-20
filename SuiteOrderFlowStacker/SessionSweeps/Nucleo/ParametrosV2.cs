@@ -50,7 +50,7 @@ public enum EstadoMinimoAlerta
 	[Display(Name = "BARRIDO REAL")]
 	Real,
 
-	[Display(Name = "BARRIDO REAL PREMIUM")]
+	[Display(Name = "BARRIDO REAL PRIME")]
 	Premium
 }
 

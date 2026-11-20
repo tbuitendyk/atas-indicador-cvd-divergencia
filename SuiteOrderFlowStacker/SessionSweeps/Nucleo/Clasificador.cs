@@ -37,11 +37,11 @@ public static class TextosV2
 		EstadoBarrido.Pendiente => "PENDIENTE",
 		EstadoBarrido.SinLiquidez => "SIN LIQ",
 		EstadoBarrido.Real => "BARRIDO REAL",
-		EstadoBarrido.Premium => "BARRIDO REAL PREMIUM",
+		EstadoBarrido.Premium => "BARRIDO REAL PRIME",
 		EstadoBarrido.Ruptura => "ROMPIMIENTO / ACEPTACIÓN",
 		EstadoBarrido.RupturaFallida => "RUPTURA FALLIDA",
 		EstadoBarrido.Fallido => "FALLIDO",
-		_ => "INDETERMINADO"
+		_ => "DUDOSO"
 	};
 
 	/// <summary>Barrido de liquidez real (REAL o PREMIUM): el que arma el Modelo A.</summary>

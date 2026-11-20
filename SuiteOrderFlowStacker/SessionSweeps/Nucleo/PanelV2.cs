@@ -55,7 +55,7 @@ public sealed partial class MotorSweeps
 		var c = new ContenidoPanel { Titulo = $"SWEEP PRO (FAST) · {(ins.Soportado ? ins.Contrato : Simbolo)}", Pie = PoliticaAlertasV2.AvisoLegal };
 		var L = c.Lineas;
 		var hoy = Zonas.DiaOperativo(Ahora);
-		var e = Evaluaciones.LastOrDefault(x => x.Nivel.Grupo is "dia" or "semana") ?? Evaluaciones.LastOrDefault();
+		var e = BarridoActivo();
 
 		Cabecera(L, e, o);
 
@@ -87,6 +87,26 @@ public sealed partial class MotorSweeps
 			L.Add(Linea("b2", new Segmento("Sin barridos hoy", ColorPanel.Gris)));
 		else
 			Barrido(L, e, "b2");
+
+		// v5: los recuadros marcados a mano (barrido, rompimiento) y los rangos de vela compuesta con su ruptura.
+		foreach (var r in Recuadros.TakeLast(6))
+		{
+			var horas = $"{TiempoV2.HoraCdmx(r.DesdeUtc, "HH:mm")}-{TiempoV2.HoraCdmx(r.HastaUtc, "HH:mm")} CDMX";
+
+			if (r.Tipo == TipoRecuadro.Compuesta)
+			{
+				L.Add(Linea("b2", new Segmento($"Rango vela compuesta {PrecioMiles(r.Bajo)}-{PrecioMiles(r.Alto)} · {horas} · "),
+					r.RompeUtc is { } t
+						? new Segmento($"ROMPE {(r.RompeDireccion > 0 ? "ALCISTA" : "BAJISTA")} {TiempoV2.HoraCdmx(t)}", ColorSigno(r.RompeDireccion), true, Flecha(r.RompeDireccion), ColorSigno(r.RompeDireccion))
+						: new Segmento("sin romper", ColorPanel.Gris)));
+			}
+			else
+			{
+				L.Add(Linea("b2", new Segmento($"Recuadro MANUAL: {r.Texto} {PrecioMiles(r.Bajo)}-{PrecioMiles(r.Alto)} · {horas} · ",
+					ColorPanel.Blanco), new Segmento(r.Tipo == TipoRecuadro.Rompimiento ? (r.Signo > 0 ? "ROMPE ALCISTA" : "ROMPE BAJISTA") : (r.Signo > 0 ? "GIRO BAJISTA" : "GIRO ALCISTA"),
+					ColorSigno(r.Tipo == TipoRecuadro.Rompimiento ? r.Signo : -r.Signo), true)));
+			}
+		}
 
 		// 3) RESUMEN DE ABSORCIÓN Y MODELOS.
 		Recuadro(L, "3. RESUMEN DE ABSORCIÓN Y MODELOS", "b3");
@@ -294,7 +314,7 @@ public sealed partial class MotorSweeps
 
 		var (veredicto, color) = e.Estado switch
 		{
-			EstadoBarrido.Real or EstadoBarrido.Premium => (e.Estado == EstadoBarrido.Premium ? "BARRIDO DE LIQUIDEZ REAL PREMIUM" : "BARRIDO DE LIQUIDEZ REAL", ColorSigno(e.SignoGiro)),
+			EstadoBarrido.Real or EstadoBarrido.Premium => (e.Estado == EstadoBarrido.Premium ? "BARRIDO DE LIQUIDEZ REAL PRIME" : "BARRIDO DE LIQUIDEZ REAL", ColorSigno(e.SignoGiro)),
 			EstadoBarrido.Ruptura or EstadoBarrido.Fallido or EstadoBarrido.RupturaFallida => ("ROTO", ColorPanel.Morado),
 			_ => ("NO COMPLETADO", ColorPanel.Naranja)
 		};
@@ -321,6 +341,21 @@ public sealed partial class MotorSweeps
 			foreach (var s in Setups.Where(x => x.Motivo.StartsWith("INVALIDADO POR M3", StringComparison.Ordinal)).TakeLast(3))
 				L.Add(Linea("b3", new Segmento($"{s.Etiqueta} {(s.Signo > 0 ? "LARGO" : "CORTO")}: INVALIDADO POR M3", ColorPanel.Gris)));
 		}
+	}
+
+	/// <summary>
+	/// v5: el barrido de referencia del panel: el último externo detectado o, si es más reciente, el último marcado a mano
+	/// (el propietario: el recuadro manual pasa a ser la referencia activa de los modelos).
+	/// </summary>
+	private EvaluacionBarrido? BarridoActivo()
+	{
+		var auto = Evaluaciones.LastOrDefault(x => x.Origen != "MANUAL" && x.Nivel.Grupo is "dia" or "semana") ?? Evaluaciones.LastOrDefault(x => x.Origen != "MANUAL");
+		var manual = Evaluaciones.LastOrDefault(x => x.Origen == "MANUAL");
+
+		if (manual is null)
+			return auto;
+
+		return auto is null || (manual.TimeConfirmUtc ?? manual.T0Utc) >= (auto.TimeConfirmUtc ?? auto.T0Utc) ? manual : auto;
 	}
 
 	private string SalidaTexto => P2.ExitMode switch
@@ -386,7 +421,7 @@ public sealed partial class MotorSweeps
 		{
 			null => ("SIN OPERACIÓN", ColorPanel.Gris),
 			{ Provisional: true } => ("PENDIENTE DE CUMPLIMIENTO DE BARRIDO DE LIQUIDEZ", ColorPanel.Naranja),
-			{ Estado: EstadoBarrido.Premium } => ("BARRIDO DE LIQUIDEZ REAL PREMIUM", ColorPanel.Dorado),
+			{ Estado: EstadoBarrido.Premium } => ("BARRIDO DE LIQUIDEZ REAL PRIME", ColorPanel.Dorado),
 			{ Estado: EstadoBarrido.Real } => ("BARRIDO DE LIQUIDEZ REAL", ColorSigno(e.SignoGiro)),
 			{ Estado: EstadoBarrido.Ruptura } => ("ROMPIMIENTO / ACEPTACIÓN (contexto)", ColorPanel.Azul),
 			_ => ("SIN OPERACIÓN", ColorPanel.Gris)
@@ -472,7 +507,8 @@ public sealed partial class MotorSweeps
 		L.Add(Linea(grupo, new Segmento($"Nivel: {e.Nombre} {PrecioMiles(e.L)} · formado {TiempoV2.HoraCdmx(e.Nivel.CreadoUtc, "dd/MM HH:mm")} · extremo {PrecioMiles(e.Extremo)} " +
 			$"a las {TiempoV2.HoraCdmx(e.ExtremoUtc, "HH:mm:ss")}", ColorPanel.Gris)));
 
-		var estado = e.Provisional ? $"PROVISIONAL {e.Total:0}/100" : $"{e.Estado.Texto()} {e.Total:0}/100{(e.UpgradePremium ? " · UPGRADE PREMIUM" : "")}";
+		var estado = e.Origen == "MANUAL" ? $"{e.Estado.Texto()} (MANUAL)"
+			: e.Provisional ? $"PROVISIONAL {e.Total:0}/100" : $"{e.Estado.Texto()} {e.Total:0}/100{(e.UpgradePremium ? " · UPGRADE PRIME" : "")}";
 		var color = e.Provisional ? ColorPanel.Naranja : e.Estado switch
 		{
 			EstadoBarrido.Real or EstadoBarrido.Premium => ColorSigno(e.SignoGiro),

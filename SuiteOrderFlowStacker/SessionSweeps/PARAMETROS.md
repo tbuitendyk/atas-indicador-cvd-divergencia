@@ -86,7 +86,7 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | Parámetro | En ATAS | Defecto | Rango | Descripción |
 |---|---|---|---|---|
 | `ScoreRealMin` | Puntos BARRIDO REAL | 70 | 0-100 | Mínimo para BARRIDO DE LIQUIDEZ REAL (con toma de stops, absorción y recuperación). Puntuación, no probabilidad. |
-| `ScorePremiumMin` | Puntos BARRIDO REAL PREMIUM | 85 | 0-100 | Además de todas las puertas premium. |
+| `ScorePremiumMin` | Puntos BARRIDO REAL PRIME | 85 | 0-100 | Además de todas las puertas premium. |
 | `PremiumMinLevelScore` | PREMIUM: bloque A mínimo | 12 | 0-20 |  |
 | `PremiumMaxReclaimBars` | PREMIUM: recuperación máxima (barras) | 3 | 1-20 |  |
 | `PremiumUpgradeMaxBars` | UPGRADE PREMIUM: barras máximas | 10 | 1-60 |  |
@@ -198,9 +198,9 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `AlertRealAtas` | BARRIDO REAL: ATAS (sonido y ventana) | Sí |  |  |
 | `AlertRealEmail` | BARRIDO REAL: correo | No |  |  |
 | `AlertRealTelegram` | BARRIDO REAL: Telegram | No |  |  |
-| `AlertPremiumAtas` | BARRIDO REAL PREMIUM: ATAS (sonido y ventana) | Sí |  |  |
-| `AlertPremiumEmail` | BARRIDO REAL PREMIUM: correo | Sí |  |  |
-| `AlertPremiumTelegram` | BARRIDO REAL PREMIUM: Telegram | Sí |  |  |
+| `AlertPremiumAtas` | BARRIDO REAL PRIME: ATAS (sonido y ventana) | Sí |  |  |
+| `AlertPremiumEmail` | BARRIDO REAL PRIME: correo | Sí |  |  |
+| `AlertPremiumTelegram` | BARRIDO REAL PRIME: Telegram | Sí |  |  |
 | `AlertRupturaAtas` | ROMPIMIENTO / ACEPTACIÓN: ATAS (sonido y ventana) | Sí |  |  |
 | `AlertRupturaEmail` | ROMPIMIENTO / ACEPTACIÓN: correo | No |  |  |
 | `AlertRupturaTelegram` | ROMPIMIENTO / ACEPTACIÓN: Telegram | No |  |  |

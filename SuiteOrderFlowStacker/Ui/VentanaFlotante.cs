@@ -39,6 +39,9 @@ internal sealed class VentanaFlotante : Window
 	/// <summary>Recuadros plegados (v3, 13): se guardan con la posición de la ventana.</summary>
 	private readonly HashSet<string> _plegadas = new(StringComparer.Ordinal);
 
+	/// <summary>v5: los botones dentro de los recuadros se crean una vez y se reutilizan (el panel se redibuja cada 250 ms).</summary>
+	private readonly Dictionary<BotonPanel, Button> _botonesLinea = new();
+
 	/// <summary>
 	/// Los indicadores de la DLL real registran la ventana en la fábrica al construirse (las pruebas no tienen WPF y dejan
 	/// la fábrica vacía o con un falso).
@@ -219,7 +222,7 @@ internal sealed class VentanaFlotante : Window
 			if (!l.Titulo && l.Grupo is { } g && _plegadas.Contains(g))
 				continue;
 
-			_lineas.Children.Add(l.Grafico is { } grafico ? MiniGrafico(grafico) : Linea(l));
+			_lineas.Children.Add(l.Grafico is { } grafico ? MiniGrafico(grafico) : l.Botones is { Count: > 0 } botones ? BotonesDeLinea(botones) : Linea(l));
 		}
 
 		_pie.Text = c.Pie;
@@ -267,6 +270,30 @@ internal sealed class VentanaFlotante : Window
 			return t;
 
 		return new Border { BorderBrush = Brocha(borde), BorderThickness = new Thickness(1.5), Padding = new Thickness(6, 3, 6, 3), Margin = new Thickness(0, 2, 0, 2), Child = t };
+	}
+
+	/// <summary>Botones dentro de un recuadro: los mismos objetos en cada refresco (un clic nunca se pierde).</summary>
+	private UIElement BotonesDeLinea(IReadOnlyList<BotonPanel> botones)
+	{
+		var fila = new WrapPanel { Margin = new Thickness(0, 2, 0, 2) };
+
+		foreach (var b in botones)
+		{
+			if (!_botonesLinea.TryGetValue(b, out var boton))
+			{
+				boton = Boton(b.Texto, b.Pulsar, b.Activo);
+				_botonesLinea[b] = boton;
+			}
+
+			if (boton.Parent is Panel anterior)
+				anterior.Children.Remove(boton);
+
+			boton.Content = b.Texto();
+			boton.FontWeight = b.Activo?.Invoke() == true ? FontWeights.Bold : FontWeights.Normal;
+			fila.Children.Add(boton);
+		}
+
+		return fila;
 	}
 
 	/// <summary>Triángulo del recuadro: a la derecha plegado, hacia abajo desplegado.</summary>

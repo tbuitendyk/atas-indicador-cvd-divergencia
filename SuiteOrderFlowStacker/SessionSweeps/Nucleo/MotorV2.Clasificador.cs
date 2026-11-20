@@ -63,6 +63,7 @@ public sealed partial class MotorSweeps
 	{
 		_ahoraV2 = utc;
 		TickLineas(utc, precio);
+		TickRecuadros(utc, precio);
 
 		foreach (var e in Evaluaciones)
 		{

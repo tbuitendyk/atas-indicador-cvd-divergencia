@@ -2,6 +2,7 @@ namespace OrderFlowSuite.Comun;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>Colores del panel (la ventana WPF y el panel dentro del gráfico los traducen).</summary>
 public enum ColorPanel
@@ -45,6 +46,9 @@ public sealed class LineaPanel
 	/// <summary>Minigráfico (velas de CVD con sus divergencias) en lugar de texto.</summary>
 	public GraficoMini? Grafico { get; init; }
 
+	/// <summary>v5: botones dentro de un recuadro (p. ej. marcar recuadros en "2. Barrido"), en lugar de texto.</summary>
+	public IReadOnlyList<BotonPanel>? Botones { get; init; }
+
 	public static LineaPanel De(params Segmento[] segmentos)
 	{
 		var l = new LineaPanel();
@@ -64,7 +68,9 @@ public sealed class LineaPanel
 
 	public string Texto => Grafico is { } g
 		? $"[CVD: {g.Velas.Count} velas, {g.Tramos.Count} divergencias]"
-		: string.Concat(Segmentos.ConvertAll(s => (s.Flecha == FlechaPanel.Arriba ? "▲" : s.Flecha == FlechaPanel.Abajo ? "▼" : "") + s.Texto));
+		: Botones is { Count: > 0 } b
+			? string.Join(" ", b.Select(x => $"[{x.Texto()}]"))
+			: string.Concat(Segmentos.ConvertAll(s => (s.Flecha == FlechaPanel.Arriba ? "▲" : s.Flecha == FlechaPanel.Abajo ? "▼" : "") + s.Texto));
 }
 
 /// <summary>Contenido de un panel flotante (lo arma el núcleo; lo dibuja la ventana o el gráfico).</summary>

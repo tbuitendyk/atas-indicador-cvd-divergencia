@@ -114,6 +114,7 @@ public partial class SessionSweepsPro
 			_fuentesAlCargar = Enum.GetValues<FuenteSuite>().Where(f => canal.Estado(f, DateTime.UtcNow) != EstadoFuente.NoCargado).ToHashSet();
 		}
 
+		RestaurarRecuadros(motor);
 		PedirHistorialV2();
 		AbrirPanelV2();
 	}
@@ -304,7 +305,7 @@ public partial class SessionSweepsPro
 			return c;
 		}
 
-		return motor.Panel(new OpcionesPanel
+		var contenido = motor.Panel(new OpcionesPanel
 		{
 			Detalle = detalle,
 			ArchivoCsv = ArchivoCsvV2(),
@@ -315,6 +316,10 @@ public partial class SessionSweepsPro
 			Envios = UltimosEnvios,
 			Mt5 = _mt5.LineasPanel(motor.Raiz, motor.Instrumento.Spec)
 		});
+
+		// v5: los botones de los recuadros manuales dentro del recuadro 2.
+		AgregarBotonesRecuadro(contenido);
+		return contenido;
 	}
 
 	private (DateTime Utc, bool Correo, bool Telegram) _canales;

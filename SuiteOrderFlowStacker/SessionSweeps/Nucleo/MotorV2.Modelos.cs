@@ -168,7 +168,8 @@ public sealed partial class MotorSweeps
 				return;
 			}
 
-			var externo = e.Nivel.Grupo is "dia" or "semana";
+			// v5: un rompimiento marcado a mano cuenta como externo (el usuario lo eligió).
+			var externo = e.Nivel.Grupo is "dia" or "semana" or "manual";
 
 			if (externo || P2.Mod4AllowInternal)
 				ArmarMod4(e, utc);
@@ -331,7 +332,7 @@ public sealed partial class MotorSweeps
 		ZonasMod2(b);
 
 		foreach (var e in Evaluaciones.Where(e => e.Estado == EstadoBarrido.Ruptura && e.Congelada &&
-			         (e.IcebergEstado == "ROTO" || e.Nivel.Grupo is "dia" or "semana" || P2.Mod4AllowInternal)))
+			         (e.IcebergEstado == "ROTO" || e.Nivel.Grupo is "dia" or "semana" or "manual" || P2.Mod4AllowInternal)))
 		{
 			ZonasPiernaMod4(e, utc);
 		}
@@ -613,7 +614,7 @@ public sealed partial class MotorSweeps
 	{
 		// Zonas de la pierna de las rupturas: también al cierre de cada vela (un FVG nace al cerrar su tercera vela).
 		foreach (var e in Evaluaciones.Where(e => e.Estado == EstadoBarrido.Ruptura && e.Congelada &&
-			         (e.IcebergEstado == "ROTO" || e.Nivel.Grupo is "dia" or "semana" || P2.Mod4AllowInternal)))
+			         (e.IcebergEstado == "ROTO" || e.Nivel.Grupo is "dia" or "semana" or "manual" || P2.Mod4AllowInternal)))
 		{
 			ZonasPiernaMod4(e, v.FinUtc);
 		}

@@ -120,6 +120,7 @@ public partial class SessionSweepsPro
 
 		DibujarChoch(context, foto, Visible);
 		DibujarV2(context, motor, area, Visible);
+		DibujarRecuadros(context, motor);
 
 		if (ShowLevelLabels)
 			DibujarEtiquetas(context, area);

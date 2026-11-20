@@ -213,7 +213,7 @@ public partial class SessionSweepsPro
 	[Range(0, 100)]
 	public int ScoreRealMin { get => _cfg.V2.ScoreRealMin; set { _cfg.V2.ScoreRealMin = Math.Clamp(value, 0, 100); Recalcular(); } }
 
-	[Display(Name = "Puntos BARRIDO REAL PREMIUM", GroupName = "22. Estados y alertas", Order = 20, Description = "Además de todas las puertas premium.")]
+	[Display(Name = "Puntos BARRIDO REAL PRIME", GroupName = "22. Estados y alertas", Order = 20, Description = "Además de todas las puertas premium.")]
 	[Range(0, 100)]
 	public int ScorePremiumMin { get => _cfg.V2.ScorePremiumMin; set { _cfg.V2.ScorePremiumMin = Math.Clamp(value, 0, 100); Recalcular(); } }
 
@@ -500,13 +500,13 @@ public partial class SessionSweepsPro
 	[Display(Name = "BARRIDO REAL: Telegram", GroupName = "37. Alertas y canales", Order = 30, Description = "")]
 	public bool AlertRealTelegram { get => _cfg.V2.AlertRealTelegram; set { _cfg.V2.AlertRealTelegram = value; RedrawChart(); } }
 
-	[Display(Name = "BARRIDO REAL PREMIUM: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 40, Description = "")]
+	[Display(Name = "BARRIDO REAL PRIME: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 40, Description = "")]
 	public bool AlertPremiumAtas { get => _cfg.V2.AlertPremiumAtas; set { _cfg.V2.AlertPremiumAtas = value; RedrawChart(); } }
 
-	[Display(Name = "BARRIDO REAL PREMIUM: correo", GroupName = "37. Alertas y canales", Order = 50, Description = "")]
+	[Display(Name = "BARRIDO REAL PRIME: correo", GroupName = "37. Alertas y canales", Order = 50, Description = "")]
 	public bool AlertPremiumEmail { get => _cfg.V2.AlertPremiumEmail; set { _cfg.V2.AlertPremiumEmail = value; RedrawChart(); } }
 
-	[Display(Name = "BARRIDO REAL PREMIUM: Telegram", GroupName = "37. Alertas y canales", Order = 60, Description = "")]
+	[Display(Name = "BARRIDO REAL PRIME: Telegram", GroupName = "37. Alertas y canales", Order = 60, Description = "")]
 	public bool AlertPremiumTelegram { get => _cfg.V2.AlertPremiumTelegram; set { _cfg.V2.AlertPremiumTelegram = value; RedrawChart(); } }
 
 	[Display(Name = "ROMPIMIENTO / ACEPTACIÓN: ATAS (sonido y ventana)", GroupName = "37. Alertas y canales", Order = 70, Description = "")]

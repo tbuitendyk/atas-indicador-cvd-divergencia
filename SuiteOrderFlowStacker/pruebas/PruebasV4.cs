@@ -17,6 +17,55 @@ internal static class PruebasV4
 		LineasDeSesion(c);
 		CargaRapida(c);
 		ZonasPersistentes(c);
+		RecuadrosManuales(c);
+	}
+
+	/// <summary>v5 F5: recuadros manuales (barrido REAL / PRIME, rompimiento) y rango de vela compuesta con su ruptura.</summary>
+	private static void RecuadrosManuales(Comprobador c)
+	{
+		c.Seccion("v5 F5: recuadro de vela compuesta: rango de sus velas y flecha en la primera ruptura");
+		var s = new SimMotor(sinBarridos: true);
+		var d = new DateTime(2026, 10, 30, 9, 41, 0);
+		s.Minuto(d, SimMotor.Camino(21404, 21409, 3, 3));
+		s.Minuto(d.AddMinutes(1), SimMotor.Camino(21409, 21405, 3, 3));
+		s.Minuto(d.AddMinutes(2), SimMotor.Camino(21405, 21407, 3, 3));
+		var caja = s.M.Marcar(TipoRecuadro.Compuesta, Utc(d), Utc(d.AddMinutes(2)), 21300, 21500, Utc(d.AddMinutes(3)));
+		c.Check("el rango sale de las velas del recuadro (no de los bordes dibujados)", $"{F(caja.Bajo)} {F(caja.Alto)}", "21404 21409");
+		s.Minuto(d.AddMinutes(3), SimMotor.Camino(21407, 21408, 3, 3));
+		c.Check("dentro del rango: sin ruptura", (caja.RompeUtc is null).ToString(), "True");
+		s.Minuto(d.AddMinutes(4), SimMotor.Camino(21408, 21412, 3, 3));
+		c.Check("rompe por arriba: flecha verde (alcista) una sola vez", $"{caja.RompeDireccion} {F(caja.RompePrecio)} {TiempoV2.HoraEt(caja.RompeUtc ?? default, "HH:mm")}", "1 21409 09:45 ET");
+		var panel = s.M.Panel(new OpcionesPanel());
+		var linea = panel.Lineas.FirstOrDefault(l => l.Texto.Contains("Rango vela compuesta 21,404.00-21,409.00", StringComparison.Ordinal));
+		c.Check("el recuadro 2 del panel lo muestra con su flecha", linea is null ? "sin línea" : $"{linea.Grupo} {linea.Segmentos[1].Flecha} {linea.Segmentos[1].Color}", "b2 Arriba Verde");
+		c.Check("novedad de la ruptura", s.M.TomarNovedadesV2().Count(n => n.Tipo == "RUPTURA RANGO COMPUESTO").ToString(), "1");
+
+		c.Seccion("v5 F5: recuadro manual de BARRIDO REAL: referencia activa que arranca los modelos (M1), sin alerta");
+		var real = s.M.Marcar(TipoRecuadro.BarridoReal, Utc(d.AddMinutes(4)), Utc(d.AddMinutes(5)), 21410, 21416, Utc(d.AddMinutes(6)));
+		c.Check("precio por debajo de la mitad del recuadro: se barrió un máximo (giro bajista)", real.Signo.ToString(), "1");
+		var e = s.M.Leer(m => m.Evaluaciones.Single(x => x.Origen == "MANUAL"));
+		c.Check("queda una evaluación MANUAL congelada como BARRIDO REAL, nivel 21410, extremo 21416", $"{e.Estado} {e.Congelada} {F(e.L)} {F(e.Extremo)} {e.Nivel.Grupo}", "Real True 21410 21416 manual");
+		var m1 = s.Setups.Where(x => x.Barrido?.Origen == "MANUAL").ToList();
+		c.Check("arma el Modelo 1 corto sobre la zona del recuadro", m1.Count == 1 ? $"{m1[0].ModeloOperativo} {m1[0].Signo} {F(m1[0].Zona.Bajo)}-{F(m1[0].Zona.Alto)}" : $"{m1.Count}", "M1 -1 21410-21416");
+		var nov = s.M.TomarNovedadesV2();
+		var p = s.M.Leer(m => m.P2);
+		var ctx = new ContextoMensaje { Instrumento = "NQ", Contrato = "NQZ6" };
+		c.Check("el barrido marcado a mano no suena", new DespachoAlertasV2().Procesar(nov, true, p, ctx).Count(a => a.Categoria is CategoriaAlerta.Real or CategoriaAlerta.Premium).ToString(), "0");
+		var panel2 = s.M.Panel(new OpcionesPanel());
+		c.Check("el panel lo toma como referencia activa", panel2.Lineas.Any(l => l.Texto.Contains("BARRIDO REAL (MANUAL)", StringComparison.Ordinal)).ToString(), "True");
+
+		c.Seccion("v5 F5: recuadro manual de ROMPIMIENTO arma el M2 tras rompimiento; borrar los recuadros invalida sus modelos");
+		var rotura = s.M.Marcar(TipoRecuadro.Rompimiento, Utc(d.AddMinutes(1)), Utc(d.AddMinutes(2)), 21400, 21406, Utc(d.AddMinutes(6)));
+		c.Check("precio por encima de la mitad: rompimiento alcista", rotura.Signo.ToString(), "1");
+		c.Check("arma el M2 - RETROCESO TRAS ROMPIMIENTO (el manual cuenta como externo)",
+			s.Setups.Any(x => x.Modelo == "MOD4" && x.Barrido?.Origen == "MANUAL" && x.Signo == 1).ToString(), "True");
+		var guardado = RecuadroManual.Escribir(s.M.Leer(m => m.Recuadros.ToList()));
+		var leidos = RecuadroManual.Leer(guardado);
+		c.Check("se guardan con el gráfico y se leen igual", string.Join(" ", leidos.Select(r => $"{r.Tipo}:{F(r.Bajo)}-{F(r.Alto)}")),
+			"Compuesta:21404-21409 BarridoReal:21410-21416 Rompimiento:21400-21406");
+		s.M.QuitarRecuadros();
+		c.Check("borrar: sin recuadros ni evaluaciones manuales; sus modelos invalidados",
+			s.M.Leer(m => $"{m.Recuadros.Count} {m.Evaluaciones.Count(x => x.Origen == "MANUAL")} {m.Setups.Where(x => x.Barrido?.Origen == "MANUAL").All(x => x.Estado == EstadoModelo.Invalidado)}"), "0 0 True");
 	}
 
 	/// <summary>v5 F4: los LVN y EDGE del Thermal se guardan y el Sweep Pro los usa con el Thermal cerrado.</summary>

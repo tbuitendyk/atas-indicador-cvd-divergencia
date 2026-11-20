@@ -69,8 +69,8 @@ internal static class PruebasV2Alertas
 
 		c.Check("REAL, PREMIUM y RUPTURA confirmados: sus tres categorías",
 			$"{Cat(Al(N("CONFIRMADO", Ev(EstadoBarrido.Real))))} {Cat(Al(N("CONFIRMADO", Ev(EstadoBarrido.Premium))))} {Cat(Al(N("CONFIRMADO", Ev(EstadoBarrido.Ruptura))))}", "Real Premium Ruptura");
-		c.Check("UPGRADE PREMIUM: categoría PREMIUM con su etiqueta (no repite la de REAL)",
-			Al(N("UPGRADE PREMIUM", Ev(EstadoBarrido.Premium))) is { } up ? $"{up.Categoria} {up.Asunto.Contains("UPGRADE PREMIUM", StringComparison.Ordinal)} {up.Clave != Al(N("CONFIRMADO", Ev(EstadoBarrido.Real)))!.Clave}" : "-",
+		c.Check("UPGRADE PRIME: categoría PREMIUM con su etiqueta (no repite la de REAL)",
+			Al(N("UPGRADE PREMIUM", Ev(EstadoBarrido.Premium))) is { } up ? $"{up.Categoria} {up.Asunto.Contains("UPGRADE PRIME", StringComparison.Ordinal)} {up.Clave != Al(N("CONFIRMADO", Ev(EstadoBarrido.Real)))!.Clave}" : "-",
 			"Premium True True");
 		c.Check("v4: no suenan INDETERMINADO, FALLIDO, RUPTURA FALLIDA, arma M2 ni modelos cerrados; M3 ACTIVADO sí (su señal propia)",
 			string.Join(" ", new[] { ("CONFIRMADO", EstadoBarrido.Indeterminado), ("FALLIDO", EstadoBarrido.Fallido), ("RUPTURA FALLIDA", EstadoBarrido.RupturaFallida),

@@ -152,7 +152,7 @@ internal static class PruebasV2Clasificador
 			x.Iceberg(mbo: true);
 			var t = x.Evaluar();
 			var lado = s > 0 ? "buyside" : "sellside";
-			c.Check($"T1 {lado}: TRAMPA PREMIUM al cierre de vuelta", $"{string.Join(",", t)} | {x.E.Estado}", "BARRIDO REAL PREMIUM | Premium");
+			c.Check($"T1 {lado}: BARRIDO REAL PRIME al cierre de vuelta", $"{string.Join(",", t)} | {x.E.Estado}", "BARRIDO REAL PRIME | Premium");
 			c.Check($"T1 {lado}: bloques A-E, total y puertas", $"{F(x.E.ScoreA)} {F(x.E.ScoreB)} {F(x.E.ScoreC)} {F(x.E.ScoreD)} {F(x.E.ScoreE)} = {F(x.E.Total)} | {x.E.PremiumGates}", "15 16 25 25 10 = 91 | 1111111");
 			c.Check($"T1 {lado}: congelado, ReclaimBars 3, recuperación 20 ticks", $"{x.E.Congelada} {x.E.ReclaimBars} {x.E.RecoveryTicks}", "True 3 20");
 			c.Check($"T9 {lado}: el cierre de vuelta suma una sola vez", x.E.Desglose.Count(d => d.Texto.StartsWith("Cierre de vuelta")).ToString(), "1");

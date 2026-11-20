@@ -58,6 +58,10 @@ public static class PoliticaAlertasV2
 		if (e?.Noticia == true || TiempoV2.EnNoticia(n.Utc, p))
 			return null;
 
+		// v5: un barrido marcado a mano no avisa (lo puso el usuario); sus gatillos sí.
+		if (e?.Origen == "MANUAL" && n.Tipo == "CONFIRMADO")
+			return null;
+
 		var clave = $"{n.Tipo}|{e?.Id}|{n.Setup?.Id}";
 
 		switch (n.Tipo)
@@ -65,10 +69,10 @@ public static class PoliticaAlertasV2
 			case "CONFIRMADO" when e is not null && e.Estado.EsReal() && e.Estado.Rango() >= (int)p.AlertMinState + 1:
 				var premium = e.Estado == EstadoBarrido.Premium;
 				return Crear(clave, premium ? CategoriaAlerta.Premium : CategoriaAlerta.Real,
-					premium ? "BARRIDO DE LIQUIDEZ REAL PREMIUM" : "BARRIDO DE LIQUIDEZ REAL", n, e.SignoGiro, null, ctx);
+					premium ? "BARRIDO DE LIQUIDEZ REAL PRIME" : "BARRIDO DE LIQUIDEZ REAL", n, e.SignoGiro, null, ctx);
 
 			case "UPGRADE PREMIUM" when e is not null && p.AlertMinState <= EstadoMinimoAlerta.Premium:
-				return Crear(clave, CategoriaAlerta.Premium, "UPGRADE PREMIUM", n, e.SignoGiro, null, ctx);
+				return Crear(clave, CategoriaAlerta.Premium, "UPGRADE PRIME", n, e.SignoGiro, null, ctx);
 
 			case "CONFIRMADO" when e is not null && e.Estado == EstadoBarrido.Ruptura:
 				return Crear(clave, CategoriaAlerta.Ruptura, "ROMPIMIENTO / ACEPTACIÓN CONFIRMADO (contexto)", n, e.Signo, null, ctx);
