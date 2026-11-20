@@ -113,7 +113,8 @@ public partial class SessionSweepsPro
 				var barA = BarraDeX(Math.Min(a.X, b.X));
 				var barB = BarraDeX(Math.Max(a.X, b.X));
 				var (alto, bajo) = (PrecioDeY(Math.Min(a.Y, b.Y)), PrecioDeY(Math.Max(a.Y, b.Y)));
-				motor.Marcar(tipo, GetCandle(barA).Time, GetCandle(barB).Time, bajo, alto, DateTime.UtcNow);
+				// v5: en 5 minutos el recuadro llega hasta el último minuto de la vela de la derecha.
+				motor.Marcar(tipo, GetCandle(barA).Time, GetCandle(barB).Time.AddMinutes(Math.Max(1, _minutos) - 1), bajo, alto, DateTime.UtcNow);
 				ManualBoxes = motor.Leer(m => RecuadroManual.Escribir(m.Recuadros));
 			}
 		}

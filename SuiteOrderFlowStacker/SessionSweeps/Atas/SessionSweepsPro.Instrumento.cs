@@ -34,7 +34,9 @@ public partial class SessionSweepsPro
 			for (var i = 0; i < CurrentBar - 1; i++)
 			{
 				var c = GetCandle(i);
-				velas.Add((c.Time, c.Volume, c.Delta));
+				// v5: en 5 minutos, valores por minuto (la calibración es por vela de 1 minuto).
+				var m = Math.Max(1, _minutos);
+				velas.Add((c.Time, c.Volume / m, c.Delta / m));
 			}
 
 			calibracion = Calibrador.Calcular(velas, perfil, contrato, _cfg.V2.VolumePerBarFraction, DateTime.UtcNow);

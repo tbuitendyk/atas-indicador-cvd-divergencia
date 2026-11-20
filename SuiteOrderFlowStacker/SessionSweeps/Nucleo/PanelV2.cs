@@ -12,8 +12,11 @@ public sealed class OpcionesPanel
 {
 	public bool Detalle;
 	public string ArchivoCsv = "";
-	public string Version = "Sweep Pro (FAST) v4.0";
+	public string Version = "Sweep Pro (FAST) v5.0";
 	public bool Mbo;
+
+	/// <summary>v5: minutos por vela del gráfico (en 5 minutos el motor sigue con velas de 1 minuto).</summary>
+	public int MinutosGrafico = 1;
 	public decimal? SaldoAtas;
 
 	/// <summary>Canales configurados (correo / Telegram) y el último resultado de cada uno (recuadro 15).</summary>
@@ -227,7 +230,8 @@ public sealed partial class MotorSweeps
 		// 12) CALIDAD Y TRAZABILIDAD.
 		Recuadro(L, "12. CALIDAD Y TRAZABILIDAD", "b12");
 		L.Add(Linea("b12", new Segmento($"Módulo activo: {o.Version} · eventos del día: {Evaluaciones.Count(x => Zonas.DiaOperativo(x.T0Utc) == hoy)} · CSV {o.ArchivoCsv}")));
-		L.Add(Linea("b12", new Segmento($"Datos: {(UltimoMinutoAprox ? "APROX (footprint 1m)" : "TICKS")} · {(o.Mbo ? "MBO" : "INFERIDO")} · volumen y delta en contratos de {ins.Raiz}")));
+		L.Add(Linea("b12", new Segmento($"Datos: {(UltimoMinutoAprox ? "APROX (footprint 1m)" : "TICKS")} · {(o.Mbo ? "MBO" : "INFERIDO")} · volumen y delta en contratos de {ins.Raiz}" +
+			(o.MinutosGrafico > 1 ? $" · gráfico de {o.MinutosGrafico} minutos, cálculo con velas de 1 minuto" : ""))));
 		L.Add(Linea("b12", new Segmento("Fuentes: " + string.Join(" · ", Enum.GetValues<FuenteSuite>().Where(f => f != FuenteSuite.SessionSweeps)
 			.Select(f => $"{f} {TextoFuente(f)}")))));
 

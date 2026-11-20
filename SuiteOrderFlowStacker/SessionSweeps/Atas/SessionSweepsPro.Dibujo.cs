@@ -154,11 +154,11 @@ public partial class SessionSweepsPro
 			var finAlto = s.Abierta ? s.HastaBar : Math.Min(s.FinExtension ?? foto.UltimaVela, ExtendUntilSwept && s.AltoBarridoEn is { } a ? a : foto.UltimaVela);
 			var finBajo = s.Abierta ? s.HastaBar : Math.Min(s.FinExtension ?? foto.UltimaVela, ExtendUntilSwept && s.BajoBarridoEn is { } b ? b : foto.UltimaVela);
 
-			if (!visible(s.DesdeBar, Math.Max(finAlto, finBajo)))
+			if (!visible(B(s.DesdeBar), B(Math.Max(finAlto, finBajo))))
 				continue;
 
-			var x1 = X(s.DesdeBar);
-			var x2 = X(s.HastaBar) + AnchoVela;
+			var x1 = X(B(s.DesdeBar));
+			var x2 = X(B(s.HastaBar)) + AnchoVela;
 			var yAlto = Y(s.Alto);
 			var yBajo = Y(s.Bajo);
 
@@ -181,12 +181,12 @@ public partial class SessionSweepsPro
 			// Original; en el modo v4 las líneas blancas las dibuja DibujarLineasSesion y se detienen al romperse).
 			if (def.ExtenderMaxMin && SessionLinesMode == ModoLineasSesion.Original)
 			{
-				Punteada(context, pluma, x2, X(finAlto) + AnchoVela, yAlto);
-				Punteada(context, pluma, x2, X(finBajo) + AnchoVela, yBajo);
+				Punteada(context, pluma, x2, X(B(finAlto)) + AnchoVela, yAlto);
+				Punteada(context, pluma, x2, X(B(finBajo)) + AnchoVela, yBajo);
 			}
 
 			if (def.ExtenderMedia)
-				Punteada(context, pluma, x2, X(s.FinExtension ?? foto.UltimaVela) + AnchoVela, Y(s.Medio));
+				Punteada(context, pluma, x2, X(B(s.FinExtension ?? foto.UltimaVela)) + AnchoVela, Y(s.Medio));
 		}
 	}
 
@@ -201,8 +201,8 @@ public partial class SessionSweepsPro
 				continue;
 
 			// Los de sesión ya tienen sus líneas; los diarios, semanales e iguales se dibujan aquí.
-			if (!n.Grupo.StartsWith("sesion") && visible(n.CreadoBar, foto.UltimaVela))
-				Punteada(context, pluma, X(n.CreadoBar), area.Right, Y(n.Precio));
+			if (!n.Grupo.StartsWith("sesion") && visible(B(n.CreadoBar), B(foto.UltimaVela)))
+				Punteada(context, pluma, X(B(n.CreadoBar)), area.Right, Y(n.Precio));
 
 			_etiquetas.Add((Y(n.Precio), $"{n.Nombre} {motor.Precio(n.Precio)}", Color.FromArgb(220, 200, 200, 200)));
 		}
@@ -210,7 +210,7 @@ public partial class SessionSweepsPro
 
 	private void DibujarZonas(RenderContext context, Foto foto, Func<int, int, bool> visible)
 	{
-		foreach (var z in foto.Zonas.Where(z => visible(z.Izquierda, z.Derecha)))
+		foreach (var z in foto.Zonas.Where(z => visible(B(z.Izquierda), B(z.Derecha))))
 		{
 			var falso = z.Clasificacion == Clasificacion.Falso || z.FalsoPine;
 
@@ -224,8 +224,8 @@ public partial class SessionSweepsPro
 				: C(lado);
 			var y1 = Y(Math.Max(z.L, z.Extremo));
 			var y2 = Y(Math.Min(z.L, z.Extremo));
-			var x1 = X(z.Izquierda);
-			var x2 = X(z.Derecha);
+			var x1 = X(B(z.Izquierda));
+			var x2 = X(B(z.Derecha));
 			context.FillRectangle(color, new Rectangle(x1, y1, Math.Max(1, x2 - x1), Math.Max(2, y2 - y1)));
 			context.DrawString(z.Etiqueta, _fuente!, Color.White, new Rectangle(x2 + 3, (z.Lado == Lado.Buyside ? y1 : y2) - 7, 150, 14), _izquierda);
 		}
@@ -233,10 +233,10 @@ public partial class SessionSweepsPro
 
 	private void DibujarFvg(RenderContext context, Foto foto, Func<int, int, bool> visible)
 	{
-		foreach (var f in foto.Fvgs.Where(f => visible(f.Izquierda, f.Derecha)))
+		foreach (var f in foto.Fvgs.Where(f => visible(B(f.Izquierda), B(f.Derecha))))
 		{
 			var color = f.Ifvg ? C(IfvgColor) : f.Alcista ? C(FvgBullColor) : C(FvgBearColor);
-			var caja = new Rectangle(X(f.Izquierda), Y(f.Arriba), Math.Max(1, X(f.Derecha) + AnchoVela - X(f.Izquierda)), Math.Max(1, Y(f.Abajo) - Y(f.Arriba)));
+			var caja = new Rectangle(X(B(f.Izquierda)), Y(f.Arriba), Math.Max(1, X(B(f.Derecha)) + AnchoVela - X(B(f.Izquierda))), Math.Max(1, Y(f.Abajo) - Y(f.Arriba)));
 			context.FillRectangle(color, caja);
 
 			if (f.PostSweep)
@@ -257,19 +257,19 @@ public partial class SessionSweepsPro
 		{
 			var o = p.Objetivos[i];
 			var y = Y(o.Precio);
-			Punteada(context, pluma, X(z.BarraBarrido), area.Right, y);
+			Punteada(context, pluma, X(B(z.BarraBarrido)), area.Right, y);
 			_etiquetas.Add((y, $"T{i + 1} {motor.Precio(o.Precio)} ({o.Puntos:0.##} pts){(o.FueraDeRango ? " fuera de rango" : "")}", Color.WhiteSmoke));
 		}
 	}
 
 	private void DibujarChoch(RenderContext context, Foto foto, Func<int, int, bool> visible)
 	{
-		foreach (var l in foto.Choch.Where(l => visible(l.Desde, l.Hasta)))
+		foreach (var l in foto.Choch.Where(l => visible(B(l.Desde), B(l.Hasta))))
 		{
 			var color = l.Alcista ? C(MssBullColor) : C(MssBearColor);
 			var y = Y(l.Precio);
-			context.DrawLine(new RenderPen(color, 1), X(l.Desde), y, X(l.Hasta), y);
-			context.DrawString("CHoCH", _fuente!, color, new Rectangle(X(l.Desde), l.Alcista ? y - 14 : y + 1, 60, 13), _izquierda);
+			context.DrawLine(new RenderPen(color, 1), X(B(l.Desde)), y, X(B(l.Hasta)), y);
+			context.DrawString("CHoCH", _fuente!, color, new Rectangle(X(B(l.Desde)), l.Alcista ? y - 14 : y + 1, 60, 13), _izquierda);
 		}
 	}
 

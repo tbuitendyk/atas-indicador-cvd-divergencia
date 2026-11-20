@@ -87,6 +87,31 @@ public sealed class AlmacenTicks
 			_ticks.Clear();
 	}
 
+	/// <summary>v5: copia de los trades de [desde, hasta) (gráfico de 5 minutos: las velas de 1 minuto del día).</summary>
+	public List<TickV2> Entre(DateTime desde, DateTime hasta)
+	{
+		lock (_cerrojo)
+		{
+			var i = PrimeroDesdeSinCerrojo(desde);
+			var r = new List<TickV2>();
+
+			while (i < _ticks.Count && _ticks[i].Utc < hasta)
+				r.Add(_ticks[i++]);
+
+			return r;
+		}
+	}
+
+	/// <summary>v5: hora del primer trade guardado (MaxValue si no hay ninguno).</summary>
+	public DateTime PrimerUtc
+	{
+		get
+		{
+			lock (_cerrojo)
+				return _ticks.Count > 0 ? _ticks[0].Utc : DateTime.MaxValue;
+		}
+	}
+
 	/// <summary>Primer índice con hora >= utc.</summary>
 	public int PrimeroDesde(DateTime utc)
 	{

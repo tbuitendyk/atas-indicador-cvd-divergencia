@@ -243,7 +243,7 @@ public partial class SessionSweepsPro
 			return;
 
 		var desde = GetCandle(Math.Max(0, FirstVisibleBarNumber)).Time;
-		var hasta = GetCandle(Math.Clamp(LastVisibleBarNumber, 0, CurrentBar - 1)).Time.AddMinutes(1);
+		var hasta = GetCandle(Math.Clamp(LastVisibleBarNumber, 0, CurrentBar - 1)).Time.AddMinutes(Math.Max(1, _minutos));
 		var color = ColorDe(ColorPanel.Fucsia);
 		var pluma = new RenderPen(color, 1);
 

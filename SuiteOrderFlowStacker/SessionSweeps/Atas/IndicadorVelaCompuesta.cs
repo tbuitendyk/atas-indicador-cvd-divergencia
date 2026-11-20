@@ -42,6 +42,7 @@ public class IndicadorVelaCompuesta : Indicator
 	private MotorVelaCompuesta? _motor;
 	private int _ultimaBarra = -1;
 	private bool _enVivo, _panelAbierto;
+	private int _minutos = 1;
 	private string _instrumento = "";
 	private DateTime _detalleDesde = DateTime.MinValue, _ultimoLatido;
 	private FranjaHoraria _franjaPanel = FranjaHoraria.NyApertura;
@@ -178,7 +179,16 @@ public class IndicadorVelaCompuesta : Indicator
 					e.Niveles.Add(new NivelVela(n.Price, n.Bid, n.Ask));
 			}
 
-			motor.Vela(e, tick, conBarras: detalle);
+			// v5: en un gráfico de 5 minutos los datos siguen siendo de 1 minuto (sugerido, velas volumétricas, FVG).
+			if (_minutos > 1)
+			{
+				foreach (var m in MinutosV5.Partir(e, _minutos, tick))
+					motor.Vela(m, tick, conBarras: detalle);
+			}
+			else
+			{
+				motor.Vela(e, tick, conBarras: detalle);
+			}
 		}
 
 		_ultimaBarra = bar;
@@ -196,6 +206,8 @@ public class IndicadorVelaCompuesta : Indicator
 	{
 		(_ultimaBarra, _enVivo) = (-1, false);
 		_instrumento = InstrumentInfo?.Instrument ?? "";
+		var minutos = MinutosV5.DeTimeFrame(ChartInfo?.ChartType, ChartInfo?.TimeFrame);
+		_minutos = minutos is > 1 and <= 15 ? minutos : 1;
 		var tick = InstrumentInfo?.TickSize is > 0 ? InstrumentInfo.TickSize : 0.25m;
 		_motor = new MotorVelaCompuesta(tick);
 		Aplicar(_motor);

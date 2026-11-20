@@ -314,7 +314,8 @@ public partial class SessionSweepsPro
 			CorreoConfigurado = CanalesConfigurados().Correo,
 			TelegramConfigurado = CanalesConfigurados().Telegram,
 			Envios = UltimosEnvios,
-			Mt5 = _mt5.LineasPanel(motor.Raiz, motor.Instrumento.Spec)
+			Mt5 = _mt5.LineasPanel(motor.Raiz, motor.Instrumento.Spec),
+			MinutosGrafico = Math.Max(1, _minutos)
 		});
 
 		// v5: los botones de los recuadros manuales dentro del recuadro 2.

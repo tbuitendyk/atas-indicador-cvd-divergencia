@@ -129,16 +129,17 @@ public sealed partial class MotorSweeps
 	// Velas cerradas
 	// =================================================================================================================
 
-	public void Procesar(VelaEntrada e)
+	/// <summary>Una vela cerrada; false si se ignora (no es posterior a la última).</summary>
+	public bool Procesar(VelaEntrada e)
 	{
 		lock (_sync)
-			ProcesarInterno(e);
+			return ProcesarInterno(e);
 	}
 
-	private void ProcesarInterno(VelaEntrada e)
+	private bool ProcesarInterno(VelaEntrada e)
 	{
 		if (Velas.Count > 0 && e.InicioUtc <= Velas[^1].InicioUtc)
-			return;
+			return false;
 
 		var v = Construir(e);
 		Velas.Add(v);
@@ -213,6 +214,7 @@ public sealed partial class MotorSweeps
 			_rupturas.Remove(id);
 
 		Revision++;
+		return true;
 	}
 
 	private Vela Construir(VelaEntrada e)

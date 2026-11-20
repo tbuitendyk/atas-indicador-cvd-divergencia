@@ -93,14 +93,14 @@ public partial class SessionSweepsPro
 			if (l.Reciente && !NyRecentLines)
 				continue;
 
-			var fin = l.RotaBar ?? LastVisibleBarNumber;
+			var fin = l.RotaBar is { } rota ? B(rota) : LastVisibleBarNumber;
 
-			if (!visible(l.DesdeBar, fin))
+			if (!visible(B(l.DesdeBar), fin))
 				continue;
 
 			var y = Y(l.Precio);
-			var x1 = X(l.DesdeBar);
-			var x2 = l.RotaBar is { } r ? X(r) + AnchoVela / 2 : area.Right;
+			var x1 = X(B(l.DesdeBar));
+			var x2 = l.RotaBar is { } r ? X(B(r)) + AnchoVela / 2 : area.Right;
 
 			if (SessionLinesDashed)
 				Punteada(context, pluma, x1, x2, y);
@@ -110,11 +110,11 @@ public partial class SessionSweepsPro
 			var nombre = $"{(l.Alto ? "MÁX" : "MÍN")} {l.Sesion}{(l.Reciente ? " rec." : "")}";
 			context.DrawString(nombre, _fuente!, C(SessionLinesColor, 200), new Rectangle(x1 + 2, l.Alto ? y - 14 : y + 1, 140, 13), _izquierda);
 
-			if (l.BosBar is { } b && BosDe(l.SesionId) && visible(b, b))
+			if (l.BosBar is { } b && BosDe(l.SesionId) && visible(B(b), B(b)))
 			{
 				var color = l.Alto ? Color.FromArgb(255, 38, 166, 154) : Color.FromArgb(255, 239, 83, 80);
-				context.DrawString("BOS", _fuente!, color, new Rectangle(X(b) - 12, l.Alto ? y - 28 : y + 14, 40, 13), _izquierda);
-				Flecha(context, X(b) - 6, l.Alto ? y - 34 : y + 34, l.Alto ? 1 : -1, color);
+				context.DrawString("BOS", _fuente!, color, new Rectangle(X(B(b)) - 12, l.Alto ? y - 28 : y + 14, 40, 13), _izquierda);
+				Flecha(context, X(B(b)) - 6, l.Alto ? y - 34 : y + 34, l.Alto ? 1 : -1, color);
 			}
 		}
 	}

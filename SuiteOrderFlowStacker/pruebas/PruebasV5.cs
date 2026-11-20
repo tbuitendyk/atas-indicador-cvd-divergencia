@@ -15,6 +15,88 @@ internal static class PruebasV5
 	{
 		VelaCompuestaFast(c);
 		ConfluenciaVolumetrica(c);
+		GraficoCincoMinutos(c);
+	}
+
+	/// <summary>v5: gráfico de 5 minutos con datos de 1 minuto (partir velas, minutos desde trades, armado en vivo).</summary>
+	private static void GraficoCincoMinutos(Comprobador c)
+	{
+		c.Seccion("v5 Sweep Pro en 5 minutos: velas de 1 minuto partiendo la vela del gráfico (sin footprint)");
+		var t0 = Zonas.AUtc(new DateTime(2026, 11, 18, 9, 30, 0), ZonaHoraria.NuevaYork);
+		var cinco = new VelaEntrada { InicioUtc = t0, Open = 21400m, High = 21410m, Low = 21395m, Close = 21408m, Volume = 5000, Delta = 600, Ask = 2800, Bid = 2200 };
+		var p = MinutosV5.Partir(cinco, 5, Tick);
+		c.Check("5 velas, una por minuto", string.Join(" ", p.Select(v => TiempoV2.HoraEt(v.InicioUtc, "HH:mm"))), "09:30 ET 09:31 ET 09:32 ET 09:33 ET 09:34 ET");
+		c.Check("apertura, cierre y extremos exactos", $"{p[0].Open} {p[^1].Close} {p.Max(v => v.High)} {p.Min(v => v.Low)}", "21400 21408 21410 21395");
+		c.Check("alcista: primero el mínimo, después el máximo", (p.FindIndex(v => v.Low == 21395m) < p.FindIndex(v => v.High == 21410m)).ToString(), "True");
+		c.Check("volumen y delta repartidos (suman lo mismo)", $"{p.Sum(v => v.Volume)} {p.Sum(v => v.Delta)} {p[2].Volume}", "5000 600 1000");
+		c.Check("cada minuto empieza donde terminó el anterior", p.Zip(p.Skip(1)).All(x => x.First.Close == x.Second.Open).ToString(), "True");
+		c.Check("precios en ticks", p.All(v => new[] { v.Open, v.High, v.Low, v.Close }.All(x => x % Tick == 0)).ToString(), "True");
+
+		c.Check("minutos del gráfico de ATAS", $"{MinutosV5.DeTimeFrame("TimeFrame", "M5")} {MinutosV5.DeTimeFrame("TimeFrame", "M1")} {MinutosV5.DeTimeFrame("Tick", "100")} {MinutosV5.DeTimeFrame(null, "H1")}", "5 1 0 -1");
+
+		c.Seccion("v5 Sweep Pro en 5 minutos: con footprint (días con detalle)");
+		var conHuella = new VelaEntrada { InicioUtc = t0, Open = 21405m, High = 21406m, Low = 21400m, Close = 21401m };
+
+		for (var precio = 21400m; precio <= 21406m; precio += Tick)
+			conHuella.Niveles.Add(new NivelVela(precio, 30, 20));
+
+		(conHuella.Volume, conHuella.Delta) = (conHuella.Niveles.Sum(n => n.Bid + n.Ask), conHuella.Niveles.Sum(n => n.Ask - n.Bid));
+		var ph = MinutosV5.Partir(conHuella, 5, Tick);
+		c.Check("bajista: primero el máximo, después el mínimo", (ph.FindIndex(v => v.High == 21406m) <= ph.FindIndex(v => v.Low == 21400m)).ToString(), "True");
+		c.Check("el footprint va a los minutos cuyo rango contiene el precio, y los totales cuadran",
+			$"{ph.All(v => v.Niveles.All(n => n.Precio >= v.Low && n.Precio <= v.High))} {ph.Sum(v => v.Volume) == conHuella.Volume} {ph.Sum(v => v.Delta) == conHuella.Delta}", "True True True");
+
+		c.Seccion("v5 Sweep Pro en 5 minutos: minutos exactos desde los trades del día; armado en vivo");
+		var ticks = new List<TickV2>
+		{
+			new(t0.AddSeconds(5), 21400m, 10, true), new(t0.AddSeconds(30), 21402m, 5, false), new(t0.AddSeconds(50), 21399m, 7, true),
+			new(t0.AddMinutes(2).AddSeconds(1), 21403m, 4, true), new(t0.AddMinutes(2).AddSeconds(40), 21401m, 6, false)
+		};
+		var dt = MinutosV5.DesdeTicks(ticks, t0, t0.AddMinutes(5));
+		c.Check("dos minutos con trades (el vacío no tiene vela, como en 1 minuto)", string.Join(" ", dt.Select(v => TiempoV2.HoraEt(v.InicioUtc, "HH:mm"))), "09:30 ET 09:32 ET");
+		c.Check("OHLC, volumen, delta y delta máximo del primer minuto", $"{dt[0].Open} {dt[0].High} {dt[0].Low} {dt[0].Close} {dt[0].Volume} {dt[0].Delta} {dt[0].MaxDelta} {dt[0].MinDelta}",
+			"21400 21402 21399 21399 22 12 12 0");
+		c.Check("footprint por precio (bid / ask)", string.Join(" ", dt[0].Niveles.Select(n => $"{n.Precio}:{n.Bid}/{n.Ask}")), "21399:0/7 21400:0/10 21402:5/0");
+
+		var vivo = new ConstructorMinuto();
+		var cerradas = ticks.Select(t => vivo.Trade(t.Utc, t.Precio, t.Volumen, t.Compra)).Where(v => v is not null).ToList();
+		c.Check("en vivo, el minuto se entrega al llegar el primer trade del siguiente", $"{cerradas.Count} {TiempoV2.HoraEt(cerradas[0]!.InicioUtc, "HH:mm")} {cerradas[0]!.Volume}", "1 09:30 ET 22");
+		c.Check("el minuto en curso hace de vela para la ruptura en el tick", $"{TiempoV2.HoraEt(vivo.Inicio, "HH:mm")} {vivo.Apertura}", "09:32 ET 21403");
+		c.Check("al cerrar la vela de 5 minutos se cierra el minuto que quedaba", $"{vivo.CerrarSiTermino(t0.AddMinutes(2).AddSeconds(30)) is null} {vivo.CerrarSiTermino(t0.AddMinutes(5))?.Volume}", "True 10");
+		c.Check("un trade atrasado no reabre un minuto pasado", (vivo.Trade(t0.AddMinutes(4), 21400m, 1, true) is null && vivo.Trade(t0.AddMinutes(1), 21400m, 1, true) is null && vivo.Inicio == t0.AddMinutes(4)).ToString(), "True");
+
+		c.Seccion("v5 Sweep Pro en 5 minutos: las sesiones calculadas con velas partidas son las mismas que con velas de 1 minuto");
+		var rnd = new Random(11);
+		var precioActual = 21400m;
+		var unMinuto = new List<VelaEntrada>();
+		var inicioEt = new DateTime(2026, 11, 16, 18, 0, 0);
+
+		for (var t = inicioEt; t < inicioEt.AddHours(23); t = t.AddMinutes(1))
+		{
+			var o = precioActual;
+			precioActual += (rnd.Next(0, 9) - 4) * Tick;
+			var (h, l) = (Math.Max(o, precioActual) + Tick, Math.Min(o, precioActual) - Tick);
+			unMinuto.Add(new VelaEntrada { InicioUtc = Zonas.AUtc(t, ZonaHoraria.NuevaYork), Open = o, High = h, Low = l, Close = precioActual, Volume = 100, Delta = 10 });
+		}
+
+		var deCinco = unMinuto.Chunk(5).Select(g => new VelaEntrada
+		{
+			InicioUtc = g[0].InicioUtc, Open = g[0].Open, High = g.Max(v => v.High), Low = g.Min(v => v.Low), Close = g[^1].Close, Volume = g.Sum(v => v.Volume), Delta = g.Sum(v => v.Delta)
+		}).ToList();
+
+		List<string> Sesiones(IEnumerable<VelaEntrada> velas)
+		{
+			var m = new MotorSweeps(new ConfiguracionSweeps { TamanoTick = Tick, MinutosGrafico = 1 }) { DetalleDesdeUtc = DateTime.MaxValue };
+
+			foreach (var v in velas)
+				m.Procesar(v);
+
+			return m.Leer(x => x.Sesiones.Instancias.Select(s => $"{s.Id} {s.Alto} {s.Bajo}").ToList());
+		}
+
+		var reales = Sesiones(unMinuto);
+		var partidas = Sesiones(deCinco.SelectMany(v => MinutosV5.Partir(v, 5, Tick)));
+		c.Check($"{reales.Count} sesiones (Asia, Londres, NY…) con el mismo máximo y mínimo", (reales.Count > 3 && reales.SequenceEqual(partidas)).ToString(), "True");
 	}
 
 	/// <summary>El gatillo del Indicador de Vela Compuesta a favor y cerca de la zona cuenta en el análisis del gatillo del Sweep Pro.</summary>

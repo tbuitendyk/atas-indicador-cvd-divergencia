@@ -440,7 +440,11 @@ public partial class SessionSweepsPro : Indicator
 		// Las velas anteriores a 'bar' ya cerraron: cada una se procesa una sola vez, con sus valores finales.
 		for (var i = Math.Max(0, _ultimaBarra); i < bar; i++)
 		{
-			_motor.Procesar(Entrada(i));
+			// v5: en un gráfico de 5 minutos el motor recibe las velas de 1 minuto de cada vela del gráfico.
+			if (GraficoDeMinutos)
+				VelaDeMinutos(_motor, i);
+			else
+				_motor.Procesar(Entrada(i));
 		}
 
 		_ultimaBarra = bar;
@@ -450,6 +454,10 @@ public partial class SessionSweepsPro : Indicator
 		{
 			_enVivo = true;
 			_avisoVisto = _motor.UltimoAviso;
+
+			if (GraficoDeMinutos)
+				EntrarEnVivoMinutos(_motor);
+
 			AlEntrarEnVivoV2(_motor);
 		}
 
@@ -467,15 +475,17 @@ public partial class SessionSweepsPro : Indicator
 		_motor = null;
 		_minutos = Minutos();
 
-		// Decisión 4: Session Sweeps Pro v2.0 trabaja sobre el gráfico de 1 minuto (las barras de volumen se arman por minuto).
-		if (_minutos != 1)
+		// Decisión 4 (v2.0): el motor trabaja con velas de 1 minuto. v5: en un gráfico de 2 a 15 minutos (el de 5) las arma
+		// con los trades del día o partiendo las velas del gráfico, y dibuja cada cosa en su hora.
+		if (_minutos is < 1 or > MaximoMinutosGrafico)
 		{
-			_estado = "Sweep Pro (FAST) funciona en graficos de 1 minuto (TimeFrame M1)";
+			_estado = "Sweep Pro (FAST) funciona en graficos de 1 a 15 minutos (TimeFrame M1, M5...)";
 			return;
 		}
 
 		_cfg.TamanoTick = InstrumentInfo?.TickSize is > 0 ? InstrumentInfo.TickSize : 0.25m;
-		_cfg.MinutosGrafico = _minutos;
+		_cfg.MinutosGrafico = 1;
+		ReiniciarMinutos();
 		_motor = new MotorSweeps(_cfg) { Simbolo = Simbolo(InstrumentInfo?.Instrument), ZonaCorreo = Zonas.PorNombre(EmailTimeZone) };
 
 		// v5 (carga rápida): solo los últimos DetailDays días operativos llevan detalle (y solo de ellos se lee el footprint).
@@ -552,8 +562,17 @@ public partial class SessionSweepsPro : Indicator
 				return;
 			}
 
-			var vela = GetCandle(CurrentBar - 1);
-			motor.Trade(trade.Time, trade.Price, trade.Volume, compra, vela.Open, vela.Time);
+			if (GraficoDeMinutos)
+			{
+				// v5: el minuto en curso hace de "vela" para la ruptura en el tick (como en el gráfico de 1 minuto).
+				var (apertura, inicio) = TradeMinutos(motor, trade.Time, trade.Price, trade.Volume, compra);
+				motor.Trade(trade.Time, trade.Price, trade.Volume, compra, apertura, inicio);
+			}
+			else
+			{
+				var vela = GetCandle(CurrentBar - 1);
+				motor.Trade(trade.Time, trade.Price, trade.Volume, compra, vela.Open, vela.Time);
+			}
 			RevisarAvisos();
 			ProcesarNovedadesV2();
 			LatidoV2();
