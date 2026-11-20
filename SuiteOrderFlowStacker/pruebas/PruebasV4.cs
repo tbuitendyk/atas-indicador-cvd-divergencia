@@ -66,6 +66,13 @@ internal static class PruebasV4
 		s.M.QuitarRecuadros();
 		c.Check("borrar: sin recuadros ni evaluaciones manuales; sus modelos invalidados",
 			s.M.Leer(m => $"{m.Recuadros.Count} {m.Evaluaciones.Count(x => x.Origen == "MANUAL")} {m.Setups.Where(x => x.Barrido?.Origen == "MANUAL").All(x => x.Estado == EstadoModelo.Invalidado)}"), "0 0 True");
+
+		// Al recargar el gráfico: vuelven con su dirección, arman los modelos, pero sin novedades (no repiten CSV ni avisos).
+		s.M.TomarNovedadesV2();
+		s.M.Restaurar(leidos);
+		c.Check("al recargar vuelven con su dirección y arman los modelos, sin novedades nuevas (CSV sin filas repetidas)",
+			$"{s.M.Leer(m => string.Join(" ", m.Recuadros.Select(r => $"{r.Tipo}:{r.Signo}")))} {s.Setups.Count(x => x.Barrido?.Origen == "MANUAL" && x.Estado != EstadoModelo.Invalidado) > 0} {s.M.TomarNovedadesV2().Count}",
+			$"{string.Join(" ", leidos.Select(r => $"{r.Tipo}:{r.Signo}"))} True 0");
 	}
 
 	/// <summary>v5 F4: los LVN y EDGE del Thermal se guardan y el Sweep Pro los usa con el Thermal cerrado.</summary>

@@ -126,6 +126,23 @@ public sealed partial class MotorSweeps
 		}
 	}
 
+	/// <summary>
+	/// Al recargar el gráfico vuelven los recuadros guardados (con su dirección de entonces) sin novedades: no se graban
+	/// otra vez en el CSV ni suenan.
+	/// </summary>
+	public void Restaurar(IEnumerable<RecuadroManual> guardados)
+	{
+		lock (_sync)
+		{
+			var antes = NovedadesV2.Count;
+
+			foreach (var r in guardados)
+				Marcar(r.Tipo, r.DesdeUtc, r.HastaUtc, r.Bajo, r.Alto, r.CreadoUtc, r.Signo);
+
+			NovedadesV2.RemoveRange(antes, NovedadesV2.Count - antes);
+		}
+	}
+
 	private EvaluacionBarrido EvaluacionManual(RecuadroManual r)
 	{
 		var s = r.Signo;

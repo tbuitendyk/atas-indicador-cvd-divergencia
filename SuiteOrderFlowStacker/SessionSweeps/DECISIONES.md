@@ -111,3 +111,31 @@ construirla:
     usa una ventana "dueña" (Owner) porque ATAS puede tener gráficos en ventanas separadas.
 35. **Dibujo:** el indicador dibuja por encima de las velas (cajas, líneas, avisos); el perfil térmico baja su
     opacidad por defecto a 110 para no tapar las velas.
+
+## v5 — tres indicadores FAST (correcciones del 20-11-2026)
+
+Las decisiones están en [PLAN_V5.md](PLAN_V5.md) (por qué tardaba en cargar y las decisiones 1-10). Además, al
+construirla:
+
+36. **Sweep Pro (FAST) es la misma clase** que el Indicador Global / Sessions Sweeps Pro: las plantillas guardadas
+    abren. Deja de heredar del Thermal; los ajustes "Thermal · …" de una plantilla vieja ya no se aplican (el LVN
+    Thermal Profile (FAST) es otro indicador, con sus valores de fábrica).
+37. **Carga rápida por días operativos, no por velas:** *Días con detalle* (2) cuenta días de futuros (desde las 18:00
+    ET), saltando fines de semana. Los días sin detalle retiran los niveles que el precio tomó, para que no reaparezcan
+    como vigentes.
+38. **Trackers solo en tiempo real** con una propiedad nueva (TrkSoloTiempoReal): las plantillas viejas también
+    cargan rápido.
+39. **LVN / EDGE guardados en un archivo** por instrumento (escritura atómica, sin los BORRADOS), no en el bus: el bus
+    vive en la memoria de ATAS y se pierde al cerrar el Thermal o reiniciar. El Sweep Pro los lee primero y después
+    el bus (misma Id, versión más nueva gana).
+40. **Recuadros manuales = evaluaciones MANUAL congeladas**: entran por el mismo camino que un barrido detectado
+    (estado, modelos, panel), así que M1 / M2 / M3 los tratan igual. La dirección se decide al marcar y se guarda; al
+    recargar vuelven sin novedades (no repiten CSV ni avisos). No suenan: los marcó el usuario.
+41. **PRIME / DUDOSO** son textos visibles; el estado interno sigue siendo Premium / Indeterminado (CSV y plantillas
+    compatibles).
+42. **Indicador de Vela Compuesta en la DLL de la suite:** comparte el bus con el Sweep Pro. Su desplegable de franjas
+    es un botón que cicla (la ventana flotante solo tiene botones y texto). Sus gatillos suman como la misma
+    "intención" que un stacked o imbalance a favor (+10 una sola vez), sin cambiar los umbrales.
+43. **5 minutos:** el motor no cambia: recibe velas de 1 minuto (de los trades del día o partiendo la vela) y la
+    carcasa lleva cada vela del motor a su vela del gráfico al dibujar. Se admite de 1 a 15 minutos. Partir una vela
+    reparte el footprint por los minutos cuyo rango contiene cada precio; los extremos y totales son exactos.

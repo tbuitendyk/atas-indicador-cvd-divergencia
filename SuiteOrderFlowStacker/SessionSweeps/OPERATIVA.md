@@ -1,4 +1,4 @@
-# Indicador Global Session Sweep v4 — Operativa (M1, M2 y M3)
+# Sweep Pro (FAST) v5 — Operativa (M1, M2 y M3)
 
 > **Las señales y estadísticas son informativas y deben validarse. No son un registro de operaciones reales salvo
 > que provengan de ejecuciones confirmadas.** El indicador avisa, dibuja y calcula entrada, stop, objetivo y
@@ -7,10 +7,29 @@
 Hay **tres modelos operativos** (el propietario los acepta como prioritarios): **M1** barrido, **M2** retroceso a
 LVN / EDGE / FVG y **M3** iceberg rebasado con continuidad. La ruptura con aceptación es contexto (arma un M2).
 
+## 0. El flujo de la v5: tres indicadores que se confirman entre sí
+
+1. **Referencia:** el barrido activo del recuadro 2 del Sweep Pro (FAST): el automático (BARRIDO REAL, REAL PRIME,
+   ROMPIMIENTO; DUDOSO no arma nada) o **uno marcado a mano** con los botones del recuadro 2 (MARCAR BARRIDO REAL,
+   MARCAR BARRIDO REAL PRIME, MARCAR ROMPIMIENTO). El manual pasa a ser la referencia activa y arranca la verificación
+   de los modelos 1, 2 y 3 igual que uno detectado.
+2. **Zonas:** los **LVN y EDGE** del LVN Thermal Profile (FAST) (automáticos y manuales). Siguen valiendo con el
+   Thermal cerrado o apagado: el Sweep Pro usa los guardados.
+3. **Rango compuesto:** con **RECUADRO VELA COMPUESTA** arrastre sobre las velas de la consolidación o del retroceso;
+   la **flecha verde** (ruptura arriba) o **roja** (abajo) dice hacia dónde salió el precio.
+4. **Gatillo:** el **GATILLO COMP** o el **GATILLO VELAS VOLUMÉTRICAS** del Indicador de Vela Compuesta (FAST), y sus
+   **FVG**. Un gatillo a favor y en la zona aparece en el recuadro 5 como *confirma …* y suma como intención en el
+   análisis del gatillo.
+5. **Entrada:** cuando el recuadro 5 dice **VÁLIDO CUMPLIDO** (cabecera: GATILLO … CUMPLIDO), al cierre de la vela.
+
+En un gráfico de **5 minutos** todo esto se calcula con velas de 1 minuto y se dibuja en su hora (LEEME, sección 8);
+el gatillo y la entrada siguen siendo de 1 minuto.
+
 ## 1. M1 — barrido de liquidez
 
 1. **Contexto:** sesgo H1 / 15m / 5m (cabecera y recuadro 1).
-2. **Barrido** de un nivel externo o de sesión clasificado **BARRIDO REAL** o **PREMIUM** (recuadro 2 y cabecera),
+2. **Barrido** de un nivel externo o de sesión clasificado **BARRIDO REAL** o **REAL PRIME** (recuadro 2 y cabecera),
+   o marcado a mano con MARCAR BARRIDO REAL / REAL PRIME,
    idealmente certificado por iceberg (MBO) y con **recuperación ≥ 16 ticks** (NQ) en 1m y 5m.
 3. **Zona:** la del barrido (del nivel al extremo) — `M1 - BARRIDO` — o un **FVG de la pierna de recuperación** —
    `M1 - BFVG`, `M1 - BFVG+LVN`, `M1 - BFVG+EDGE` (más fuerte con confluencia).
@@ -56,7 +75,7 @@ extremo con absorción y CVD que gira también es REAL (ver LEEME, sección 9).
 - **Confluencias:** imbalance de intención, ruptura de la micro-tendencia del retroceso, EMA 15, CVD Trigger Matrix
   (confluencia, nunca una operación por sí sola).
 
-## 5. Práctica con LVN y EDGE (Thermal)
+## 5. Práctica con LVN y EDGE (LVN Thermal Profile (FAST))
 
 1. **RANGO:** elija el rango del perfil (la sesión o el impulso que importa). El Thermal detecta los LVN como **valles
    entre picos** del perfil fino y los EDGE como **bordes de HVN**.
@@ -75,11 +94,12 @@ extremo con absorción y CVD que gira también es REAL (ver LEEME, sección 9).
 
 ## 6. Lectura rápida del panel antes de entrar
 
-- Cabecera, línea ESTADO en **BARRIDO DE LIQUIDEZ REAL / PREMIUM** (M1), o un M2 / M3 armado (recuadro 3).
+- Cabecera, línea ESTADO en **BARRIDO DE LIQUIDEZ REAL / REAL PRIME** (M1), o un M2 / M3 armado (recuadro 3).
 - Cabecera, línea del gatillo **GATILLO … CUMPLIDO**: solo entonces hay entrada.
 - Recuadro 2: validación **Certificada**, recuperación **Confirmada** y **ESTRUCTURA CONFIRMADA** → contexto fuerte;
   recuadro 3: sumatoria **BARRIDO DE LIQUIDEZ REAL**.
 - Recuadro 4: hay objetivo LVN y/o FVG a distancia suficiente.
+- Recuadro 5: un GATILLO COMP / VOLUMÉTRICO del Indicador de Vela Compuesta que *confirma* la zona (no obligatorio).
 - Recuadro 6: contratos > 0; si dice RIESGO INSUFICIENTE, use el micro (MNQ, MES, MYM).
 - Cabecera y recuadro 9: perfil **CALIBRADO**; con PROVISIONAL, más cautela (y MT5 no manda órdenes).
 

@@ -117,10 +117,25 @@ Plan: [PLAN_V5.md](PLAN_V5.md) · especificación: [PROMPT_V5.md](PROMPT_V5.md) 
 | Subfase | Estado | Notas |
 |---|---|---|
 | F1 Especificación y plan | **hecha** | PROMPT_V5.md y PLAN_V5.md (por qué tardaba en cargar, decisiones 1-10). |
-| F2 Separar, nombres, trackers en tiempo real | pendiente | |
-| F3 Carga rápida (días con detalle) | pendiente | |
-| F4 LVN y EDGE persistentes | pendiente | |
-| F5 Recuadros manuales y de vela compuesta, DUDOSO | pendiente | |
-| F6 Indicador de Vela Compuesta (FAST) | pendiente | |
-| F7 Gráfico de 5 minutos con datos de 1 minuto | pendiente | |
-| F8 Documentación, manual, pruebas, fusión | pendiente | |
+| F2 Separar, nombres, trackers en tiempo real | **hecha** | Sweep Pro (FAST) ya no hereda del Thermal; LVN Thermal Profile (FAST) aparte; trackers dentro solo en tiempo real (propiedad nueva). |
+| F3 Carga rápida (días con detalle) | **hecha** | *Días con detalle* (2): footprint, barras de volumen, clasificador y modelos solo en esos días; 9474 → 1258 barras, 2.7 s → 0.26 s con 15 días sintéticos. |
+| F4 LVN y EDGE persistentes | **hecha** | `ZonasGuardadas` (archivo por instrumento); el Sweep Pro los carga al entrar en vivo, los usa y dibuja EDGE con el Thermal cerrado. |
+| F5 Recuadros manuales y de vela compuesta, DUDOSO | **hecha** | Botones dentro del recuadro 2; BARRIDO REAL / REAL PRIME / ROMPIMIENTO marcados a mano arrancan los modelos; recuadro de vela compuesta con flecha en la ruptura; PRIME y DUDOSO; restaurar sin repetir CSV. |
+| F6 Indicador de Vela Compuesta (FAST) | **hecha** | Velas volumétricas por franja (2,300), GATILLO COMP, GATILLO VELAS VOLUMÉTRICAS, FVG, sugerido con 20 velas, panel con botones; gatillos al bus; el Sweep Pro los muestra (recuadro 5) y los cuenta como confluencia. |
+| F7 Gráfico de 5 minutos con datos de 1 minuto | **hecha** | Velas de 1 minuto desde los trades del día o partiendo la vela; armado en vivo; dibujo de cada cosa en su hora; también en el Indicador de Vela Compuesta. |
+| F8 Documentación, manual, pruebas, fusión | **hecha** | [LEEME.md](LEEME.md) (manual v5), [OPERATIVA.md](OPERATIVA.md) (flujo de confirmación), [DECISIONES.md](DECISIONES.md) 36-43, PARAMETROS regenerados. Suite 585 comprobaciones, Thermal 123, NQ 101. |
+
+### // VERIFICAR v5 (solo en ATAS real)
+
+- Que aparezcan los tres en la lista de ATAS con sus nombres: **LVN Thermal Profile (FAST)**, **Indicador de Vela
+  Compuesta (FAST)**, **Sweep Pro (FAST)**; y que una plantilla del Indicador Global abra como Sweep Pro (FAST).
+- El tiempo de carga real con 2 días con detalle (y con 1) en NQ con semanas de historial de 1 minuto.
+- Que el archivo `%APPDATA%\ATAS\OrderFlowSuite\Thermal\{instrumento}.json` se escriba al cambiar LVN / EDGE y que el
+  Sweep Pro los dibuje con el Thermal quitado del gráfico.
+- Los botones del recuadro 2 en la ventana flotante y el arrastre del recuadro con el ratón real
+  (ProcessMouseDown / Move / Up y el cursor de mano) sin mover el gráfico.
+- El panel del Indicador de Vela Compuesta: botones, franja y contratos; flechas COMP / VOL en su vela.
+- **Gráfico de 5 minutos:** que `ChartInfo.TimeFrame` diga "M5"; la respuesta del historial de trades
+  (RequestForCumulativeTrades) y el recálculo; las zonas de sesión, barridos, gatillos y recuadros en su vela de 5
+  minutos; el cierre de cada minuto en vivo.
+- Pendiente del propietario (de la v4): qué quiere decir "que los trackers aparezcan como los nativos de ATAS".

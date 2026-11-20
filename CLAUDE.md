@@ -141,6 +141,21 @@ authorization.)
   structure; white session lines stopping at the break (`Nucleo/LineasSesion.cs`) with a break alert + banner;
   FVG only after a validated sweep; panel header + 16 boxes in the owner's order; window pinned by default.
   Default changes that must reach saved templates use NEW property names (ATAS saves by name). `verificar.sh` 530.
+- **Three FAST indicators v5 (2026-11-20)**, owner's text verbatim in `SessionSweeps/PROMPT_V5.md`; decisions in
+  `PLAN_V5.md` + `DECISIONES.md` 36-43. `SessionSweepsPro` (DisplayName "Sweep Pro (FAST)", same class so templates
+  open) is a plain `Indicator` again (no Thermal inheritance; Thermal suite build is "LVN Thermal Profile (FAST)",
+  no group prefix). Fast load: `DetailDays` (2) — only those futures days get footprint/volume bars/classifier/models
+  (`Zonas.InicioDetalle`, `MotorSweeps.DetalleDesdeUtc`); hosted trackers real-time only (`TrkSoloTiempoReal`).
+  `Comun/ZonasGuardadas.cs` persists Thermal LVN/EDGE per instrument (%APPDATA%\ATAS\OrderFlowSuite\Thermal) and
+  Sweep Pro loads them at live entry. Manual boxes (`Nucleo/MotorV2.Recuadros.cs` + `Atas/SessionSweepsPro.Recuadros.cs`):
+  BARRIDO REAL / REAL PRIME / ROMPIMIENTO become frozen MANUAL evaluations that arm M1/M2/M3; composite-range box
+  with break arrow; restored on reload without novelties. New indicator `Atas/IndicadorVelaCompuesta.cs` +
+  `Nucleo/VelaCompuestaFast.cs` (volumetric bars per time slot, 2,300 default; GATILLO COMP / VOLUMETRICA; FVG;
+  suggested = avg of last 20 one-minute candles) publishes `VolumetricTriggerEvent` (bus) — Sweep Pro counts it as
+  intent confluence in `Gatillo.cs` and shows it in panel box 5. 5-minute charts (1-15 min): engine still gets 1-minute
+  candles (`Nucleo/MinutosV5.cs`: from stored trades or by splitting; live `ConstructorMinuto`), and
+  `Atas/SessionSweepsPro.Minutos.cs` maps engine candle index → chart bar (`B()`) for drawing. Visible text says
+  PRIME / DUDOSO; internal enum stays Premium / Indeterminado. `verificar.sh` 585; Thermal 123; NQ 101.
 - **One-click install on the ATAS PC (2026-11-01):** `homs/bic.cmd` + `homs/build-indicador.ps1` live in
   `C:\homs\` behind a desktop shortcut. Each click pulls upstream, pushes origin, reads **`instalar.txt`**
   (repo root, one folder name per line) and builds `<name>\<name>.csproj` and copies the DLL to

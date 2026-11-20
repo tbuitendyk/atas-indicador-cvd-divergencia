@@ -68,12 +68,8 @@ public partial class SessionSweepsPro
 			c.Lineas.Insert(titulo + 1, new LineaPanel { Grupo = "b2", Botones = BotonesRecuadro() });
 	}
 
-	/// <summary>Al entrar en vivo: los recuadros guardados vuelven (con su dirección de entonces).</summary>
-	private void RestaurarRecuadros(MotorSweeps motor)
-	{
-		foreach (var r in RecuadroManual.Leer(ManualBoxes))
-			motor.Marcar(r.Tipo, r.DesdeUtc, r.HastaUtc, r.Bajo, r.Alto, r.CreadoUtc, r.Signo);
-	}
+	/// <summary>Al entrar en vivo: los recuadros guardados vuelven (con su dirección de entonces, sin repetir CSV ni avisos).</summary>
+	private void RestaurarRecuadros(MotorSweeps motor) => motor.Restaurar(RecuadroManual.Leer(ManualBoxes));
 
 	public override bool ProcessMouseDown(RenderControlMouseEventArgs e)
 	{

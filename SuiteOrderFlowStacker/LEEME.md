@@ -4,13 +4,14 @@ Los indicadores de order flow para ATAS en **una sola DLL** (`SuiteOrderFlowStac
 
 | # | En ATAS se llama | Qué hace (en una línea) |
 |---|---|---|
-| 0 | **Thermal Volume Profile + LVN (Suite)** | El perfil térmico con POC/VA, clústeres, EDGE, SPIKE y LVN (también manuales). Es **el mismo** Thermal Volume Profile que ya usa: [ThermalVolumeProfile/LEEME.md](../ThermalVolumeProfile/LEEME.md). |
+| 0 | **LVN Thermal Profile (FAST)** | El perfil térmico con POC/VA, clústeres, EDGE, SPIKE y LVN (también manuales); v5: guarda sus LVN / EDGE para el Sweep Pro. Es **el mismo** Thermal Volume Profile que ya usa: [ThermalVolumeProfile/LEEME.md](../ThermalVolumeProfile/LEEME.md). |
 | 1 | **Stacked Imbalance Pro (Suite)** | Imbalances diagonales en varios niveles seguidos, con el estado de la zona: NUEVA → PROBADA → ROTA. |
 | 2 | **Iceberg Tracker Pro (Suite)** | **El principal.** Icebergs nativos o sintéticos (con MBO) o inferidos (sin MBO), con estado y sesgo. |
 | 3 | **Stops Tracker Pro (Suite)** | Zonas probables de stops y cascadas de stops ya disparadas: ¿TRAMPA o CONTINUACIÓN? |
 | 4 | **Sweeps Tracker Pro (Suite)** | Barridos (una orden agresiva que se come varios niveles): LIQUIDEZ, RUPTURA o CONTRA ICEBERG. |
 | 5 | **Absorption Master (Suite)** | **La señal única.** Ejecuta todo lo anterior por dentro y solo avisa cuando hay confluencia (setups A-D). |
-| 6 | **Indicador Global Session Sweep** | v4: **un solo indicador** con todo (sesiones y líneas de sesión, barridos con consolidación y CVD, Modelos M1 / M2 / M3, el Thermal + LVN / EDGE y los trackers por dentro, CVD, panel, alertas, Telegram, MT5 opcional). Manual: [SessionSweeps/LEEME.md](SessionSweeps/LEEME.md). |
+| 6 | **Sweep Pro (FAST)** | v5 (antes Indicador Global Session Sweep): sesiones y líneas de sesión, barridos REAL / REAL PRIME / ROMPIMIENTO / DUDOSO automáticos y **marcados a mano**, recuadro de vela compuesta, Modelos M1 / M2 / M3, trackers en tiempo real, CVD, panel, alertas, Telegram, MT5 opcional; 1 o 5 minutos. Carga rápida. Manual: [SessionSweeps/LEEME.md](SessionSweeps/LEEME.md). |
+| 6a | **Indicador de Vela Compuesta (FAST)** | v5: velas volumétricas (2,300 contratos por franja), GATILLO COMP, GATILLO VELAS VOLUMÉTRICAS, FVG y sugerido con 20 velas; sus gatillos confirman las entradas del Sweep Pro. |
 | 6b | **Sessions Sweeps CVD (Suite)** | Subpanel: CVD en velas con divergencias macro y micro. |
 
 **Principio:** mucho cálculo por dentro, **resultado simple por fuera**. Por defecto cada indicador muestra solo un

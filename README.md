@@ -14,7 +14,7 @@ Un solo repositorio con una carpeta por indicador; `Indicadores.slnx` los compil
 | **Indicador Completo** (+ panel *Indicador Completo CVD*) — solución aparte | `IndicadorCompleto/` | `IndicadorCompleto.dll` |
 | **Thermal Volume Profile** (perfil térmico) — solución aparte | `ThermalVolumeProfile/` | `ThermalVolumeProfile.dll` |
 | **NQ Session Sweeps Pro** (barridos de liquidez) — solución aparte | `NQSessionSweepsPro/` | `NQSessionSweepsPro.dll` |
-| **Suite Order Flow Stacker** (Thermal VP + LVN, Stacked Imbalance, Icebergs, Stops, Sweeps, Absorption Master, el Indicador Global Session Sweep y su CVD) — solución aparte | `SuiteOrderFlowStacker/` | `SuiteOrderFlowStacker.dll` |
+| **Suite Order Flow Stacker** (Thermal VP + LVN, Stacked Imbalance, Icebergs, Stops, Sweeps, Absorption Master, los tres FAST de la v5 —LVN Thermal Profile, Indicador de Vela Compuesta y Sweep Pro— y su CVD) — solución aparte | `SuiteOrderFlowStacker/` | `SuiteOrderFlowStacker.dll` |
 
 **Indicador Completo** tiene su **propia solución**, `IndicadorCompleto\IndicadorCompleto.slnx`, y su propio
 manual: **[IndicadorCompleto/LEEME.md](IndicadorCompleto/LEEME.md)**. Estructura 1H, barridos de liquidez, mapas
@@ -38,11 +38,13 @@ el Thermal Volume Profile + LVN (el mismo código de `ThermalVolumeProfile/`), S
 (la señal única, setups A-D). Manual de usuario: [SuiteOrderFlowStacker/LEEME.md](SuiteOrderFlowStacker/LEEME.md);
 manual de operativa: [OPERATIVA.md](SuiteOrderFlowStacker/OPERATIVA.md); parámetros:
 [PARAMETROS.md](SuiteOrderFlowStacker/PARAMETROS.md); decisiones: [DECISIONES.md](SuiteOrderFlowStacker/DECISIONES.md).
-En la misma DLL, el **Indicador Global Session Sweep** (v4: un solo indicador que lleva dentro el Thermal y los
-trackers; antes Sessions Sweeps Pro (Suite), el NQ Session Sweeps Pro rehecho con otro nombre, para no sobrescribirlo): perfiles NQ / ES / YM (y micros) con calibración, clasificador de barridos (BARRIDO REAL / PREMIUM,
-RUPTURA) con barras de volumen y los eventos de la suite, Modelo A (barrido) y Modelo B (LVN / EDGE / FVG del Thermal)
-con gatillo de order flow, panel flotante con cabecera y 17 recuadros, CVD con minigráfico, 5 alertas por ATAS, correo
-y Telegram (credenciales cifradas), puente MT5 opcional (apagado por defecto) y CSV de auditoría. Manual: [SuiteOrderFlowStacker/SessionSweeps/LEEME.md](SuiteOrderFlowStacker/SessionSweeps/LEEME.md).
+En la misma DLL, **tres indicadores FAST** (v5, hechos para cargar rápido): **LVN Thermal Profile (FAST)** (el perfil
+térmico con LVN / EDGE que se guardan para los demás), **Indicador de Vela Compuesta (FAST)** (velas volumétricas de
+2,300 contratos por franja horaria, GATILLO COMP, GATILLO VELAS VOLUMÉTRICAS, FVG, sugerido con 20 velas) y **Sweep
+Pro (FAST)** (antes Indicador Global Session Sweep / Sessions Sweeps Pro: barridos REAL / REAL PRIME / ROMPIMIENTO /
+DUDOSO automáticos y marcados a mano, recuadro de vela compuesta, Modelos M1 / M2 / M3, líneas de sesión, trackers en
+tiempo real, CVD, panel, alertas, correo, Telegram, MT5 opcional; en gráficos de 1 o 5 minutos con datos de 1
+minuto). Manual: [SuiteOrderFlowStacker/SessionSweeps/LEEME.md](SuiteOrderFlowStacker/SessionSweeps/LEEME.md).
 
 Pasos completos para subir el código a otro repositorio de GitHub, descargarlo en Windows, compilarlo, instalarlo y
 recibir actualizaciones: **[docs/GUIA.md](docs/GUIA.md)**.
