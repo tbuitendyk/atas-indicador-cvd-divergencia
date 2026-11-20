@@ -109,3 +109,18 @@ Plan: [PLAN_V4.md](PLAN_V4.md) · especificación: [PROMPT_V4.md](PROMPT_V4.md) 
 - La alerta y el aviso de ruptura de línea en el tick, en vivo.
 - Qué quiere decir "que los trackers aparezcan como los nativos de ATAS" (PLAN_V4, decisión 12): pendiente de una
   captura del propietario.
+
+## v5 — tres indicadores FAST (correcciones del 20-11-2026)
+
+Plan: [PLAN_V5.md](PLAN_V5.md) · especificación: [PROMPT_V5.md](PROMPT_V5.md) · rama `sweep-pro-fast-v5`.
+
+| Subfase | Estado | Notas |
+|---|---|---|
+| F1 Especificación y plan | **hecha** | PROMPT_V5.md y PLAN_V5.md (por qué tardaba en cargar, decisiones 1-10). |
+| F2 Separar, nombres, trackers en tiempo real | pendiente | |
+| F3 Carga rápida (días con detalle) | pendiente | |
+| F4 LVN y EDGE persistentes | pendiente | |
+| F5 Recuadros manuales y de vela compuesta, DUDOSO | pendiente | |
+| F6 Indicador de Vela Compuesta (FAST) | pendiente | |
+| F7 Gráfico de 5 minutos con datos de 1 minuto | pendiente | |
+| F8 Documentación, manual, pruebas, fusión | pendiente | |
