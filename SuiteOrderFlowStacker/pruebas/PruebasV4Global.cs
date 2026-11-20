@@ -55,7 +55,7 @@ internal static class PruebasV4Global
 {
 	public static void Ejecutar(Comprobador c)
 	{
-		c.Seccion("v4 G8: Indicador Global: los cuatro trackers por dentro publican en el bus del instrumento, sin alertas ni panel propio");
+		c.Seccion("v4 G8 / v5: los cuatro trackers dentro del Sweep Pro (FAST) por dentro publican en el bus del instrumento, sin alertas ni panel propio");
 		SuiteEventBus.Reiniciar();
 		CarcasaSuitePruebas.Historia(out var velas);
 		var g = new GlobalPrueba
@@ -73,7 +73,10 @@ internal static class PruebasV4Global
 			string.Join(" ", new[] { FuenteSuite.Stacked, FuenteSuite.Imbalance, FuenteSuite.Iceberg, FuenteSuite.Stops, FuenteSuite.Sweeps }.Select(f => nq.Estado(f, ahora))),
 			"SinDatos SinDatos SinDatos SinDatos SinDatos");
 		c.Check("el Absorption Master no se representa", nq.Estado(FuenteSuite.Absorption, ahora).ToString(), "NoCargado");
-		c.Check("el stacked imbalance del historial llega al bus", (nq.Todos<StackedEvent>().Count > 0).ToString(), "True");
+		c.Check("v5 (FAST): por defecto en tiempo real: el historial no se reconstruye al cargar", $"{g.Trk.C.General.RealTimeOnly} {nq.Todos<StackedEvent>().Count}", "True 0");
+		g.Trk.C.General.RealTimeOnly = false;
+		g.TestCalcAll();
+		c.Check("con 'Solo tiempo real' apagado, el stacked imbalance del historial llega al bus", (nq.Todos<StackedEvent>().Count > 0).ToString(), "True");
 
 		var t = Utc(new DateTime(2026, 10, 30, 9, 42, 12));
 		g.TestDepth(new MarketDataArg { Price = 21396.25m, Volume = 20, DataType = MarketDataType.Bid });

@@ -36,8 +36,8 @@ using StringAlignment = System.Drawing.StringAlignment;
 // El mismo código se compila también dentro de SuiteOrderFlowStacker (símbolo SUITE) con otro nombre de clase, para que
 // ATAS no vea dos indicadores con el mismo nombre de tipo cuando están instaladas las dos DLL.
 #if SUITE
-[DisplayName("Thermal Volume Profile + LVN (Suite)")]
-[Description("Suite Order Flow Stacker: perfil de volumen con color térmico, POC/VA, clústeres de espigas, EDGE, SPIKE y LVN (también manuales).")]
+[DisplayName("LVN Thermal Profile (FAST)")]
+[Description("Suite Order Flow Stacker v5: perfil de volumen térmico con LVN y EDGE (automáticos y manuales), PIERNA, GATILLO y su panel flotante. Guarda sus LVN y EDGE para el Sweep Pro (FAST) aunque esté cerrado.")]
 public partial class ThermalVolumeProfileLVN : Indicator
 #else
 [DisplayName("Thermal Volume Profile (perfil térmico)")]
@@ -47,13 +47,9 @@ public partial class ThermalVolumeProfile : Indicator
 {
 	#region Parámetros
 
-#if SUITE
-	// v4: dentro de la suite (y del Indicador Global Session Sweep, que hereda de esta clase) los grupos del Thermal
-	// llevan el prefijo "Thermal · " para no mezclarse con los del barrido.
-	private const string Pref = "Thermal · ";
-#else
+	// Prefijo de los grupos (la v4 usaba "Thermal · " cuando el Thermal iba dentro del indicador global; desde la v5 va
+	// aparte y no hace falta).
 	private const string Pref = "";
-#endif
 	private const string G1 = Pref + "1. Rango del perfil";
 	private const string G2 = Pref + "2. Tipo de perfil";
 	private const string G3 = Pref + "3. Área de Valor";

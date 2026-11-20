@@ -520,6 +520,10 @@ def generar_global():
         for j, p in enumerate(params):
             nombre, tipo, destino, tit, desc, mn, mx, recalc = p
             q = ("Trk" + nombre, tipo, destino.replace("_c.", "_trk.C."), tit, desc, mn, mx, recalc)
+            if nombre == "RealTimeOnly":
+                # v5: por defecto en tiempo real (carga rápida); nombre nuevo para que llegue también a plantillas guardadas.
+                q = ("TrkSoloTiempoReal", tipo, q[2], "Solo tiempo real (carga rápida)",
+                     "v5: encendido por defecto: los trackers de dentro no reconstruyen el historial al cargar (carga rápida). Apagado: lo reconstruyen (más lento).", mn, mx, recalc)
             props.append(propiedad(q, grupo, (j + 1) * 10).replace("Cambio(", "CambioTrackers("))
         props.append("\t#endregion\n")
     codigo = f"""{CABECERA}#nullable enable

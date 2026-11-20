@@ -35,8 +35,8 @@ public partial class SessionSweepsPro
 	[Display(Name = "Grabar en CSV", GroupName = "40. Trackers · General", Order = 50, Description = "Graba cada evento en %APPDATA%\\ATAS\\OrderFlowSuite\\{Instrumento}\\yyyy-MM-dd.csv (para calibrar).")]
 	public bool TrkEnableRecording { get => _trk.C.General.EnableRecording; set { _trk.C.General.EnableRecording = value; CambioTrackers(false); } }
 
-	[Display(Name = "Solo tiempo real", GroupName = "40. Trackers · General", Order = 60, Description = "Si se activa, no se reconstruyen eventos con las velas del historial (solo los de ahora en adelante).")]
-	public bool TrkRealTimeOnly { get => _trk.C.General.RealTimeOnly; set { _trk.C.General.RealTimeOnly = value; CambioTrackers(true); } }
+	[Display(Name = "Solo tiempo real (carga rápida)", GroupName = "40. Trackers · General", Order = 60, Description = "v5: encendido por defecto: los trackers de dentro no reconstruyen el historial al cargar (carga rápida). Apagado: lo reconstruyen (más lento).")]
+	public bool TrkSoloTiempoReal { get => _trk.C.General.RealTimeOnly; set { _trk.C.General.RealTimeOnly = value; CambioTrackers(true); } }
 
 	[Display(Name = "Cargar eventos grabados", GroupName = "40. Trackers · General", Order = 70, Description = "Al cargar, lee los CSV de los últimos días y vuelve a dibujar sus eventos (en gris, sin sonar).")]
 	public bool TrkLoadRecordedEvents { get => _trk.C.General.LoadRecordedEvents; set { _trk.C.General.LoadRecordedEvents = value; CambioTrackers(true); } }

@@ -43,10 +43,6 @@ public partial class SessionSweepsPro
 
 	protected override void OnRender(RenderContext context, DrawingLayouts layout)
 	{
-		// v4: primero el perfil térmico con sus LVN / EDGE y herramientas; encima, el barrido.
-		if (HostThermal)
-			base.OnRender(context, layout);
-
 		try
 		{
 			Dibujar(context);

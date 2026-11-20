@@ -13,25 +13,19 @@ using OrderFlowSuite.Nucleo;
 using Utils.Common.Logging;
 
 /// <summary>
-/// v4 Indicador Global Session Sweep: los trackers (Stacked / Imbalance, Iceberg, Stops, Sweeps) corren dentro de este
+/// v4 Sweep Pro (FAST): los trackers (Stacked / Imbalance, Iceberg, Stops, Sweeps) corren dentro de este
 /// indicador con su motor de siempre (AnfitrionTrackers) y publican en el bus del instrumento; no hace falta agregarlos
 /// al gráfico. Sus ajustes están en los grupos 40+ (Generado/SessionSweepsPro.Trackers.g.cs).
 /// </summary>
 public partial class SessionSweepsPro
 {
-	private const string G39 = "39. Indicador global";
+	private const string G39 = "39. Trackers dentro";
 
 	private readonly AnfitrionTrackers _trk = new();
 
 	[Display(Name = "Trackers dentro del indicador", GroupName = G39, Order = 10,
 		Description = "Corre Iceberg, Stops, Sweeps y Stacked / Imbalance por dentro (no hace falta agregarlos al gráfico). Apagado: usa los sueltos que haya.")]
 	public bool HostTrackers { get => _trk.Activo; set { _trk.Activo = value; RecalculateValues(); } }
-
-	private bool _hostThermal = true;
-
-	[Display(Name = "Thermal Volume Profile + LVN dentro del indicador", GroupName = G39, Order = 15,
-		Description = "El perfil térmico, sus LVN / EDGE, PIERNA, el GATILLO manual y su panel flotante corren dentro (ajustes en los grupos 'Thermal · …'). Apagado: usa un Thermal (Suite) suelto.")]
-	public bool HostThermal { get => _hostThermal; set { _hostThermal = value; RecalculateValues(); } }
 
 	[Display(Name = "Dibujar: Stacked / Imbalance", GroupName = G39, Order = 20)]
 	public bool ShowTrackerStacked { get => _trk.DibujarStacked; set { _trk.DibujarStacked = value; RedrawChart(); } }
@@ -76,7 +70,7 @@ public partial class SessionSweepsPro
 		}
 		catch (Exception ex)
 		{
-			this.LogError("Indicador Global Session Sweep: sin suscripción MBO (los icebergs usan el modo inferido)", ex);
+			this.LogError("Sweep Pro (FAST): sin suscripción MBO (los icebergs usan el modo inferido)", ex);
 		}
 	}
 
@@ -88,7 +82,7 @@ public partial class SessionSweepsPro
 		}
 		catch (Exception ex)
 		{
-			this.LogError("Indicador Global Session Sweep: error de cálculo de los trackers", ex);
+			this.LogError("Sweep Pro (FAST): error de cálculo de los trackers", ex);
 		}
 	}
 
@@ -120,7 +114,7 @@ public partial class SessionSweepsPro
 		}
 		catch (Exception ex)
 		{
-			this.LogError("Indicador Global Session Sweep: error de los trackers en OnNewTrade", ex);
+			this.LogError("Sweep Pro (FAST): error de los trackers en OnNewTrade", ex);
 		}
 	}
 
@@ -133,7 +127,7 @@ public partial class SessionSweepsPro
 		}
 		catch (Exception ex)
 		{
-			this.LogError("Indicador Global Session Sweep: error en MarketDepthChanged", ex);
+			this.LogError("Sweep Pro (FAST): error en MarketDepthChanged", ex);
 		}
 	}
 

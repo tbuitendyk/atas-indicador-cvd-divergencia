@@ -12,7 +12,7 @@ public sealed class OpcionesPanel
 {
 	public bool Detalle;
 	public string ArchivoCsv = "";
-	public string Version = "Indicador Global Session Sweep v4.0";
+	public string Version = "Sweep Pro (FAST) v4.0";
 	public bool Mbo;
 	public decimal? SaldoAtas;
 
@@ -52,7 +52,7 @@ public sealed partial class MotorSweeps
 	private ContenidoPanel ArmarPanel(OpcionesPanel o)
 	{
 		var ins = Instrumento;
-		var c = new ContenidoPanel { Titulo = $"INDICADOR GLOBAL SESSION SWEEP · {(ins.Soportado ? ins.Contrato : Simbolo)}", Pie = PoliticaAlertasV2.AvisoLegal };
+		var c = new ContenidoPanel { Titulo = $"SWEEP PRO (FAST) · {(ins.Soportado ? ins.Contrato : Simbolo)}", Pie = PoliticaAlertasV2.AvisoLegal };
 		var L = c.Lineas;
 		var hoy = Zonas.DiaOperativo(Ahora);
 		var e = Evaluaciones.LastOrDefault(x => x.Nivel.Grupo is "dia" or "semana") ?? Evaluaciones.LastOrDefault();

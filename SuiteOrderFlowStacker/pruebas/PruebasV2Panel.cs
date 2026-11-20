@@ -37,7 +37,7 @@ internal static class PruebasV2Panel
 			$"{sinGrupo[1].Texto.StartsWith("CONTEXTO: H1 ", StringComparison.Ordinal)} {sinGrupo[2].Texto.StartsWith("ESTADO: ", StringComparison.Ordinal)} " +
 			$"{sinGrupo[3].Texto.StartsWith("NO SE HA CUMPLIDO", StringComparison.Ordinal) || sinGrupo[3].Texto.StartsWith("GATILLO", StringComparison.Ordinal)}",
 			"4 True True True True True");
-		c.Check("título: INDICADOR GLOBAL SESSION SWEEP", panel.Titulo.StartsWith("INDICADOR GLOBAL SESSION SWEEP · ", StringComparison.Ordinal).ToString(), "True");
+		c.Check("título: SWEEP PRO (FAST)", panel.Titulo.StartsWith("SWEEP PRO (FAST) · ", StringComparison.Ordinal).ToString(), "True");
 		var contenido = panel.Lineas.SkipWhile(l => !l.Titulo).Where(l => !l.Titulo && !l.Separador).ToList();
 		c.Check("todo el contenido de los recuadros pertenece a uno (se puede plegar)", contenido.All(l => l.Grupo is not null) ? "sí" : "no", "sí");
 		c.Check("barrido externo con fecha y hora exactas CDMX (T0 al cruzar 21420 a las 09:42 ET del 30-oct = 07:42 CDMX)",

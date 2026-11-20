@@ -19,6 +19,9 @@ public sealed class AnfitrionTrackers : IDisposable
 		C.General.ShowInfoPanel = false;
 		C.General.EnableAlerts = false;
 		C.Alerta = null;
+
+		// v5 (FAST): solo en tiempo real por defecto: no reconstruyen el historial al cargar.
+		C.General.RealTimeOnly = true;
 	}
 
 	public CarcasaSuite C { get; } = new("Global", false);

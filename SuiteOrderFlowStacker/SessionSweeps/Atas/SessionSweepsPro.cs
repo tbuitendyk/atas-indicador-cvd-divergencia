@@ -26,11 +26,12 @@ using MediaColor = System.Windows.Media.Color;
 /// FVG/IFVG, LVN y Modelos A y B, con correo. Todo el cálculo está en Nucleo/ (MotorSweeps); aquí se pasan las velas
 /// y los trades, se avisa y se dibuja. Ver LEEME.md y DECISIONES.md.
 /// </summary>
-// v4: el propietario pidió UN SOLO indicador con este nombre. La clase conserva su nombre (las plantillas guardadas
-// siguen abriendo) y hereda del Thermal; corre los trackers por dentro (AnfitrionTrackers).
-[DisplayName("Indicador Global Session Sweep")]
-[Description("Indicador Global Session Sweep (Suite Order Flow Stacker, v4): un solo indicador con sesiones y líneas de sesión, barridos de liquidez con absorción (consolidación y CVD), Modelos M1 / M2 / M3, Thermal Volume Profile + LVN / EDGE, los trackers (Iceberg, Stops, Sweeps, Stacked / Imbalance), CVD, panel flotante, alertas, correo, Telegram y puente MT5 opcional.")]
-public partial class SessionSweepsPro : ThermalVolumeProfileLVN
+// v5: el propietario pidió tres indicadores FAST independientes: este es "Sweep Pro (FAST)" (antes Sessions Sweeps Pro
+// e Sweep Pro (FAST); la clase conserva su nombre para que las plantillas sigan abriendo). El Thermal
+// va aparte (LVN Thermal Profile (FAST)) y la vela compuesta también (Indicador de Vela Compuesta (FAST)).
+[DisplayName("Sweep Pro (FAST)")]
+[Description("Sweep Pro (FAST), Suite Order Flow Stacker v5: barridos de liquidez externa (REAL, PRIME, ROMPIMIENTO, DUDOSO) automáticos y marcados a mano, Modelos M1 / M2 / M3, líneas de sesión, recuadro de vela compuesta, trackers en tiempo real, CVD, panel flotante, alertas, correo, Telegram y puente MT5 opcional. Carga rápida.")]
+public partial class SessionSweepsPro : Indicator
 {
 	#region Grupos
 
@@ -342,7 +343,7 @@ public partial class SessionSweepsPro : ThermalVolumeProfileLVN
 		set
 		{
 			if (value)
-				EnviarTelegram("prueba|" + Guid.NewGuid(), "Indicador Global Session Sweep: mensaje de prueba de Telegram.");
+				EnviarTelegram("prueba|" + Guid.NewGuid(), "Sweep Pro (FAST): mensaje de prueba de Telegram.");
 		}
 	}
 
@@ -394,11 +395,8 @@ public partial class SessionSweepsPro : ThermalVolumeProfileLVN
 	#endregion
 
 	public SessionSweepsPro()
+		: base(true)
 	{
-		// v4: hereda del Thermal Volume Profile + LVN (Suite): el perfil, los LVN / EDGE, PIERNA, el GATILLO y su panel
-		// flotante corren dentro de este indicador. Lo del barrido se dibuja por encima de las velas; el perfil, con una
-		// opacidad menor para no taparlas.
-		ProfileOpacity = 110;
 
 		DataSeries[0].IsHidden = true;
 		((ValueDataSeries)DataSeries[0]).VisualType = VisualMode.Hide;
@@ -415,11 +413,7 @@ public partial class SessionSweepsPro : ThermalVolumeProfileLVN
 
 	protected override void OnCalculate(int bar, decimal value)
 	{
-		// v4: primero el Thermal y los trackers de dentro (sus LVN / EDGE y eventos llegan al bus antes de que el
-		// barrido los consulte).
-		if (HostThermal)
-			base.OnCalculate(bar, value);
-
+		// Primero los trackers de dentro (sus eventos llegan al bus antes de que el barrido los consulte).
 		CalcularTrackers(bar);
 
 		try
@@ -475,7 +469,7 @@ public partial class SessionSweepsPro : ThermalVolumeProfileLVN
 		// Decisión 4: Session Sweeps Pro v2.0 trabaja sobre el gráfico de 1 minuto (las barras de volumen se arman por minuto).
 		if (_minutos != 1)
 		{
-			_estado = "Indicador Global Session Sweep funciona en graficos de 1 minuto (TimeFrame M1)";
+			_estado = "Sweep Pro (FAST) funciona en graficos de 1 minuto (TimeFrame M1)";
 			return;
 		}
 
@@ -566,7 +560,6 @@ public partial class SessionSweepsPro : ThermalVolumeProfileLVN
 
 	protected override void OnDispose()
 	{
-		base.OnDispose();
 		_trk.Dispose();
 		CerrarV2();
 		PararPuente();

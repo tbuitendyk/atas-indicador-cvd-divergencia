@@ -21,7 +21,7 @@ public partial class SessionSweepsPro
 		}
 		catch (Exception ex)
 		{
-			this.LogError("Indicador Global Session Sweep: error en OnMarketByOrdersChanged", ex);
+			this.LogError("Sweep Pro (FAST): error en OnMarketByOrdersChanged", ex);
 		}
 	}
 }
