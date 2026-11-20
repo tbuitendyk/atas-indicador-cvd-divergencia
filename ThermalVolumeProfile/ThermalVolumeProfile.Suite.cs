@@ -128,7 +128,7 @@ public partial class ThermalVolumeProfileLVN
 
 		// La primera vez (fin de la carga) el perfil sale de velas cerradas: se confirma en el acto.
 		_seguidorLvn.Actualizar(r.Lvns, cerrada, ahora, _seguidorCargado ? LvnConfirmUpdates : 1, LvnHysteresisPct);
-		SuitePublicarEdges(r, cerrada, ahora, _seguidorCargado ? LvnConfirmUpdates : 1);
+		var cambio = SuitePublicarEdges(r, cerrada, ahora, _seguidorCargado ? LvnConfirmUpdates : 1);
 		(_ultimaSeguida, _seguidorCargado) = (ultima, true);
 
 		var actuales = new Dictionary<long, LvnZone>();
@@ -156,19 +156,41 @@ public partial class ThermalVolumeProfileLVN
 		foreach (var (id, z) in actuales)
 		{
 			if (!_lvnPublicados.TryGetValue(id, out var previo) || !ReferenceEquals(previo, z))
+			{
 				canal.Publicar(z);
+				cambio = true;
+			}
 		}
 
 		foreach (var (id, z) in _lvnPublicados)
 		{
 			if (!actuales.ContainsKey(id))
+			{
 				canal.Publicar(Borrado(z, ahora));
+				cambio = true;
+			}
 		}
 
 		_lvnPublicados.Clear();
 
 		foreach (var (id, z) in actuales)
 			_lvnPublicados[id] = z;
+
+		// v5: con cada cambio se guardan los LVN y EDGE vigentes: el Sweep Pro (FAST) los sigue usando con el Thermal cerrado.
+		if (cambio)
+			SuiteGuardarZonas(ahora);
+	}
+
+	private void SuiteGuardarZonas(DateTime ahora)
+	{
+		try
+		{
+			ZonasGuardadas.Guardar(Instrumento, _lvnPublicados.Values, _edgesPublicados.Values, ahora);
+		}
+		catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException)
+		{
+			this.LogWarn("LVN Thermal Profile (FAST): no se pudieron guardar los LVN / EDGE: " + ex.Message);
+		}
 	}
 
 	/// <summary>Lo que se dibuja en la Suite: las zonas estables (sin repintado), con su estado o PROVISIONAL.</summary>

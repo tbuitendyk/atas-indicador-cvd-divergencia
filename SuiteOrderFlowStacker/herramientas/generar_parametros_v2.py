@@ -199,6 +199,8 @@ GRUPOS = [
         ("ShowSweepBoxes", "bool", "_v.ShowSweepBoxes", "Cajas de barrido", "Coloreadas por estado (REAL, PREMIUM, ROMPIMIENTO / ACEPTACIÓN, FALLIDO…).", None, None, False),
         ("ShowModelBoxes", "bool", "_v.ShowModelBoxes", "Zonas de los modelos", "M1 (barrido, BFVG), M2 (LVN / EDGE / FVG) y M3 (iceberg rebasado) con entrada, stop y objetivo.", None, None, False),
         ("ShowFvgV2", "bool", "_v.ShowFvgV2", "FVG / BFVG", "", None, None, False),
+        ("ShowEdgeV2", "bool", "_v.ShowEdgeV2", "EDGE del Thermal",
+         "Los EDGE (TECHO / PISO HVN) del LVN Thermal Profile (FAST), en vivo o guardados (también con el Thermal cerrado).", None, None, False),
         ("FvgOnlyAfterSweep", "bool", "_v.FvgOnlyAfterSweep", "FVG solo después de un barrido validado",
          "Dibuja solo los FVG nacidos después de un BARRIDO REAL o PREMIUM y a favor de su giro (oculta los demás).", None, None, False),
         ("BreakBannerSec", "int", "_v.BreakBannerSec", "Aviso de ruptura de línea: segundos",

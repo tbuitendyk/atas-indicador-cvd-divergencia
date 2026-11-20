@@ -555,6 +555,10 @@ public sealed partial class MotorSweeps
 			L.Add(Linea(grupo, new Segmento("Esperar operación "), new Segmento(dir > 0 ? "ALCISTA" : "BAJISTA", ColorSigno(dir), true)));
 
 		L.Add(Linea(grupo, new Segmento($"LVN activos {Lvn.Activas.Count()} · EDGE activos {Edge.Activas.Count()} · fuente Thermal {TextoFuente(FuenteSuite.Thermal)}", ColorPanel.Gris)));
+
+		// v5: con el Thermal cerrado o apagado se siguen usando los LVN / EDGE guardados.
+		if (!HayFuenteLvn && (Lvn.Activas.Any() || Edge.Activas.Any()))
+			L.Add(Linea(grupo, new Segmento("LVN Thermal Profile cerrado: se usan sus LVN / EDGE guardados", ColorPanel.Naranja)));
 	}
 
 	private void Detalle(List<LineaPanel> L, EvaluacionBarrido e)

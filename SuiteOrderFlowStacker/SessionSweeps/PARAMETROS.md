@@ -182,6 +182,7 @@ no son probabilidades. Los grupos 1-15 son los de sesiones, niveles y visual (ve
 | `ShowSweepBoxes` | Cajas de barrido | Sí |  | Coloreadas por estado (REAL, PREMIUM, ROMPIMIENTO / ACEPTACIÓN, FALLIDO…). |
 | `ShowModelBoxes` | Zonas de los modelos | Sí |  | M1 (barrido, BFVG), M2 (LVN / EDGE / FVG) y M3 (iceberg rebasado) con entrada, stop y objetivo. |
 | `ShowFvgV2` | FVG / BFVG | Sí |  |  |
+| `ShowEdgeV2` | EDGE del Thermal | Sí |  | Los EDGE (TECHO / PISO HVN) del LVN Thermal Profile (FAST), en vivo o guardados (también con el Thermal cerrado). |
 | `FvgOnlyAfterSweep` | FVG solo después de un barrido validado | Sí |  | Dibuja solo los FVG nacidos después de un BARRIDO REAL o PREMIUM y a favor de su giro (oculta los demás). |
 | `BreakBannerSec` | Aviso de ruptura de línea: segundos | 60 | 0-600 | Cuánto queda el aviso arriba a la derecha del gráfico (0 = sin aviso). |
 | `ShowInternalLiquidity` | Liquidez interna | Sí |  | Niveles de sesión e iguales. |

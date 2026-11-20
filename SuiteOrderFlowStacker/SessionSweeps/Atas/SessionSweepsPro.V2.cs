@@ -32,6 +32,7 @@ public partial class SessionSweepsPro
 		public bool ShowManualTriggerBoxes;
 		public bool ShowTrackerDiagnostics;
 		public bool FvgOnlyAfterSweep = true;
+		public bool ShowEdgeV2 = true;
 		public int BreakBannerSec = 60;
 	}
 
@@ -90,6 +91,17 @@ public partial class SessionSweepsPro
 	private void AlEntrarEnVivoV2(MotorSweeps motor)
 	{
 		_enVivoDesdeUtc = DateTime.UtcNow;
+
+		// v5: primero los LVN y EDGE guardados por el LVN Thermal Profile (FAST): valen aunque esté cerrado o apagado; si
+		// está cargado, sus eventos del bus (los mismos Id, versión más nueva) los actualizan enseguida.
+		if (!string.IsNullOrEmpty(_instrumentoV2) && ZonasGuardadas.Leer(_instrumentoV2) is { } guardadas)
+		{
+			foreach (var z in guardadas.Lvn.OrderBy(z => z.RangoId).ThenBy(z => z.Utc))
+				motor.LvnDesdeSuite(z);
+
+			foreach (var z in guardadas.Edge.OrderBy(z => z.RangoId).ThenBy(z => z.Utc))
+				motor.EdgeDesdeSuite(z);
+		}
 
 		if (_canal is { } canal)
 		{

@@ -144,8 +144,10 @@ public partial class ThermalVolumeProfileLVN
 		return auto.Concat(manuales).ToList();
 	}
 
-	private void SuitePublicarEdges(ResultadoTermico r, bool cerrada, DateTime ahora, int confirmaciones)
+	/// <summary>Publica los EDGE estables; devuelve si cambió alguno (para guardarlos).</summary>
+	private bool SuitePublicarEdges(ResultadoTermico r, bool cerrada, DateTime ahora, int confirmaciones)
 	{
+		var cambio = false;
 		_seguidorEdge.Actualizar(_p.EnableEdge ? EdgesComoZonas(r) : new List<LvnTermico>(), cerrada, ahora, confirmaciones, LvnHysteresisPct);
 		var actuales = new Dictionary<long, EdgeZone>();
 
@@ -170,13 +172,17 @@ public partial class ThermalVolumeProfileLVN
 		foreach (var (id, z) in actuales)
 		{
 			if (!_edgesPublicados.TryGetValue(id, out var previo) || !ReferenceEquals(previo, z))
+			{
 				canal.Publicar(z);
+				cambio = true;
+			}
 		}
 
 		foreach (var (id, z) in _edgesPublicados)
 		{
 			if (!actuales.ContainsKey(id))
 			{
+				cambio = true;
 				canal.Publicar(new EdgeZone
 				{
 					Id = z.Id, Fuente = FuenteSuite.Thermal, Utc = z.Utc, CambioUtc = ahora, Version = z.Version + 1, RangoId = z.RangoId, Precio = z.Precio,
@@ -189,6 +195,8 @@ public partial class ThermalVolumeProfileLVN
 
 		foreach (var (id, z) in actuales)
 			_edgesPublicados[id] = z;
+
+		return cambio;
 	}
 
 	/// <summary>Dibujo de los EDGE (separado del cálculo): línea, franja o las dos; solo los N más cercanos si se pide.</summary>

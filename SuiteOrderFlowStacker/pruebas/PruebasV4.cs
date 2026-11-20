@@ -16,6 +16,66 @@ internal static class PruebasV4
 		Estructura(c);
 		LineasDeSesion(c);
 		CargaRapida(c);
+		ZonasPersistentes(c);
+	}
+
+	/// <summary>v5 F4: los LVN y EDGE del Thermal se guardan y el Sweep Pro los usa con el Thermal cerrado.</summary>
+	private static void ZonasPersistentes(Comprobador c)
+	{
+		c.Seccion("v5 F4: LVN y EDGE guardados por el LVN Thermal Profile; el Sweep Pro los usa aunque el Thermal esté cerrado");
+		var carpeta = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ssp-zonas-" + Guid.NewGuid().ToString("N"));
+		var antes = ZonasGuardadas.Carpeta;
+		ZonasGuardadas.Carpeta = carpeta;
+
+		try
+		{
+			var t = Utc(new DateTime(2026, 11, 19, 9, 40, 0));
+			var manual = new LvnZone
+			{
+				Id = 11, Fuente = FuenteSuite.Thermal, Utc = t, CambioUtc = t, Version = 3, RangoId = 2, Bajo = 21380, Alto = 21381, Centro = 21380.5m, Manual = true,
+				Estado = "ACTIVO", Score = 77, PrecioOriginal = 21380.25m
+			};
+			var borrado = new LvnZone { Id = 12, Fuente = FuenteSuite.Thermal, Utc = t, CambioUtc = t, Version = 2, RangoId = 2, Bajo = 21390, Alto = 21391, Centro = 21390.5m, Estado = "BORRADO" };
+			var edge = new EdgeZone
+			{
+				Id = 21, Fuente = FuenteSuite.Thermal, Utc = t, CambioUtc = t, Version = 1, RangoId = 2, Precio = 21360, Bajo = 21359.5m, Alto = 21360.5m,
+				Lado = EdgeZone.PisoHvn, Estado = "ACTIVO", Manual = true
+			};
+			ZonasGuardadas.Guardar("MNQZ6", new[] { manual, borrado }, new[] { edge }, t);
+			var leido = ZonasGuardadas.Leer("MNQZ6");
+			c.Check("se guardan las vigentes (no la BORRADO) con sus datos (manual, precio original, rango, lado del EDGE)",
+				leido is null ? "nada" : $"{leido.Lvn.Count} {leido.Lvn[0].Id} {F(leido.Lvn[0].Centro)} {leido.Lvn[0].Manual} {F(leido.Lvn[0].PrecioOriginal ?? 0)} {leido.Lvn[0].RangoId} | " +
+					$"{leido.Edge.Count} {F(leido.Edge[0].Precio)} {leido.Edge[0].Lado} {leido.Edge[0].Manual}",
+				$"1 11 21380.5 True 21380.25 2 | 1 21360 {EdgeZone.PisoHvn} True");
+			c.Check("sin archivo para otro instrumento: nada", (ZonasGuardadas.Leer("ESZ6") is null).ToString(), "True");
+			System.IO.File.WriteAllText(ZonasGuardadas.Archivo("YMZ6"), "{ dañado");
+			c.Check("un archivo dañado no rompe nada", (ZonasGuardadas.Leer("YMZ6") is null).ToString(), "True");
+
+			// Lo que hace la carcasa al entrar en vivo, con el Thermal cerrado (sin latido).
+			var s = new SimMotor(sinBarridos: true);
+			s.Fuentes.Estados[FuenteSuite.Thermal] = EstadoFuente.NoCargado;
+			s.M.Leer(m =>
+			{
+				foreach (var z in leido!.Lvn)
+					m.LvnDesdeSuite(z);
+
+				foreach (var z in leido.Edge)
+					m.EdgeDesdeSuite(z);
+
+				return 0;
+			});
+			c.Check("el Sweep Pro tiene el LVN manual y el EDGE aunque el Thermal no esté cargado", s.M.Leer(m => $"{m.Lvn.Activas.Count()} {m.Edge.Activas.Count()} {m.HayFuenteLvn}"), "1 1 False");
+			var panel = s.M.Panel(new OpcionesPanel());
+			c.Check("el panel lo dice (y no 'SIN FUENTE LVN')",
+				$"{panel.Lineas.Any(l => l.Texto.StartsWith("LVN Thermal Profile cerrado", StringComparison.Ordinal))} {panel.Lineas.Any(l => l.Texto.StartsWith("SIN FUENTE LVN", StringComparison.Ordinal))}", "True False");
+		}
+		finally
+		{
+			ZonasGuardadas.Carpeta = antes;
+
+			if (System.IO.Directory.Exists(carpeta))
+				System.IO.Directory.Delete(carpeta, true);
+		}
 	}
 
 	/// <summary>v5 F3: carga rápida: solo los últimos días operativos llevan detalle; los anteriores, solo niveles.</summary>

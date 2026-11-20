@@ -464,26 +464,29 @@ public partial class SessionSweepsPro
 	[Display(Name = "FVG / BFVG", GroupName = "28. Panel y dibujo", Order = 70, Description = "")]
 	public bool ShowFvgV2 { get => _v.ShowFvgV2; set { _v.ShowFvgV2 = value; RedrawChart(); } }
 
-	[Display(Name = "FVG solo después de un barrido validado", GroupName = "28. Panel y dibujo", Order = 80, Description = "Dibuja solo los FVG nacidos después de un BARRIDO REAL o PREMIUM y a favor de su giro (oculta los demás).")]
+	[Display(Name = "EDGE del Thermal", GroupName = "28. Panel y dibujo", Order = 80, Description = "Los EDGE (TECHO / PISO HVN) del LVN Thermal Profile (FAST), en vivo o guardados (también con el Thermal cerrado).")]
+	public bool ShowEdgeV2 { get => _v.ShowEdgeV2; set { _v.ShowEdgeV2 = value; RedrawChart(); } }
+
+	[Display(Name = "FVG solo después de un barrido validado", GroupName = "28. Panel y dibujo", Order = 90, Description = "Dibuja solo los FVG nacidos después de un BARRIDO REAL o PREMIUM y a favor de su giro (oculta los demás).")]
 	public bool FvgOnlyAfterSweep { get => _v.FvgOnlyAfterSweep; set { _v.FvgOnlyAfterSweep = value; RedrawChart(); } }
 
-	[Display(Name = "Aviso de ruptura de línea: segundos", GroupName = "28. Panel y dibujo", Order = 90, Description = "Cuánto queda el aviso arriba a la derecha del gráfico (0 = sin aviso).")]
+	[Display(Name = "Aviso de ruptura de línea: segundos", GroupName = "28. Panel y dibujo", Order = 100, Description = "Cuánto queda el aviso arriba a la derecha del gráfico (0 = sin aviso).")]
 	[Range(0, 600)]
 	public int BreakBannerSec { get => _v.BreakBannerSec; set { _v.BreakBannerSec = Math.Clamp(value, 0, 600); RedrawChart(); } }
 
-	[Display(Name = "Liquidez interna", GroupName = "28. Panel y dibujo", Order = 100, Description = "Niveles de sesión e iguales.")]
+	[Display(Name = "Liquidez interna", GroupName = "28. Panel y dibujo", Order = 110, Description = "Niveles de sesión e iguales.")]
 	public bool ShowInternalLiquidity { get => _v.ShowInternalLiquidity; set { _v.ShowInternalLiquidity = value; RedrawChart(); } }
 
-	[Display(Name = "Liquidez externa", GroupName = "28. Panel y dibujo", Order = 110, Description = "PDH/PDL y semana anterior.")]
+	[Display(Name = "Liquidez externa", GroupName = "28. Panel y dibujo", Order = 120, Description = "PDH/PDL y semana anterior.")]
 	public bool ShowExternalLiquidity { get => _v.ShowExternalLiquidity; set { _v.ShowExternalLiquidity = value; RedrawChart(); } }
 
-	[Display(Name = "LVN del Thermal", GroupName = "28. Panel y dibujo", Order = 120, Description = "Las zonas que llegan del Thermal (activas y mitigadas).")]
+	[Display(Name = "LVN del Thermal", GroupName = "28. Panel y dibujo", Order = 130, Description = "Las zonas que llegan del Thermal (activas y mitigadas).")]
 	public bool ShowLvnLines { get => _v.ShowLvnLines; set { _v.ShowLvnLines = value; RedrawChart(); } }
 
-	[Display(Name = "Cajas del gatillo manual", GroupName = "28. Panel y dibujo", Order = 130, Description = "Las dibuja el Thermal que las pidió; actívelo solo si el Thermal está en otro gráfico.")]
+	[Display(Name = "Cajas del gatillo manual", GroupName = "28. Panel y dibujo", Order = 140, Description = "Las dibuja el Thermal que las pidió; actívelo solo si el Thermal está en otro gráfico.")]
 	public bool ShowManualTriggerBoxes { get => _v.ShowManualTriggerBoxes; set { _v.ShowManualTriggerBoxes = value; RedrawChart(); } }
 
-	[Display(Name = "Diagnóstico de trackers", GroupName = "28. Panel y dibujo", Order = 140, Description = "Marca hueca fucsia (SSP ICE, STOP, SWEEP, STK, IMB) en cada evento que Sessions Sweeps recibe del bus, para compararlo con el dibujo original del tracker.")]
+	[Display(Name = "Diagnóstico de trackers", GroupName = "28. Panel y dibujo", Order = 150, Description = "Marca hueca fucsia (SSP ICE, STOP, SWEEP, STK, IMB) en cada evento que Sessions Sweeps recibe del bus, para compararlo con el dibujo original del tracker.")]
 	public bool ShowTrackerDiagnostics { get => _v.ShowTrackerDiagnostics; set { _v.ShowTrackerDiagnostics = value; RedrawChart(); } }
 
 	// --- 37. Alertas y canales -------------------------------------------------------------------------------

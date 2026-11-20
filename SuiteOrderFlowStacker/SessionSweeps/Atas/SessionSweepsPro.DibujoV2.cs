@@ -32,6 +32,7 @@ public partial class SessionSweepsPro
 		public List<(string Modelo, string Etiqueta, int Signo, decimal Bajo, decimal Alto, DateTime Desde, DateTime? Hasta, bool Pendiente, bool Abierta, decimal? Entrada, decimal? Stop, decimal? Tp1, decimal? Tp2)> Modelos = new();
 		public List<(bool Alcista, int Marco, decimal Bajo, decimal Alto, DateTime Utc)> Fvgs = new();
 		public List<(decimal Bajo, decimal Alto, bool Manual, bool Activo)> Lvns = new();
+		public List<(decimal Precio, decimal Bajo, decimal Alto, string Texto, bool Manual, bool Activo)> Edges = new();
 	}
 
 	/// <summary>Vela del gráfico que contiene 'utc' (búsqueda binaria en las horas de las velas).</summary>
@@ -97,7 +98,8 @@ public partial class SessionSweepsPro
 			Modelos = m.Setups.Select(s => (s.Modelo, s.Etiqueta, s.Signo, s.Zona.Bajo, s.Zona.Alto, s.ArmadoUtc, s.CierreUtc ?? (s.Pendiente ? (DateTime?)null : s.ExpiraUtc),
 				s.Pendiente, s.Abierta, s.Entrada, s.Stop, s.Tp1, s.Tp2)).ToList(),
 			Fvgs = m.Fvg2.Fvgs.Where(f => f.Vivo && (!_v.FvgOnlyAfterSweep || m.FvgRelevante(f))).Select(f => (f.Alcista, f.Marco, f.Bajo, f.Alto, f.Utc)).ToList(),
-			Lvns = m.Lvn.Todas.Select(z => (z.Bajo, z.Alto, z.Manual, z.Activo)).ToList()
+			Lvns = m.Lvn.Todas.Select(z => (z.Bajo, z.Alto, z.Manual, z.Activo)).ToList(),
+			Edges = m.Edge.Todas.Where(g => g.Estado != "BORRADO" && !g.Provisional).Select(g => (g.Precio, g.Bajo, g.Alto, g.Texto, g.Manual, g.Activo)).ToList()
 		});
 
 		var ultima = Math.Max(0, CurrentBar - 1);
@@ -122,6 +124,18 @@ public partial class SessionSweepsPro
 					Punteada(context, pluma, area.Left, area.Right, y);
 
 				_etiquetas.Add((y, $"LVN {(z.Manual ? "MANUAL" : "AUTO")}{(z.Activo ? "" : " mitigado")}", color));
+			}
+		}
+
+		// v5: los EDGE del LVN Thermal Profile (en vivo o de su archivo guardado), también con el Thermal cerrado.
+		if (_v.ShowEdgeV2)
+		{
+			foreach (var g in foto.Edges)
+			{
+				var color = g.Activo ? Color.FromArgb(210, 100, 200, 255) : Color.FromArgb(110, 160, 160, 160);
+				var y = Y(g.Precio);
+				Punteada(context, new RenderPen(color, g.Activo ? 2 : 1), area.Left, area.Right, y);
+				_etiquetas.Add((y, $"EDGE {g.Texto} {(g.Manual ? "MANUAL" : "AUTO")}{(g.Activo ? "" : " probado")}", color));
 			}
 		}
 
