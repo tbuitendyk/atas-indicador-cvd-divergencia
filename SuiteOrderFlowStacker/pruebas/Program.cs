@@ -21,6 +21,7 @@ PruebasV3Cvd.Ejecutar(c);
 PruebasV3Envios.Ejecutar(c);
 PruebasV4.Ejecutar(c);
 PruebasV4Global.Ejecutar(c);
+PruebasV5.Ejecutar(c);
 Documentacion.Ejecutar(c);
 
 return c.Resumen();

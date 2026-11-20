@@ -21,7 +21,10 @@ public enum FuenteSuite
 	Imbalance,
 	Absorption,
 	Thermal,
-	SessionSweeps
+	SessionSweeps,
+
+	/// <summary>v5: Indicador de Vela Compuesta (FAST).</summary>
+	VelaCompuesta
 }
 
 public enum EstadoFuente
@@ -148,6 +151,24 @@ public sealed class AbsorptionEvent : EventoSuite
 }
 
 /// <summary>LVN publicado por el Thermal Volume Profile + LVN (Suite): automático o trazado con el botón LVN.</summary>
+/// <summary>
+/// v5: un gatillo del Indicador de Vela Compuesta (FAST): COMPUESTA (vela compuesta de varias velas volumétricas) o
+/// VOLUMETRICA (una vela volumétrica de desplazamiento). El Sweep Pro (FAST) lo usa como confluencia de la entrada.
+/// </summary>
+public sealed class VolumetricTriggerEvent : EventoSuite
+{
+	public string Tipo { get; init; } = "";
+	public int Direccion { get; init; }
+	public decimal Precio { get; init; }
+	public decimal Bajo { get; init; }
+	public decimal Alto { get; init; }
+	public string Razones { get; init; } = "";
+
+	public override decimal PrecioReferencia => Precio;
+
+	public override bool? LadoCompra => Direccion > 0;
+}
+
 public sealed class LvnZone : EventoSuite
 {
 	public long RangoId { get; init; }

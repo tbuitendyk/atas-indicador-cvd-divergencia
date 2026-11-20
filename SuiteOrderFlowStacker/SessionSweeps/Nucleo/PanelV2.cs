@@ -138,6 +138,8 @@ public sealed partial class MotorSweeps
 			});
 		}
 
+		GatilloVelaCompuestaPanel(L, "b5");
+
 		// 6) PLAN DE RIESGO.
 		Recuadro(L, "6. PLAN DE RIESGO", "b6");
 		var riesgo = CalculadoraRiesgo.Riesgo(P2, o.SaldoAtas);
@@ -545,6 +547,30 @@ public sealed partial class MotorSweeps
 	}
 
 	/// <summary>Próximo objetivo LVN o EDGE (el más cercano en la dirección) y conteo de zonas activas.</summary>
+	/// <summary>
+	/// v5: el último gatillo del Indicador de Vela Compuesta (FAST) de los últimos 30 minutos. Si va a favor de un setup
+	/// vivo y cerca de su zona, se dice que lo confirma (la confluencia ya la cuenta el análisis del gatillo).
+	/// </summary>
+	private void GatilloVelaCompuestaPanel(List<LineaPanel> L, string grupo)
+	{
+		var ultimo = Fuentes.Consultar<VolumetricTriggerEvent>(Ahora.AddMinutes(-30), Ahora).LastOrDefault();
+
+		if (ultimo is null)
+		{
+			L.Add(Linea(grupo, new Segmento("Indicador de Vela Compuesta: sin gatillos en 30 min", ColorPanel.Gris)));
+			return;
+		}
+
+		var cerca = 8 * Cfg.TamanoTick;
+		var setup = Setups.LastOrDefault(s => s.Signo == ultimo.Direccion && s.Estado is EstadoModelo.Armado or EstadoModelo.GatilloPendiente &&
+			ultimo.Bajo <= s.Zona.Alto + cerca && ultimo.Alto >= s.Zona.Bajo - cerca);
+		var color = ColorSigno(ultimo.Direccion);
+		L.Add(Linea(grupo, new Segmento($"{AnalizadorGatillo.TextoVolumetrico(ultimo.Tipo)} {(ultimo.Direccion > 0 ? "ALCISTA" : "BAJISTA")} {Precio(ultimo.Precio)} · {TiempoV2.HoraCdmx(ultimo.Utc)}",
+				color, true, Flecha(ultimo.Direccion), color),
+			new Segmento(setup is not null ? $" · confirma {setup.Etiqueta} en {setup.Zona.Tipo} {Precio(setup.Zona.Bajo)}-{Precio(setup.Zona.Alto)}" : " · (Indicador de Vela Compuesta)",
+				setup is not null ? ColorPanel.Verde : ColorPanel.Gris, setup is not null)));
+	}
+
 	private void ProximoObjetivoPanel(List<LineaPanel> L, EvaluacionBarrido? e, string grupo)
 	{
 		var abierta = Setups.LastOrDefault(s => s.Abierta);

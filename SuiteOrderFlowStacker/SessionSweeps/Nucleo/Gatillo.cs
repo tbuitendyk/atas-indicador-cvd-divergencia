@@ -200,9 +200,15 @@ public static class AnalizadorGatillo
 		var imbalanceFavor = p.Imbalance.Factor > 0 && c.Fuentes.Consultar<ImbalanceEvent>(desde, hasta, x => x.Compra == (s > 0)).Count > 0;
 		var sweepFavor = p.Sweeps.Factor > 0 ? c.Fuentes.Consultar<SweepTrackerEvent>(desde, hasta, x => x.Compra == (s > 0)).FirstOrDefault() : null;
 		var stops = p.Stops.Factor > 0 ? c.Fuentes.Consultar<StopsEvent>(desde, hasta, x => z.Contiene(x.Extremo, 8 * tick)).FirstOrDefault() : null;
+		// v5: un gatillo del Indicador de Vela Compuesta (FAST) a favor, cerca de la zona, cuenta como la misma intención.
+		var volumetrico = c.Fuentes.Consultar<VolumetricTriggerEvent>(desde, hasta, x => x.Direccion == s && x.Bajo <= z.Alto + 8 * tick && x.Alto >= z.Bajo - 8 * tick).LastOrDefault();
 
-		if (stackedFavor || imbalanceFavor)
-			Sumar(a, ref puntos, stackedFavor ? "Stacked imbalance a favor (intención)" : "Imbalance a favor (intención)", 10);
+		if (stackedFavor || imbalanceFavor || volumetrico is not null)
+			Sumar(a, ref puntos, stackedFavor ? "Stacked imbalance a favor (intención)" : imbalanceFavor ? "Imbalance a favor (intención)" :
+				$"{TextoVolumetrico(volumetrico!.Tipo)} a favor (Indicador de Vela Compuesta)", 10);
+
+		if (volumetrico is not null)
+			a.Hallazgos.Add(TextoVolumetrico(volumetrico.Tipo) + " a favor");
 
 		if (stackedFavor)
 			a.Hallazgos.Add("Stacked a favor");
@@ -515,4 +521,7 @@ public static class AnalizadorGatillo
 
 		return 0;
 	}
+
+	/// <summary>"GATILLO COMP" o "GATILLO VOLUMÉTRICO" (los dos del Indicador de Vela Compuesta (FAST)).</summary>
+	public static string TextoVolumetrico(string tipo) => tipo == "COMPUESTA" ? "GATILLO COMP" : "GATILLO VOLUMÉTRICO";
 }
